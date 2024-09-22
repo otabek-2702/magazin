@@ -21,6 +21,7 @@ const emit = defineEmits(['update:isDrawerOpen', 'roleData']);
 
 const isFormValid = ref(false);
 const refForm = ref();
+const role_id = ref();
 const name = ref();
 const name_uz = ref();
 const name_ru = ref();
@@ -77,6 +78,7 @@ watch(
     if (newVal) {
       let role = await axios.get('/roles/' + props.id);
 
+      role_id.value = role.data.id
       name_ru.value = role.data.name_ru;
       name.value = role.data.name;
       name_uz.value = role.data.name_ru;
@@ -119,7 +121,7 @@ watch(
               </VCol>
 
               <!-- 👉 Роль -->
-              <VCol cols="12">
+              <VCol cols="12" v-if="role_id != 1">
                 <VSelect
                   multiple
                   persistent-hint

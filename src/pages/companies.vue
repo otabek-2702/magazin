@@ -6,7 +6,9 @@ import UpdateCompanyDrawer from '@/views/company/UpdateCompanyDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
+import { useAppAbility } from '@/plugins/casl/useAppAbility';
 
+const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const isFetching = ref(false);
@@ -152,7 +154,9 @@ const deleteItem = async function (id) {
                 density="compact"
                 class="me-6"
               />
-              <VBtn @click="isAddNewCompanyDrawerVisible = true"> Добавить новую компанию </VBtn>
+              <Can I="add" a="Company">
+                <VBtn @click="isAddNewCompanyDrawerVisible = true"> Добавить новую компанию </VBtn>
+              </Can>
             </VCol>
           </VCardText>
 
@@ -164,7 +168,7 @@ const deleteItem = async function (id) {
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ</th>
                 <th>ТЕЛЕФОН</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th v-if="can('update', 'Company') || can('delete', 'Company')">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -174,23 +178,28 @@ const deleteItem = async function (id) {
                 <td>{{ company.title }}</td>
                 <td>{{ company.phone_number }}</td>
                 <td class="text-center" style="width: 80px">
-                  <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openEditDrawer(company.id);
-                      }
-                    "
-                    size="30"
-                    icon="bx-edit-alt"
-                    style="color: rgb(var(--v-global-theme-primary))"
-                  ></VIcon>
-                  <VIcon
-                    size="30"
-                    icon="bx-trash"
-                    style="color: red"
-                    @click="confirmDelete(company.id, company.title)"
-                  ></VIcon>
+                  <Can I="update" a="Company">
+                    <VIcon
+                      @click="
+                        (event) => {
+                          event.stopPropagation();
+                          openEditDrawer(company.id);
+                        }
+                      "
+                      size="30"
+                      icon="bx-edit-alt"
+                      style="color: rgb(var(--v-global-theme-primary))"
+                    ></VIcon>
+                  </Can>
+
+                  <Can I="delete" a="Company">
+                    <VIcon
+                      size="30"
+                      icon="bx-trash"
+                      style="color: red"
+                      @click="confirmDelete(company.id, company.title)"
+                    ></VIcon>
+                  </Can>
                 </td>
               </tr>
             </tbody>
@@ -234,7 +243,6 @@ const deleteItem = async function (id) {
     />
   </section>
 </template>
-
 
 <style lang="scss">
 .app-user-search-filter {

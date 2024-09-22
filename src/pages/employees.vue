@@ -6,7 +6,9 @@ import UpdateEmployeeDrawer from '@/views/employee/UpdateEmployeeDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
+import { useAppAbility } from '@/plugins/casl/useAppAbility';
 
+const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(10);
@@ -43,7 +45,6 @@ const fetchData = async (force = false) => {
     isFetching.value = false;
   }
 };
-
 
 // search
 const searchElements = async () => {
@@ -153,7 +154,11 @@ const deleteItem = async function (id) {
                 density="compact"
                 class="me-6"
               />
-              <VBtn @click="isAddNewEmployeeDrawerVisible = true">Добавить нового сотрудника</VBtn>
+              <Can I="add" a="User">
+                <VBtn @click="isAddNewEmployeeDrawerVisible = true"
+                  >Добавить нового сотрудника</VBtn
+                >
+              </Can>
             </VCol>
           </VCardText>
 
@@ -165,7 +170,7 @@ const deleteItem = async function (id) {
                 <th style="width: 48px">ID</th>
                 <th>ФИО</th>
                 <th>Логин</th>
-                <th>Действия</th>
+                <th v-if="can('update', 'User') || can('delete', 'User')">Действия</th>
               </tr>
             </thead>
 
@@ -174,24 +179,32 @@ const deleteItem = async function (id) {
                 <td>{{ i + 1 }}</td>
                 <td>{{ employee.name }}</td>
                 <td>{{ employee.login }}</td>
-                <td class="text-center" style="width: 80px">
-                  <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openEditDrawer(employee.id);
-                      }
-                    "
-                    size="30"
-                    icon="bx-edit-alt"
-                    style="color: rgb(var(--v-global-theme-primary))"
-                  ></VIcon>
-                  <VIcon
-                    size="30"
-                    icon="bx-trash"
-                    style="color: red"
-                    @click="confirmDelete(employee.id, employee.name)"
-                  ></VIcon>
+                <td
+                  class="text-center"
+                  style="width: 80px"
+                 
+                >
+                  <Can I="update" a="User">
+                    <VIcon
+                      @click="
+                        (event) => {
+                          event.stopPropagation();
+                          openEditDrawer(employee.id);
+                        }
+                      "
+                      size="30"
+                      icon="bx-edit-alt"
+                      style="color: rgb(var(--v-global-theme-primary))"
+                    ></VIcon>
+                  </Can>
+                  <Can I="delete" a="User">
+                    <VIcon
+                      size="30"
+                      icon="bx-trash"
+                      style="color: red"
+                      @click="confirmDelete(employee.id, employee.name)"
+                    ></VIcon>
+                  </Can>
                 </td>
               </tr>
             </tbody>
@@ -235,7 +248,6 @@ const deleteItem = async function (id) {
     />
   </section>
 </template>
-
 
 <style lang="scss">
 .app-user-search-filter {

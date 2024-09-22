@@ -7,7 +7,9 @@ import UpdateRoleDrawer from '@/views/role/UpdateRoleDrawer.vue';
 import DeleteItemDialog from '@core/components/DeleteItemDialog.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import { toast } from 'vue3-toastify';
+import { useAppAbility } from '@/plugins/casl/useAppAbility';
 
+const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const isFetching = ref(false);
@@ -52,7 +54,6 @@ watch(searchQuery, (newVal) => {
 onMounted(() => {
   fetchData();
 });
-
 
 const resolveUserRoleVariant = (role) => {
   const roleLowerCase = role.toLowerCase();
@@ -204,8 +205,9 @@ const deleteItem = async function (id) {
                 density="compact"
                 class="me-3"
               />
-
-              <VBtn @click="isAddNewRoleDrawerVisible = true">Добавить новую роль</VBtn>
+              <Can I="add" a="Role">
+                <VBtn @click="isAddNewRoleDrawerVisible = true">Добавить новую роль</VBtn>
+              </Can>
             </div>
           </VCardText>
 
@@ -218,7 +220,7 @@ const deleteItem = async function (id) {
                 <th scope="col" style="width: 48px">ID</th>
                 <th scope="col">ИМЯ</th>
                 <th scope="col">ПРАВА</th>
-                <th scope="col">ДЕЙСТВИЯ</th>
+                <th scope="col" v-if="can('update', 'Role') || can('delete', 'Role')">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -237,7 +239,7 @@ const deleteItem = async function (id) {
                 </td>
 
                 <td class="text-capitalize text-high-emphasis">
-                  <VRow class="m-0 pa-2 gap-2">
+                  <VRow class="pa-2 gap-2" style="margin: 0 !important">
                     <VChip
                       v-for="permission in role.permissions"
                       color="success"
@@ -249,20 +251,28 @@ const deleteItem = async function (id) {
                 </td>
 
                 <!-- 👉 Actions -->
-                <td class="text-center" style="width: 80px">
+                <td
+                  class="text-center"
+                  style="width: 80px"
+                >
                   <div style="cursor: pointer">
-                    <VIcon
-                      @click="openEditDrawer(role.id)"
-                      size="30"
-                      icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
-                    ></VIcon>
-                    <VIcon
-                      size="30"
-                      icon="bx-trash"
-                      style="color: red"
-                      @click="confirmDelete(role.id, role.name_uz)"
-                    ></VIcon>
+                    <Can I="update" a="Role">
+                      <VIcon
+                        @click="openEditDrawer(role.id)"
+                        size="30"
+                        icon="bx-edit-alt"
+                        style="color: rgb(var(--v-global-theme-primary))"
+                      ></VIcon>
+                    </Can>
+
+                    <Can I="delete" a="Role">
+                      <VIcon
+                        size="30"
+                        icon="bx-trash"
+                        style="color: red"
+                        @click="confirmDelete(role.id, role.name_ru)"
+                      ></VIcon>
+                    </Can>
                   </div>
                 </td>
               </tr>

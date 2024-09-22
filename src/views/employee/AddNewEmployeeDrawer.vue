@@ -78,7 +78,7 @@ const handleDrawerModelValueUpdate = (val) => {
 
 const fetchRoles = async function () {
   const r = await axios.get('/roles');
-  r.data.roles.shift();
+  r.data.roles.filter(e => e.id != 1);
   roles_list.value = r.data.roles;
 };
 
