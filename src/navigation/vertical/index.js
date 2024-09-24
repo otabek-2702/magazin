@@ -13,12 +13,18 @@ export default [
     subject: 'Roles',
     action: 'show'
   },
- 
+  {
+    title: 'Кандидаты',
+    to: { name: 'Candidates' },
+    icon: { icon: 'mdi-account-multiple' },
+    subject: 'Candidates',
+    action: 'show'
+  },
   {
     title: 'Сотрудники',
     to: { name: 'Employees' },
     icon: { icon: 'mdi-account-tie' },
-    subject: 'Employees',
+    subject: 'Users',
     action: 'show'
   },
   {
@@ -28,5 +34,18 @@ export default [
     subject: 'Companies',
     action: 'show'
   },
-  
+  {
+    title: 'Вакансии',
+    to: { name: 'Vacancies' },
+    icon: { icon: 'mdi-file-account-outline' },
+    subject: 'Vacancies',
+    action: 'show'
+  },
+  {
+    title: 'Должности',
+    to: { name: 'Jobs' },
+    icon: { icon: 'mdi-briefcase' },
+    subject: 'Jobpositions',
+    action: 'show'
+  },
 ]

@@ -110,7 +110,6 @@ watch(
 
 const fetchRoles = async function () {
   const r = await axios.get('/roles');
-  r.data.roles.shift();
   roles_list.value = r.data.roles;
 };
 

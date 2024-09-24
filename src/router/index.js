@@ -72,7 +72,7 @@ const router = createRouter({
           component: () => import("@/pages/employees.vue"),
           meta: {
             action: 'show',
-            subject: 'Employees',
+            subject: 'Users',
           }
         },
         {
