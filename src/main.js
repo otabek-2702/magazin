@@ -12,6 +12,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { abilitiesPlugin, Can } from "@casl/vue"
 import ability from "@/plugins/casl/ability"
+import print from 'vue3-print-nb'
 
 loadFonts()
 
@@ -30,6 +31,9 @@ app.use(layoutsPlugin)
 app.use(abilitiesPlugin, ability, {
   useGlobalProperties: true,
 })
+
+app.use(print)
+
 
 // Mount vue app
 app.mount('#app')

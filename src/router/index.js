@@ -7,7 +7,6 @@ import NotAuthorized from "@/pages/not-authorized.vue";
 import DefaultLayoutWithVerticalNav from '@/layouts/default.vue';
 import ability from "@/plugins/casl/ability";
 import Forbidden from "@/pages/forbidden.vue";
-import Candidates from '@/pages/candidates.vue'
 
 
 const router = createRouter({
@@ -37,7 +36,7 @@ const router = createRouter({
         {
           path: '',
           name: 'Index',
-          redirect: { name: 'Candidates' }
+          redirect: { name: 'Statistics' }
         },
         {
           path: '/statistics',
@@ -55,15 +54,6 @@ const router = createRouter({
           meta: {
             action: 'show',
             subject: 'Roles',
-          }
-        },
-        {
-          path: '/candidates',
-          name: 'Candidates',
-          component: Candidates,
-          meta: {
-            action: 'show',
-            subject: 'Candidates',
           }
         },
         {
@@ -85,21 +75,12 @@ const router = createRouter({
           }
         },
         {
-          path: 'vacancies',
-          name: 'Vacancies',
-          component: () => import("@/pages/vacancies.vue"),
+          path: 'ware-house',
+          name: 'WareHouse',
+          component: () => import("@/pages/ware-house.vue"),
           meta: {
             action: 'show',
-            subject: 'Vacancies',
-          }
-        },
-        {
-          path: 'jobs',
-          name: 'Jobs',
-          component: () => import("@/pages/jobs.vue"),
-          meta: {
-            action: 'show',
-            subject: 'Jobs',
+            subject: 'WareHouse',
           }
         },
       ],

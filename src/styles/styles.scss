@@ -3,3 +3,20 @@
 td:last-child:empty {
   display: none; /* Hide the empty last child <td> */
 }
+
+// Styles for printing
+@media print {
+
+  @page {
+    size:  30mm 60mm landscape !important; /* Adjust to paper size */
+    // margin: 1mm !important;       /* No margin */
+  }
+
+    // #printMe {
+    //   width: 60mm; /* Width for A4 paper */
+    //   height: 30mm; /* Height for A4 paper */
+    //   margin: 1mm;
+    // }
+}
+
+

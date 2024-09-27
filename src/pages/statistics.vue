@@ -66,3 +66,4 @@ const chartJsCustomColors = {
 </template>
 
 <style></style>
+

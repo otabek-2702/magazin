@@ -14,13 +14,6 @@ export default [
     action: 'show'
   },
   {
-    title: 'Кандидаты',
-    to: { name: 'Candidates' },
-    icon: { icon: 'mdi-account-multiple' },
-    subject: 'Candidates',
-    action: 'show'
-  },
-  {
     title: 'Сотрудники',
     to: { name: 'Employees' },
     icon: { icon: 'mdi-account-tie' },
@@ -35,17 +28,10 @@ export default [
     action: 'show'
   },
   {
-    title: 'Вакансии',
-    to: { name: 'Vacancies' },
-    icon: { icon: 'mdi-file-account-outline' },
-    subject: 'Vacancies',
-    action: 'show'
-  },
-  {
-    title: 'Должности',
-    to: { name: 'Jobs' },
-    icon: { icon: 'mdi-briefcase' },
-    subject: 'Jobpositions',
+    title: 'Склад',
+    to: { name: 'WareHouse' },
+    icon: { icon: 'mdi-warehouse' },
+    subject: 'WareHouse',
     action: 'show'
   },
 ]
