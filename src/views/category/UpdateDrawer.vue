@@ -1,55 +1,55 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
-import { nextTick, ref, watchEffect } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
+import { VProgressCircular } from 'vuetify/components';
 
 const props = defineProps({
   isDrawerOpen: {
     type: Boolean,
     required: true,
   },
+
+  id: {
+    required: true,
+  },
 });
 
 const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
-
 const isFetching = ref(false);
+const isFetchingStart = ref(true);
 const isFormValid = ref(false);
 const refForm = ref();
-const title = ref();
-const phone_number = ref();
+const name = ref();
 const description = ref();
+
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
+  emit('update:isDrawerOpen', false);
   nextTick(() => {
-    emit('update:isDrawerOpen', false);
     refForm.value?.reset();
     refForm.value?.resetValidation();
   });
 };
-
 const onSubmit = () => {
-  isFetching.value = true;
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
+      isFetching.value = true;
       try {
-        const response = await axios.post('/companies', {
-          title: title.value,
-          phone_number: phone_number.value,
+        const response = await axios.patch(`/categories/${props.id}`, {
+          name: name.value,
           description: description.value,
         });
-
-        if (response.status == 201) {
+        if (response.status == 200) {
+          emit('fetchDatas');
           toast('Успешно', {
             theme: 'auto',
             type: 'success',
             dangerouslyHTMLString: true,
           });
-          emit('fetchDatas');
-
           closeNavigationDrawer();
         }
       } catch (error) {
@@ -70,6 +70,27 @@ const handleDrawerModelValueUpdate = (val) => {
     });
   }
 };
+
+const fetchDataById = async () => {
+  isFetchingStart.value = true;
+  try {
+    const {
+      data: { category },
+    } = await axios.get(`/categories/${props.id}`);
+
+    name.value = category.name
+    description.value = category.description
+  } catch (error) {
+    console.error('Ошибка:', error);
+  } finally {
+    isFetchingStart.value = false;
+  }
+};
+
+watch(
+  () => props.isDrawerOpen,
+  (newVal) => newVal && fetchDataById(),
+);
 </script>
 
 <template>
@@ -81,40 +102,30 @@ const handleDrawerModelValueUpdate = (val) => {
     :model-value="props.isDrawerOpen"
     @update:model-value="handleDrawerModelValueUpdate"
   >
-    <!-- Раздел заголовка -->
-    <AppDrawerHeaderSection title="Добавить компанию" @cancel="closeNavigationDrawer" />
+    <!-- 👉 Заголовок -->
+    <AppDrawerHeaderSection title="Обновить компанию" @cancel="closeNavigationDrawer" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <!-- Раздел формы -->
+          <!-- 👉 Форма -->
+
           <VForm
             ref="refForm"
             v-model="isFormValid"
             @submit.prevent="onSubmit"
             :disabled="isFetching"
+            v-if="!isFetchingStart"
           >
             <VRow>
-              <!-- Поле заголовка -->
               <VCol cols="12">
-                <VTextField v-model="title" :rules="[requiredValidator]" label="Заголовок" />
+                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
               </VCol>
 
-              <!-- Поле номера телефона -->
-              <VCol cols="12">
-                <VTextField
-                  v-model="phone_number"
-                  :rules="[requiredValidator]"
-                  label="Номер телефона"
-                />
-              </VCol>
-
-              <!-- Поле описания -->
               <VCol cols="12">
                 <VTextarea label="Описание" v-model="description" />
               </VCol>
-
-              <!-- Кнопки "Отправить" и "Отмена" -->
+              <!-- 👉 Кнопки отправки и отмены -->
               <VCol cols="12">
                 <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
                   Отправить
@@ -125,10 +136,12 @@ const handleDrawerModelValueUpdate = (val) => {
               </VCol>
             </VRow>
           </VForm>
+
+          <div v-if="isFetchingStart" class="d-flex h-screen align-center justify-center">
+            <VProgressCircular color="primary" indeterminate></VProgressCircular>
+          </div>
         </VCardText>
       </VCard>
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-
-

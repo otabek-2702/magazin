@@ -39,7 +39,7 @@ const router = createRouter({
           redirect: { name: 'Statistics' }
         },
         {
-          path: '/statistics',
+          path: 'statistics',
           name: 'Statistics',
           component: () => import("@/pages/statistics.vue"),
           meta: {
@@ -48,7 +48,7 @@ const router = createRouter({
           }
         },
         {
-          path: '/roles',
+          path: 'roles',
           name: 'Roles',
           component: () => import("@/pages/roles.vue"),
           meta: {
@@ -66,12 +66,12 @@ const router = createRouter({
           }
         },
         {
-          path: 'companies',
-          name: 'Companies',
-          component: () => import("@/pages/companies.vue"),
+          path: 'suppliers',
+          name: 'Suppliers',
+          component: () => import("@/pages/suppliers.vue"),
           meta: {
             action: 'show',
-            subject: 'Companies',
+            subject: 'Suppliers',
           }
         },
         {
@@ -81,6 +81,24 @@ const router = createRouter({
           meta: {
             action: 'show',
             subject: 'WareHouse',
+          }
+        },
+        {
+          path: 'cateories',
+          name: 'Categories',
+          component: () => import("@/pages/categories.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Categories',
+          }
+        },
+        {
+          path: 'products',
+          name: 'Products',
+          component: () => import("@/pages/products.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Products',
           }
         },
       ],

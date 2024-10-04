@@ -13,22 +13,17 @@ const props = defineProps({
   },
 });
 
-const languages_list = ref([]);
-
 const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
 
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const full_name = ref();
-const phone_number = ref();
-const age = ref();
-const address = ref();
+const name = ref();
+const brand = ref();
+const supplier_id = ref();
+const category_id = ref();
+const season = ref('fall');
 const gender = ref('man');
-const positive_skills = ref();
-const apps_text = ref();
-const apps = ref();
-const languages = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -44,16 +39,13 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/candidates', {
-          full_name: full_name.value,
-          age: age.value,
-          languages: Array.from(languages.value),
-          positive_skills: positive_skills.value,
-          apps_text: apps_text.value,
-          apps: apps.value,
+        await axios.post('/products', {
+          name: name.value,
+          brand: brand.value,
+          supplier_id: supplier_id.value,
+          category_id: category_id.value,
+          season: season.value,
           gender: gender.value,
-          phone_number: phone_number.value,
-          address: address.value,
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {
@@ -61,11 +53,7 @@ const onSubmit = () => {
           type: 'success',
           dangerouslyHTMLString: true,
         });
-        emit('update:isDrawerOpen', false);
-        nextTick(() => {
-          refForm.value?.reset();
-          refForm.value?.resetValidation();
-        });
+        handleDrawerModelValueUpdate(false);
       } catch (error) {
         console.error(error);
       } finally {
@@ -85,16 +73,40 @@ const handleDrawerModelValueUpdate = (val) => {
   }
 };
 
-const fetchLanguages = async function () {
+const categories_list = ref([]);
+const fetchCategories = async () => {
   try {
-    const response = await axios.get('/languages');
-    languages_list.value = response.data;
+    const response = await axios.get('/categories');
+
+    if (response.status === 200) {
+      categories_list.value = response.data.categories;
+    }
   } catch (error) {
-    console.error('Ошибка :', error);
+    console.log(error);
   }
 };
 
-watchEffect(fetchLanguages);
+const suppliers_list = ref([]);
+const fetchSuppliers = async () => {
+  try {
+    const response = await axios.get('/suppliers');
+
+    if (response.status === 200) {
+      suppliers_list.value = response.data.suppliers;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+watch(
+  () => props.isDrawerOpen,
+  () => {
+    fetchCategories();
+    fetchSuppliers();
+  },
+  { once: true },
+);
 </script>
 
 <template>
@@ -107,7 +119,7 @@ watchEffect(fetchLanguages);
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Изменить" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection title="Добавить" @cancel="closeNavigationDrawer" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -117,69 +129,60 @@ watchEffect(fetchLanguages);
             <VRow>
               <!-- 👉 Полное имя -->
               <VCol cols="12">
-                <VTextField v-model="full_name" :rules="[requiredValidator]" label="Полное имя" />
-              </VCol>
-
-              <!-- 👉 Номер телефона -->
-              <VCol cols="12">
-                <VTextField
-                  v-model="phone_number"
-                  :rules="[requiredValidator]"
-                  label="Номер телефона"
-                />
+                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  type="number"
-                  v-model="age"
-                  :rules="[requiredValidator]"
-                  label="Возраст"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField v-model="address" :rules="[requiredValidator]" label="Адрес" />
-              </VCol>
-
-              <VCol cols="12">
-                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
-                  <VRadio label="Мужчина" value="man" density="compact" />
-                  <VRadio label="Женщина" value="woman" density="compact" />
-                </VRadioGroup>
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField
-                  v-model="positive_skills"
-                  :rules="[requiredValidator]"
-                  label="Положительные навыки"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField
-                  v-model="apps_text"
-                  :rules="[requiredValidator]"
-                  label="Текст приложений"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField v-model="apps" :rules="[requiredValidator]" label="Приложения" />
+                <VTextField v-model="brand" :rules="[requiredValidator]" label="Брэнд" />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
                   no-data-text="Нет данных"
-                  multiple
-                  persistent-hint
-                  v-model="languages"
-                  label="Выберите язык"
-                  :rules="[requiredValidator]"
-                  :items="languages_list"
-                  item-title="name_ru"
+                  v-model="supplier_id"
+                  label="Выберите поставщика"
+                  :items="suppliers_list"
+                  item-title="name"
                   item-value="id"
+                  clearable
+                  clear-icon="bx-x"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VSelect
+                  no-data-text="Нет данных"
+                  v-model="category_id"
+                  label="Выберите категорию"
+                  :items="categories_list"
+                  item-title="name"
+                  item-value="id"
+                  clearable
+                  clear-icon="bx-x"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VRadioGroup v-model="season" inline :rules="[requiredValidator]">
+                  <VRadio label="Весенняя" value="spring" density="compact" color="success" />
+                  <VRadio label="Осенняя" value="fall" density="compact" color="warning" />
+                </VRadioGroup>
+              </VCol>
+
+              <VCol cols="12">
+                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
+                  <VRadio label="Мужской" value="man" density="compact" />
+                  <VRadio label="Женский" value="woman" density="compact" />
+                  <VRadio label="Универсальный" value="unisex" density="compact" />
+                </VRadioGroup>
+              </VCol>
+
+              <VCol cols="12">
+                <VTextField
+                  v-model="sale"
+                  :rules="[requiredValidator]"
+                  label="Скидка в процентах"
+                  type="number"
                 />
               </VCol>
 

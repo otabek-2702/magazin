@@ -78,7 +78,7 @@ watch(
     if (newVal) {
       let role = await axios.get('/roles/' + props.id);
 
-      role_id.value = role.data.id
+      role_id.value = role.data.id;
       name_ru.value = role.data.name_ru;
       name.value = role.data.name;
       name_uz.value = role.data.name_ru;
@@ -123,6 +123,7 @@ watch(
               <!-- 👉 Роль -->
               <VCol cols="12" v-if="role_id != 1">
                 <VSelect
+                  no-data-text="Нет данных"
                   multiple
                   persistent-hint
                   v-model="permission"
@@ -148,4 +149,3 @@ watch(
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-

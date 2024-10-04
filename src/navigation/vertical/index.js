@@ -21,10 +21,10 @@ export default [
     action: 'show'
   },
   {
-    title: 'Компании',
-    to: { name: 'Companies' },
-    icon: { icon: 'mdi-office-building' },
-    subject: 'Companies',
+    title: 'Поставщики',
+    to: { name: 'Suppliers' },
+    icon: { icon: 'mdi-human-dolly' },
+    subject: 'Suppliers',
     action: 'show'
   },
   {
@@ -34,4 +34,25 @@ export default [
     subject: 'WareHouse',
     action: 'show'
   },
+  {
+    title: 'Категории',
+    to: { name: 'Categories' },
+    icon: { icon: 'mdi-view-grid-plus-outline' },
+    subject: 'Categories',
+    action: 'show'
+  },
+  {
+    title: 'Товары',
+    to: { name: 'Products' },
+    icon: { icon: 'mdi-cube-outline' },
+    subject: 'Products',
+    action: 'show'
+  },
+  // {
+  //   title: 'Дополнительно',
+  //   to: { name: 'Category' },
+  //   icon: { icon: 'mdi-dots-horizontal' },
+  //   subject: 'Category',
+  //   action: 'show'
+  // },
 ]

@@ -213,6 +213,7 @@ const onArchive = async () => {
           </VCol>
           <VCol cols="6">
             <VSelect
+              no-data-text="Нет данных"
               v-model="selectedCompany"
               label="Выберите компанию"
               :items="companies_list"
@@ -224,6 +225,7 @@ const onArchive = async () => {
           </VCol>
           <VCol cols="6" class="d-flex justify-center align-center">
             <VSelect
+              no-data-text="Нет данных"
               v-if="vacancies_list.length && !isFetchingVacancy"
               v-model="selectedVacancy"
               label="Выберите вакансию"

@@ -103,6 +103,7 @@ watchEffect(fetchPermissions);
               <!-- 👉 Роль -->
               <VCol cols="12">
                 <VSelect
+                  no-data-text="Нет данных"
                   multiple
                   persistent-hint
                   v-model="permission"
@@ -128,4 +129,3 @@ watchEffect(fetchPermissions);
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-

@@ -1,0 +1,27 @@
+[
+    {
+      "label": "Spring",
+      "icon": "mdi-flower",
+      "colorSlug": "spring-green",
+      "colorCode": "#00FF7F"
+    },
+    {
+      "label": "Summer",
+      "icon": "mdi-sun",
+      "colorSlug": "summer-yellow",
+      "colorCode": "#FFD700"
+    },
+    {
+      "label": "Autumn",
+      "icon": "mdi-leaf",
+      "colorSlug": "autumn-orange",
+      "colorCode": "#FF8C00"
+    },
+    {
+      "label": "Winter",
+      "icon": "mdi-snowflake",
+      "colorSlug": "winter-blue",
+      "colorCode": "#1E90FF"
+    }
+  ]
+  

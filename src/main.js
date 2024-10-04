@@ -34,6 +34,18 @@ app.use(abilitiesPlugin, ability, {
 
 app.use(print)
 
+// // fontawesome 
+// import { library } from '@fortawesome/fontawesome-svg-core'
+// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+// // import specific icons 
+// import { faBoxesStacked } from '@fortawesome/free-solid-svg-icons'
+
+
+// // add icons to the library 
+// library.add(faBoxesStacked)
+
+// app.component('font-awesome-icon', FontAwesomeIcon)
 
 // Mount vue app
 app.mount('#app')

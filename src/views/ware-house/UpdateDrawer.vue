@@ -155,7 +155,12 @@ watch(
                 />
               </VCol>
               <VCol cols="12">
-                <VTextField type="number" v-model="age" :rules="[requiredValidator]" label="Возраст" />
+                <VTextField
+                  type="number"
+                  v-model="age"
+                  :rules="[requiredValidator]"
+                  label="Возраст"
+                />
               </VCol>
               <VCol cols="12">
                 <VTextField v-model="address" :rules="[requiredValidator]" label="Адрес" />
@@ -177,7 +182,11 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="apps_text" :rules="[requiredValidator]" label="Описание приложений" />
+                <VTextField
+                  v-model="apps_text"
+                  :rules="[requiredValidator]"
+                  label="Описание приложений"
+                />
               </VCol>
 
               <VCol cols="12">
@@ -186,6 +195,7 @@ watch(
 
               <VCol cols="12">
                 <VSelect
+                  no-data-text="Нет данных"
                   multiple
                   persistent-hint
                   v-model="languages"
@@ -213,4 +223,3 @@ watch(
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-

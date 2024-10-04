@@ -4,11 +4,11 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['update:isDialogVisible'])
+const emit = defineEmits(['update:isDialogVisible']);
 
-const selectedPlan = ref('standard')
+const selectedPlan = ref('standard');
 
 const plansList = [
   {
@@ -27,9 +27,9 @@ const plansList = [
     text: 'Company - $999/month',
     value: 'company',
   },
-]
+];
 
-const isConfirmDialogVisible = ref(false)
+const isConfirmDialogVisible = ref(false);
 </script>
 
 <template>
@@ -37,28 +37,21 @@ const isConfirmDialogVisible = ref(false)
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 650"
     :model-value="props.isDialogVisible"
-    @update:model-value="val => $emit('update:isDialogVisible', val)"
+    @update:model-value="(val) => $emit('update:isDialogVisible', val)"
   >
     <VCard class="py-8">
       <!-- 👉 dialog close btn -->
-      <DialogCloseBtn
-        variant="text"
-        size="small"
-        @click="$emit('update:isDialogVisible', false)"
-      />
+      <DialogCloseBtn variant="text" size="small" @click="$emit('update:isDialogVisible', false)" />
 
       <VCardItem class="text-center">
-        <VCardTitle class="text-h5 mb-5">
-          Upgrade Plan
-        </VCardTitle>
+        <VCardTitle class="text-h5 mb-5"> Upgrade Plan </VCardTitle>
 
-        <VCardSubtitle>
-          Choose the best plan for user.
-        </VCardSubtitle>
+        <VCardSubtitle> Choose the best plan for user. </VCardSubtitle>
       </VCardItem>
 
       <VCardText class="d-flex align-center flex-wrap flex-sm-nowrap px-15">
         <VSelect
+          no-data-text="Нет данных"
           v-model="selectedPlan"
           label="Choose Plan"
           :items="plansList"
@@ -67,31 +60,20 @@ const isConfirmDialogVisible = ref(false)
           density="compact"
           class="me-3"
         />
-        <VBtn class="mt-3 mt-sm-0">
-          Upgrade
-        </VBtn>
+        <VBtn class="mt-3 mt-sm-0"> Upgrade </VBtn>
       </VCardText>
 
       <VDivider class="my-3" />
 
       <VCardText class="px-15">
-        <p class="font-weight-medium mb-2">
-          User current plan is standard plan
-        </p>
+        <p class="font-weight-medium mb-2">User current plan is standard plan</p>
         <div class="d-flex justify-space-between flex-wrap">
           <div class="d-flex align-center me-3">
             <sup class="text-primary">$</sup>
-            <h3 class="text-h3 font-weight-semibold text-primary">
-              99
-            </h3>
+            <h3 class="text-h3 font-weight-semibold text-primary">99</h3>
             <sub class="text-body-1 mt-3">/ month</sub>
           </div>
-          <VBtn
-            color="error"
-            variant="tonal"
-            class="mt-3"
-            @click="isConfirmDialogVisible = true"
-          >
+          <VBtn color="error" variant="tonal" class="mt-3" @click="isConfirmDialogVisible = true">
             Cancel Subscription
           </VBtn>
         </div>

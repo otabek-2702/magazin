@@ -18,11 +18,8 @@ const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const roles_list = ref([]);
 const name = ref();
-const login = ref();
-const password = ref();
-const role_id = ref();
+const description = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -38,32 +35,28 @@ const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       try {
-        const response = await axios.post('/users', {
+        const response = await axios.post('/categories', {
           name: name.value,
-          login: login.value,
-          password: password.value,
-          role_id: role_id.value,
+          description: description.value,
         });
 
         if (response.status == 201) {
+          toast('Успешно', {
+            theme: 'auto',
+            type: 'success',
+            dangerouslyHTMLString: true,
+          });
           emit('fetchDatas');
 
           closeNavigationDrawer();
         }
       } catch (error) {
-        if (error.response.data.message == 'The login has already been taken.') {
-          toast('Этот логин уже занят.', {
-            theme: 'auto',
-            type: 'error',
-            dangerouslyHTMLString: true,
-          });
-        } else {
-          console.error('Ошибка:', error);
-        }
+        console.error('Ошибка:', error);
+      } finally {
+        isFetching.value = false;
       }
     }
   });
-  isFetching.value = false;
 };
 
 const handleDrawerModelValueUpdate = (val) => {
@@ -75,14 +68,6 @@ const handleDrawerModelValueUpdate = (val) => {
     });
   }
 };
-
-const fetchRoles = async function () {
-  const r = await axios.get('/roles');
-  // r.data.roles.filter(e => e.id != 1);
-  roles_list.value = r.data.roles;
-};
-
-watchEffect(fetchRoles);
 </script>
 
 <template>
@@ -94,14 +79,13 @@ watchEffect(fetchRoles);
     :model-value="props.isDrawerOpen"
     @update:model-value="handleDrawerModelValueUpdate"
   >
-    <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Добавить сотрудника" @cancel="closeNavigationDrawer" />
+    <!-- Раздел заголовка -->
+    <AppDrawerHeaderSection title="Добавить категорию" @cancel="closeNavigationDrawer" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <!-- 👉 Форма -->
-
+          <!-- Раздел формы -->
           <VForm
             ref="refForm"
             v-model="isFormValid"
@@ -114,26 +98,10 @@ watchEffect(fetchRoles);
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="login" :rules="[requiredValidator]" label="Логин" />
+                <VTextarea label="Описание" v-model="description" />
               </VCol>
 
-              <VCol cols="12">
-                <VTextField v-model="password" :rules="[requiredValidator]" label="Пароль" />
-              </VCol>
-              <VCol cols="12">
-                <VSelect
-                  no-data-text="Нет данных"
-                  persistent-hint
-                  v-model="role_id"
-                  label="Выберите роль"
-                  :rules="[requiredValidator]"
-                  :items="roles_list"
-                  item-title="name_ru"
-                  item-value="id"
-                />
-              </VCol>
-
-              <!-- 👉 Отправить и отменить -->
+              <!-- Кнопки "Отправить" и "Отмена" -->
               <VCol cols="12">
                 <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
                   Отправить
@@ -149,3 +117,5 @@ watchEffect(fetchRoles);
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
+
+

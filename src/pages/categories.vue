@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewCompanyDrawer from '@/views/company/AddNewCompanyDrawer.vue';
-import UpdateCompanyDrawer from '@/views/company/UpdateCompanyDrawer.vue';
+import AddNewDrawer from '@/views/category/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/category/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
@@ -15,8 +15,8 @@ const isFetching = ref(false);
 const rowPerPage = ref(10);
 const currentPage = ref(1);
 const totalPage = ref(1);
-const totalCompanies = ref(0);
-const companies = ref([]);
+const totalDatasCount = ref(0);
+const categories = ref([]);
 const updateID = ref(0);
 
 const lastFetchedPage = ref(null);
@@ -29,16 +29,16 @@ const fetchData = async (force = false) => {
   isFetching.value = true;
 
   try {
-    const companies_r = await axios.get(
-      `/companies?page=${currentPage.value}&search=${finalSearch.value}`,
+    const response = await axios.get(
+      `/categories?page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    companies.value = companies_r.data['companies'];
+    categories.value = response.data['categories'];
     lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
-    currentPage.value = companies_r.data['meta']['current_page'];
-    totalCompanies.value = companies_r.data['meta']['total'];
-    totalPage.value = companies_r.data['meta']['last_page'];
-    rowPerPage.value = companies_r.data['meta']['per_page'];
+    currentPage.value = response.data['meta']['current_page'];
+    totalDatasCount.value = response.data['meta']['total'];
+    totalPage.value = response.data['meta']['last_page'];
+    rowPerPage.value = response.data['meta']['per_page'];
   } catch (error) {
     console.error('Ошибка загрузки кандидатов:', error);
   } finally {
@@ -65,8 +65,8 @@ onMounted(() => {
   fetchData();
 });
 
-const isAddNewCompanyDrawerVisible = ref(false);
-const isUpdateCompanyDrawerVisible = ref(false);
+const isAddNewDrawerVisible = ref(false);
+const isUpdateDrawerVisible = ref(false);
 
 // Pages start
 
@@ -84,17 +84,17 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = companies.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = companies.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = categories.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+  const lastIndex = categories.value.length + (currentPage.value - 1) * rowPerPage.value;
 
-  return `${firstIndex}-${lastIndex} of ${totalCompanies.value}`;
+  return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
 
 // Pages end
 
 const openEditDrawer = (id) => {
   updateID.value = id;
-  isUpdateCompanyDrawerVisible.value = true;
+  isUpdateDrawerVisible.value = true;
 };
 
 // Delete
@@ -114,7 +114,7 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/companies/' + id);
+    await axios.delete('/categories/' + id);
     toast('Успешно удалено', {
       theme: 'auto',
       type: 'success',
@@ -150,12 +150,12 @@ const deleteItem = async function (id) {
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
-                placeholder="Поиск сотрудника"
+                placeholder="Поиск категории"
                 density="compact"
                 class="me-6"
               />
-              <Can I="add" a="Company">
-                <VBtn @click="isAddNewCompanyDrawerVisible = true"> Добавить новую компанию </VBtn>
+              <Can I="add" a="Category">
+                <VBtn @click="isAddNewDrawerVisible = true"> Добавить новую категорию </VBtn>
               </Can>
             </VCol>
           </VCardText>
@@ -167,23 +167,25 @@ const deleteItem = async function (id) {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ</th>
-                <th>ТЕЛЕФОН</th>
-                <th v-if="can('update', 'Company') || can('delete', 'Company')">ДЕЙСТВИЯ</th>
+                <th>ОПИСАНИЕ</th>
+                <th v-if="can('update', 'Category') || can('delete', 'Category')">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="(company, i) in companies" :key="i">
-                <td>{{ i + 1 }}</td>
-                <td>{{ company.title }}</td>
-                <td>{{ company.phone_number }}</td>
+              <tr v-for="category in categories" :key="category.id">
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td class="overflow-hide">
+                  {{ category.description }} 
+                </td>
                 <td class="text-center" style="width: 80px">
-                  <Can I="update" a="Company">
+                  <Can I="update" a="Category">
                     <VIcon
                       @click="
                         (event) => {
                           event.stopPropagation();
-                          openEditDrawer(company.id);
+                          openEditDrawer(category.id);
                         }
                       "
                       size="30"
@@ -192,21 +194,21 @@ const deleteItem = async function (id) {
                     ></VIcon>
                   </Can>
 
-                  <Can I="delete" a="Company">
+                  <Can I="delete" a="Category">
                     <VIcon
                       size="30"
                       icon="bx-trash"
                       style="color: red"
-                      @click="confirmDelete(company.id, company.title)"
+                      @click="confirmDelete(category.id, category.title)"
                     ></VIcon>
                   </Can>
                 </td>
               </tr>
             </tbody>
 
-            <Skeleton :count="4" v-show="isFetching && !companies.length" />
+            <Skeleton :count="4" v-show="isFetching && !categories.length" />
 
-            <tfoot v-if="!isFetching && !companies.length">
+            <tfoot v-if="!isFetching && !categories.length">
               <tr>
                 <td colspan="7" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
@@ -221,7 +223,7 @@ const deleteItem = async function (id) {
             </div>
 
             <VPagination
-              v-if="companies.length"
+              v-if="categories.length"
               v-model="currentPage"
               size="small"
               :total-visible="1"
@@ -232,24 +234,31 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
 
-    <AddNewCompanyDrawer
-      v-model:isDrawerOpen="isAddNewCompanyDrawerVisible"
+    <AddNewDrawer
+      v-model:isDrawerOpen="isAddNewDrawerVisible"
       @fetchDatas="() => fetchData(true)"
     />
-    <UpdateCompanyDrawer
+    <UpdateDrawer
       :id="updateID"
-      v-model:isDrawerOpen="isUpdateCompanyDrawerVisible"
+      v-model:isDrawerOpen="isUpdateDrawerVisible"
       @fetchDatas="() => fetchData(true)"
     />
   </section>
 </template>
 
-<style lang="scss">
+<style lang="css">
 .app-user-search-filter {
   inline-size: 385px;
 }
 
 .text-capitalize {
   text-transform: capitalize;
+}
+
+.overflow-hide {
+  max-width: 46vw !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

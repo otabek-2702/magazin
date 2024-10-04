@@ -185,31 +185,23 @@ const deleteItem = async function (id) {
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="roleData"
-          />
+          <!-- 👉 Search  -->
           <VDivider />
 
-          <VCardText class="d-flex flex-wrap gap-4">
-            <VSpacer />
-
-            <div class="app-user-search-filter d-flex align-center">
-              <!-- 👉 Search  -->
+          <VRow class="pa-3 justify-end">
+            <VCol cols="6" class="app-user-search-filter gap-3">
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 placeholder="Поиск роли"
                 density="compact"
-                class="me-3"
+                class="w-100"
               />
               <Can I="add" a="Role">
                 <VBtn @click="isAddNewRoleDrawerVisible = true">Добавить новую роль</VBtn>
               </Can>
-            </div>
-          </VCardText>
+            </VCol>
+          </VRow>
 
           <VDivider />
 
@@ -251,10 +243,7 @@ const deleteItem = async function (id) {
                 </td>
 
                 <!-- 👉 Actions -->
-                <td
-                  class="text-center"
-                  style="width: 80px"
-                >
+                <td class="text-center" style="width: 80px">
                   <div style="cursor: pointer">
                     <Can I="update" a="Role">
                       <VIcon
@@ -316,6 +305,12 @@ const deleteItem = async function (id) {
       :id="updateID"
       v-model:isDrawerOpen="isUpdateRoleDrawerVisible"
       @role-data="updateRole"
+    />
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="roleData"
     />
   </section>
 </template>

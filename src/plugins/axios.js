@@ -47,54 +47,56 @@ axiosIns.interceptors.response.use(response => {
       dangerouslyHTMLString: true,
     });
   }
-  // if (error.response && error.response.status === 404) {
+  if (!import.meta.env.VITE_DEV_MODE) {
+    if (error.response && error.response.status === 404) {
 
-  //   // Redirect to the 404 page
-  //   // eslint-disable-next-line promise/no-promise-in-callback
-  //   router.push({ path: '/404' }).then(() => {
-  //     // Force reload after navigation
-  //     window.location.reload()
-  //   }).catch(err => {
-  //     // Handle navigation error (if needed)
-  //     console.error('Navigation error:', err)
-  //     window.location.reload()
-  //   })
-  // }
+      // Redirect to the 404 page
+      // eslint-disable-next-line promise/no-promise-in-callback
+      router.push({ path: '/404' }).then(() => {
+        // Force reload after navigation
+        window.location.reload()
+      }).catch(err => {
+        // Handle navigation error (if needed)
+        console.error('Navigation error:', err)
+        window.location.reload()
+      })
+    }
 
 
-  // if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401) {
 
-  //   // Redirect to the 404 page
-  //   // eslint-disable-next-line promise/no-promise-in-callback
-  //   router.push({ path: '/login' }).then(() => {
+      // Redirect to the 404 page
+      // eslint-disable-next-line promise/no-promise-in-callback
+      router.push({ path: '/login' }).then(() => {
 
-  //     localStorage.removeItem('userAbilities')
-  //     localStorage.removeItem('userData')
-  //     localStorage.removeItem('accessToken')
+        localStorage.removeItem('userAbilities')
+        localStorage.removeItem('userData')
+        localStorage.removeItem('accessToken')
 
-  //     // Force reload after navigation
-  //     window.location.reload()
-  //   }).catch(err => {
-  //     // Handle navigation error (if needed)
-  //     console.error('Navigation error:', err)
-  //     window.location.reload()
-  //   })
-  // }
+        // Force reload after navigation
+        window.location.reload()
+      }).catch(err => {
+        // Handle navigation error (if needed)
+        console.error('Navigation error:', err)
+        window.location.reload()
+      })
+    }
 
-  // if (error.response && error.response.status === 403) {
+    if (error.response && error.response.status === 403) {
 
-  //   // Redirect to the forbidden page
-  //   // eslint-disable-next-line promise/no-promise-in-callback
-  //   router.push({ path: '/forbidden' }).then(() => {
-  
-  //     // Force reload after navigation
-  //     window.location.reload()
-  //   }).catch(err => {
-  //     // Handle navigation error (if needed)
-  //     console.error('Navigation error:', err)
-  //     window.location.reload()
-  //   })
-  // }
+      // Redirect to the forbidden page
+      // eslint-disable-next-line promise/no-promise-in-callback
+      router.push({ path: '/forbidden' }).then(() => {
+
+        // Force reload after navigation
+        window.location.reload()
+      }).catch(err => {
+        // Handle navigation error (if needed)
+        console.error('Navigation error:', err)
+        window.location.reload()
+      })
+    }
+  }
 
   return Promise.reject(error)
 })

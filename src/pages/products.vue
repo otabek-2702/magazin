@@ -1,14 +1,12 @@
 <script setup>
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/ware-house/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/ware-house/UpdateDrawer.vue';
-import ChangeStateItem from '@/views/ware-house/ChangeStateItem.vue';
+import AddNewDrawer from '@/views/products/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/products/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/ware-house/InfoDialog.vue';
-import AcceptItem from '@/views/ware-house/AcceptItem.vue';
+import InfoDialog from '@/views/products/InfoDialog.vue';
 import { useAppAbility } from '@/plugins/casl/useAppAbility';
-import BarcodeDialog from '@/views/ware-house/BarcodeDialog.vue';
+import BarcodeDialog from '@/views/products/BarcodeDialog.vue';
 
 const { can } = useAppAbility();
 const searchQuery = ref('');
@@ -45,116 +43,16 @@ const fetchData = async (force = false) => {
   }
 
   try {
-    const products_r = {
-      products: [
-        {
-          id: 1,
-          name: 'T-Shirt',
-          brand: {
-            id: 1,
-            name: 'Brand A',
-          },
-          price: 25.99,
-          stock: 100,
-          bar_code: '123456789012',
-          categories: ['Clothing', "Men's Wear"],
-        },
-        {
-          id: 2,
-          name: 'Jeans',
-          brand: {
-            id: 2,
-            name: 'Brand B',
-          },
-          price: 49.99,
-          stock: 50,
-          bar_code: '987654321098',
-          categories: ['Clothing', "Men's Wear"],
-        },
-        {
-          id: 3,
-          name: 'Sneakers',
-          brand: {
-            id: 3,
-            name: 'Brand C',
-          },
-          price: 7500000,
-          stock: 30,
-          bar_code: '234567890123',
-          categories: ['Footwear', 'Unisex'],
-        },
-        {
-          id: 4,
-          name: 'Jacket',
-          brand: {
-            id: 4,
-            name: 'Brand D',
-          },
-          price: 99.99,
-          stock: 15,
-          bar_code: '345678901234',
-          categories: ['Outerwear', "Men's Wear"],
-        },
-        {
-          id: 5,
-          name: 'Dress',
-          brand: {
-            id: 5,
-            name: 'Brand E',
-          },
-          price: 59.99,
-          stock: 20,
-          bar_code: '456789012345',
-          categories: ['Clothing', "Women's Wear"],
-        },
-        {
-          id: 6,
-          name: 'Hat',
-          brand: {
-            id: 6,
-            name: 'Brand F',
-          },
-          price: 15.99,
-          stock: 80,
-          bar_code: '567890123456',
-          categories: ['Accessories', 'Unisex'],
-        },
-      ],
-      meta: {
-        current_page: 1,
-        from: 1,
-        last_page: 1,
-        links: [
-          {
-            url: null,
-            label: '&laquo; Previous',
-            active: false,
-          },
-          {
-            url: 'https://api.skaldofmarket.jasondev.uz/products?page=1',
-            label: '1',
-            active: true,
-          },
-          {
-            url: null,
-            label: 'Next &raquo;',
-            active: false,
-          },
-        ],
-        path: 'https://api.skaldofmarket.jasondev.uz/products',
-        per_page: 30,
-        to: 6,
-        total: 6,
-      },
-    };
-    await axios.get(`/candidates?page=${currentPage.value}${state}&search=${finalSearch.value}`);
+    const { data } = await axios.get(
+      `/products?paginate=30&page=${currentPage.value}${state}&search=${finalSearch.value}`,
+    );
 
-    products.value = products_r['products'];
+    products.value = data['products'];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = products_r['meta']['current_page'];
-    totalDatasCount.value = products_r['meta']['total'];
-    totalPage.value = products_r['meta']['last_page'];
-    rowPerPage.value = products_r['meta']['per_page'];
+    currentPage.value = data['meta']['pagination']['current_page'];
+    totalDatasCount.value = data['meta']['pagination']['total'];
+    totalPage.value = data['meta']['pagination']['last_page'];
+    rowPerPage.value = data['meta']['pagination']['per_page'];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
@@ -167,12 +65,12 @@ const fetchData = async (force = false) => {
 // Get main datas end
 
 // 👉 watching selected filters
-watch([selectedState], () => {
-  // Сбрасываем на первую страницу при изменении фильтров
-  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-  currentPage.value = 1;
-  fetchData(true);
-});
+// watch([selectedState], () => {
+//   // Сбрасываем на первую страницу при изменении фильтров
+//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
+//   currentPage.value = 1;
+//   fetchData(true);
+// });
 
 // search
 const searchElements = () => {
@@ -189,33 +87,19 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-const fetchStates = async () => {
-  try {
-    const states_r = await axios.get(`/states`);
-    states_list.value = states_r.data.states.filter((el) => el.table === 'products');
-  } catch (error) {
-    console.error('Ошибка :', error);
-  }
-};
+// const fetchStates = async () => {
+//   try {
+//     const states_r = await axios.get(`/states`);
+//     states_list.value = states_r.data.states.filter((el) => el.table === 'products');
+//   } catch (error) {
+//     console.error('Ошибка :', error);
+//   }
+// };
 
 onMounted(() => {
   fetchData();
-  fetchStates();
+  // fetchStates();
 });
-
-const resolveStateVariant = (state) => {
-  const roleLowerCase = state.toLowerCase();
-  const roleMap = {
-    new: { color: 'primary', icon: 'bx-user' },
-    cancel: { color: 'warning', icon: 'bx-cog' },
-    archive: { color: 'secondary', icon: 'bx-cog' },
-    success: { color: 'success', icon: 'bx-doughnut-chart' },
-    invite: { color: 'info', icon: 'bx-pencil' },
-    block: { color: 'error', icon: 'bx-laptop' },
-  };
-
-  return roleMap[roleLowerCase] || { color: 'primary', icon: 'bx-user' };
-};
 
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
@@ -275,10 +159,8 @@ const handleInfoDialogOpen = (id) => {
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <VDivider />
-
           <VCardText class="d-flex flex-wrap">
-            <VCol cols="3" sm="3">
+            <!-- <VCol cols="3" sm="3">
               <VSelect
                 no-data-text="Нет данных"
                 v-model="selectedState"
@@ -289,9 +171,9 @@ const handleInfoDialogOpen = (id) => {
                 clearable
                 clear-icon="bx-x"
               />
-            </VCol>
+            </VCol> -->
 
-            <!-- <VSpacer /> -->
+            <VSpacer />
 
             <!-- <div class="app-user-search-filter d-flex align-center"> -->
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
@@ -302,9 +184,9 @@ const handleInfoDialogOpen = (id) => {
                 density="compact"
                 class="me-6"
               />
-              <!-- <Can I="add" a="Role">
-                <VBtn @click="isAddNewDrawerVisible = true"> Добавить товара </VBtn>
-              </Can> -->
+              <Can I="add" a="Products">
+                <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
+              </Can>
             </VCol>
 
             <!-- </div> -->
@@ -318,7 +200,9 @@ const handleInfoDialogOpen = (id) => {
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
-                <th>ОСТАТОК</th>
+                <th>КАТЕГОРИЯ</th>
+                <th>СЕЗОН</th>
+                <th>ПОЛ</th>
                 <th>ДЕЙСТВИЯ</th>
               </tr>
             </thead>
@@ -334,19 +218,10 @@ const handleInfoDialogOpen = (id) => {
                 <td>
                   {{ product.name }}
                 </td>
-                <td>{{ product.brand?.name }}</td>
-                <td>{{ product.stock }}</td>
-                <!-- <td>{{ product.phone_number }}</td> -->
-                <!-- <td>
-                  <VChip
-                    :color="resolveStateVariant(product.state?.slug).color"
-                    density="compact"
-                    label
-                    class="text-uppercase"
-                  >
-                    {{ product.state.name_ru }}
-                  </VChip>
-                </td> -->
+                <td>{{ product.brand }}</td>
+                <td>{{ product.category?.name }}</td>
+                <td>{{ product.season?.translate }}</td>
+                <td>{{ product.gender?.translate }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                   <VIcon
                     @click="
@@ -359,7 +234,7 @@ const handleInfoDialogOpen = (id) => {
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
-                  <!-- <Can I="update" a="Role">
+                  <Can I="update" a="Products">
                     <VIcon
                       @click="
                         (event) => {
@@ -372,29 +247,14 @@ const handleInfoDialogOpen = (id) => {
                       style="color: rgb(var(--v-global-theme-primary))"
                     ></VIcon>
                   </Can>
-
-                  <Can I="change" a="Candidatestate">
-                    <ChangeStateItem
-                      @fetchDatas="() => fetchData(true)"
-                      :isDialogVisible="true"
-                      :id="product.id"
-                      :state_slug="product.state?.slug"
-                    />
-                    <AcceptItem
-                      v-if="true || product.state?.slug === 'invite'"
-                      @fetchDatas="() => fetchData(true)"
-                      :isDialogVisible="true"
-                      :id="product.id"
-                    />
-                  </Can> -->
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="5" v-show="isFetching && !products.length" />
+            <Skeleton :count="7" v-show="isFetching && !products.length" />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
-                <td colspan="5" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="7" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
             </tfoot>
           </VTable>
@@ -428,11 +288,11 @@ const handleInfoDialogOpen = (id) => {
       @fetchDatas="() => fetchData(true)"
     />
 
-    <InfoDialog
+    <!-- <InfoDialog
       v-model:isDrawerOpen="isInfoDialogVisible"
       :productId="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
-    />
+    /> -->
     <BarcodeDialog
       v-model:isDrawerOpen="isBarcodeDialogVisible"
       :productId="barcodeDialogId"

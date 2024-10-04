@@ -77,7 +77,6 @@ const onSubmit = () => {
   })
 }
 </script>
-
 <template>
   <VRow
     no-gutters
@@ -87,7 +86,7 @@ const onSubmit = () => {
       lg="8"
       class="d-none d-lg-flex"
     >
-      <!-- illustration -->
+      <!-- иллюстрация -->
       <div class="position-relative w-100 pa-8">
         <div class="d-flex align-center justify-center w-100 h-100">
           <VImg
@@ -111,8 +110,6 @@ const onSubmit = () => {
         class="mt-12 mt-sm-0 pa-6"
       >
 
-
-
         <VCardItem class="justify-start">
           <template #prepend>
             <div class="d-flex">
@@ -123,15 +120,9 @@ const onSubmit = () => {
           <VCardTitle class="auth-title">
             {{ themeConfig.app.title }}
           </VCardTitle>
-
-
         </VCardItem>
 
-
         <VCardText style="width: 400px">
-
-
-
           <VSnackbar
               v-model="error"
               location="top right"
@@ -139,21 +130,19 @@ const onSubmit = () => {
               transition="fade-transition"
               color="error"
           >
-            Login or Password do not match
-
+            Логин или пароль не совпадают
           </VSnackbar>
-
 
           <VForm
             ref="refVForm"
             @submit.prevent="onSubmit"
           >
             <VRow>
-              <!-- username -->
+              <!-- логин -->
               <VCol cols="12">
                 <VTextField
                   v-model="username"
-                  label="Login"
+                  label="Логин"
                   type="text"
                   autofocus
                   :rules="[requiredValidator]"
@@ -161,11 +150,11 @@ const onSubmit = () => {
                 />
               </VCol>
 
-              <!-- password -->
+              <!-- пароль -->
               <VCol cols="12">
                 <VTextField
                   v-model="password"
-                  label="Password"
+                  label="Пароль"
                   :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :error-messages="errors.password"
@@ -177,7 +166,7 @@ const onSubmit = () => {
                   type="submit"
                   class="mb-1 mt-3"
                 >
-                  Login
+                  Войти
                 </VBtn>
               </VCol>
             </VRow>
@@ -191,6 +180,15 @@ const onSubmit = () => {
 <style lang="scss">
 @use "@core/scss/template/pages/page-auth.scss";
 </style>
+
+<route lang="yaml">
+meta:
+  layout: blank
+  action: read
+  subject: Auth
+  redirectIfLoggedIn: true
+</route>
+
 
 <route lang="yaml">
 meta:

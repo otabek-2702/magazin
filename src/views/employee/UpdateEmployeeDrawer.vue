@@ -153,6 +153,7 @@ watchEffect(fetchRoles);
               </VCol>
               <VCol cols="12">
                 <VSelect
+                  no-data-text="Нет данных"
                   persistent-hint
                   v-model="role_id"
                   label="Выбрать роль"
@@ -178,4 +179,3 @@ watchEffect(fetchRoles);
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-
