@@ -6,17 +6,21 @@ td:last-child:empty {
 
 // Styles for printing
 @media print {
-
   @page {
-    size:  30mm 57mm landscape !important; /* Adjust to paper size */
-    // margin: 1mm !important;       /* No margin */
+    size: 30mm 57mm landscape !important; /* Adjust to paper size */
   }
-
-    // #printMe {
-    //   width: 60mm; /* Width for A4 paper */
-    //   height: 30mm; /* Height for A4 paper */
-    //   margin: 1mm;
-    // }
 }
 
+.overflow-hide {
+  max-width: 46vw !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+// table thead th{
+//   text-align: center !important;
+// }
+// table tbody td {
+//   text-align: center;
+// }

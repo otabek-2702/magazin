@@ -101,6 +101,24 @@ const router = createRouter({
             subject: 'Products',
           }
         },
+        {
+          path: 'batches',
+          name: 'Batches',
+          component: () => import("@/pages/batches.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Batches',
+          }
+        },
+        {
+          path: 'settings',
+          name: 'Settings',
+          component: () => import("@/pages/settings.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Settings',
+          }
+        },
       ],
     },
     ...setupLayouts(routes),

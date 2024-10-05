@@ -24,6 +24,7 @@ const supplier_id = ref();
 const category_id = ref();
 const season = ref('fall');
 const gender = ref('man');
+const sale = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -46,6 +47,7 @@ const onSubmit = () => {
           category_id: category_id.value,
           season: season.value,
           gender: gender.value,
+          sale:sale.value
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {

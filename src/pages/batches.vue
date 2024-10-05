@@ -1,12 +1,12 @@
 <script setup>
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/products/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/products/UpdateDrawer.vue';
+import AddNewDrawer from '@/views/batches/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/batches/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/products/InfoDialog.vue';
+// import InfoDialog from '@/views/batches/InfoDialog.vue';
 import { useAppAbility } from '@/plugins/casl/useAppAbility';
-import BarcodeDialog from '@/views/products/BarcodeDialog.vue';
+// import BarcodeDialog from '@/views/batches/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 
@@ -17,9 +17,8 @@ const rowPerPage = ref(10);
 const currentPage = ref(1);
 const totalPage = ref(1);
 const totalDatasCount = ref(0);
-const products = ref([]);
+const batches = ref([]);
 const updateID = ref(0);
-
 
 // Get main datas start
 const lastFetchedPage = ref(null);
@@ -33,14 +32,14 @@ const fetchData = async (force = false) => {
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
-  
+
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/products?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/batches?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    products.value = data['products'];
+    batches.value = data['batches'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
@@ -54,16 +53,6 @@ const fetchData = async (force = false) => {
     isFetching.value = false;
   }
 };
-
-// Get main datas end
-
-// 👉 watching selected filters
-// watch([selectedState], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
 
 // search
 const searchElements = () => {
@@ -83,7 +72,7 @@ watch(searchQuery, (newVal) => {
 // const fetchStates = async () => {
 //   try {
 //     const states_r = await axios.get(`/states`);
-//     states_list.value = states_r.data.states.filter((el) => el.table === 'products');
+//     states_list.value = states_r.data.states.filter((el) => el.table === 'batches');
 //   } catch (error) {
 //     console.error('Ошибка :', error);
 //   }
@@ -96,8 +85,8 @@ onMounted(() => {
 
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
-const isInfoDialogVisible = ref(false);
-const isBarcodeDialogVisible = ref(false);
+// const isInfoDialogVisible = ref(false);
+// const isBarcodeDialogVisible = ref(false);
 
 // Pages start
 
@@ -115,22 +104,22 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = batches.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+  const lastIndex = batches.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
 
 // Pages end
 
-// BarCode
-const barcodeDialogId = ref(0);
-const openBarcodeDialog = (id) => {
-  barcodeDialogId.value = id;
-  isBarcodeDialogVisible.value = true;
-};
+// // BarCode
+// const barcodeDialogId = ref(0);
+// const openBarcodeDialog = (id) => {
+//   barcodeDialogId.value = id;
+//   isBarcodeDialogVisible.value = true;
+// };
 
-// end BarCode
+// // end BarCode
 
 // Edit
 const openEditDrawer = (id) => {
@@ -138,13 +127,13 @@ const openEditDrawer = (id) => {
   isUpdateDrawerVisible.value = true;
 };
 
-// Show one
-const infoDialogItemId = ref(0);
+// // Show one
+// const infoDialogItemId = ref(0);
 
-const handleInfoDialogOpen = (id) => {
-  infoDialogItemId.value = id;
-  isInfoDialogVisible.value = true;
-};
+// const handleInfoDialogOpen = (id) => {
+//   infoDialogItemId.value = id;
+//   isInfoDialogVisible.value = true;
+// };
 
 // Delete
 const isDialogVisible = ref(false);
@@ -163,7 +152,7 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/products/' + id);
+    await axios.delete('/batches/' + id);
     toast('Успешно удалено', {
       theme: 'auto',
       type: 'success',
@@ -176,6 +165,12 @@ const deleteItem = async function (id) {
   } finally {
     isDeleting.value = false;
   }
+};
+
+const transformDate = (date) => {
+  const value = new Date(date);
+  const addZero = (v) => v<10 ? '0' + v.toString() : v
+  return `${addZero(value.getDate())}-${addZero(value.getMonth())}-${value.getFullYear()}`
 };
 </script>
 
@@ -192,22 +187,8 @@ const deleteItem = async function (id) {
             :isDeleting="isDeleting"
           />
           <VCardText class="d-flex flex-wrap">
-            <!-- <VCol cols="3" sm="3">
-              <VSelect
-                no-data-text="Нет данных"
-                v-model="selectedState"
-                label="Выберите статус"
-                :items="states_list"
-                item-title="name_ru"
-                item-value="id"
-                clearable
-                clear-icon="bx-x"
-              />
-            </VCol> -->
-
             <VSpacer />
 
-            <!-- <div class="app-user-search-filter d-flex align-center"> -->
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
               <VTextField
                 v-model="searchQuery"
@@ -216,12 +197,10 @@ const deleteItem = async function (id) {
                 density="compact"
                 class="me-6"
               />
-              <Can I="add" a="Products">
+              <Can I="add" a="Batchs">
                 <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
               </Can>
             </VCol>
-
-            <!-- </div> -->
           </VCardText>
 
           <VDivider />
@@ -230,48 +209,32 @@ const deleteItem = async function (id) {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ИМЯ ПРОДУКТА</th>
-                <th>БРЭНД</th>
-                <th>КАТЕГОРИЯ</th>
-                <th>СЕЗОН</th>
-                <th>ПОЛ</th>
+                <th>ДАТА</th>
+                <th>ИМЯ</th>
+                <th>ДОРОЖНЫЕ РАСХОДЫ</th>
+                <th>ОПИСАНИЕ</th>
                 <th>ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
             <tbody>
               <tr
-                @click="() => handleInfoDialogOpen(product.id)"
                 :style="{ cursor: 'pointer' }"
-                v-for="product in products"
-                :key="product.id"
+                v-for="batch in batches"
+                :key="batch.id"
               >
-                <td>{{ product.id }}</td>
-                <td>
-                  {{ product.name }}
-                </td>
-                <td>{{ product.brand }}</td>
-                <td>{{ product.category?.name }}</td>
-                <td>{{ product.season?.translate }}</td>
-                <td>{{ product.gender?.translate }}</td>
+                <td>{{ batch.id }}</td>
+                <td>{{ transformDate(batch.created_at) }}</td>
+                <td>{{ batch.name }}</td>
+                <td>{{ batch.road_expenses }}</td>
+                <td class="overflow-hide">{{ batch.description }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openBarcodeDialog(product.id);
-                      }
-                    "
-                    size="30"
-                    icon="mdi-barcode"
-                    style="color: rgb(var(--v-theme-grey-800))"
-                  ></VIcon>
-                  <Can I="update" a="Products">
+                  <Can I="update" a="Batches">
                     <VIcon
                       @click="
                         (event) => {
                           event.stopPropagation();
-                          openEditDrawer(product.id);
+                          openEditDrawer(batch.id);
                         }
                       "
                       size="30"
@@ -280,22 +243,22 @@ const deleteItem = async function (id) {
                       class="mx-2"
                     ></VIcon>
                   </Can>
-                  <Can I="delete" a="Product">
+                  <Can I="delete" a="Batch">
                     <VIcon
                       size="30"
                       icon="bx-trash"
                       style="color: red"
-                      @click="confirmDelete(product.id, product.name)"
+                      @click="confirmDelete(batch.id, batch.name)"
                     ></VIcon>
                   </Can>
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="7" v-show="isFetching && !products.length" />
+            <Skeleton :count="6" v-show="isFetching && !batches.length" />
 
-            <tfoot v-show="!isFetching && !products.length">
+            <tfoot v-show="!isFetching && !batches.length">
               <tr>
-                <td colspan="7" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="6" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
             </tfoot>
           </VTable>
@@ -308,7 +271,7 @@ const deleteItem = async function (id) {
             </div>
 
             <VPagination
-              v-if="products.length"
+              v-if="batches.length"
               v-model="currentPage"
               size="small"
               :total-visible="1"
@@ -334,11 +297,11 @@ const deleteItem = async function (id) {
       :productId="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     /> -->
-    <BarcodeDialog
+    <!-- <BarcodeDialog
       v-model:isDrawerOpen="isBarcodeDialogVisible"
       :productId="barcodeDialogId"
       @fetchDatas="() => fetchData(true)"
-    />
+    /> -->
   </section>
 </template>
 

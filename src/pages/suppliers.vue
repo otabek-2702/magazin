@@ -34,11 +34,11 @@ const fetchData = async (force = false) => {
     );
 
     suppliers.value = response.data['suppliers'];
-    lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
-    currentPage.value = response.data['meta']['current_page'];
-    totalCompanies.value = response.data['meta']['total'];
-    totalPage.value = response.data['meta']['last_page'];
-    rowPerPage.value = response.data['meta']['per_page'];
+    // lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
+    // currentPage.value = response.data['meta']['current_page'];
+    // totalCompanies.value = response.data['meta']['total'];
+    // totalPage.value = response.data['meta']['last_page'];
+    // rowPerPage.value = response.data['meta']['per_page'];
   } catch (error) {
     console.error('Ошибка загрузки кандидатов:', error);
   } finally {
@@ -68,29 +68,29 @@ onMounted(() => {
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
 
-// Pages start
+// // Pages start
 
-// 👉 watching current page
-watch(currentPage, () => {
-  if (!isFetching.value) {
-    fetchData();
-  }
-});
+// // 👉 watching current page
+// watch(currentPage, () => {
+//   if (!isFetching.value) {
+//     fetchData();
+//   }
+// });
 
-// 👉 Watching current page
-watchEffect(() => {
-  if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
-});
+// // 👉 Watching current page
+// watchEffect(() => {
+//   if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
+// });
 
-// 👉 Computing pagination data
-const paginationData = computed(() => {
-  const firstIndex = suppliers.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = suppliers.value.length + (currentPage.value - 1) * rowPerPage.value;
+// // 👉 Computing pagination data
+// const paginationData = computed(() => {
+//   const firstIndex = suppliers.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+//   const lastIndex = suppliers.value.length + (currentPage.value - 1) * rowPerPage.value;
 
-  return `${firstIndex}-${lastIndex} of ${totalCompanies.value}`;
-});
+//   return `${firstIndex}-${lastIndex} of ${totalCompanies.value}`;
+// });
 
-// Pages end
+// // Pages end
 
 const openEditDrawer = (id) => {
   updateID.value = id;
@@ -206,7 +206,7 @@ const deleteItem = async function (id) {
               </tr>
             </tbody>
 
-            <Skeleton :count="4" v-show="isFetching && !suppliers.length" />
+            <Skeleton :count="5" v-show="isFetching && !suppliers.length" />
 
             <tfoot v-if="!isFetching && !suppliers.length">
               <tr>
@@ -217,7 +217,7 @@ const deleteItem = async function (id) {
 
           <VDivider />
 
-          <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+          <!-- <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
             <div class="d-flex align-center" style="width: 300px">
               <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
             </div>
@@ -229,7 +229,7 @@ const deleteItem = async function (id) {
               :total-visible="1"
               :length="totalPage"
             />
-          </VCardText>
+          </VCardText> -->
         </VCard>
       </VCol>
     </VRow>

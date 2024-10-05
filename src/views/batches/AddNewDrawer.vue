@@ -1,9 +1,10 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { requiredValidator } from '@validators';
-import { nextTick, ref, watchEffect } from 'vue';
+import { nextTick, ref } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps({
   isDrawerOpen: {
@@ -12,16 +13,14 @@ const props = defineProps({
   },
 });
 
-const permissions = ref([]);
+const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
 
-const emit = defineEmits(['update:isDrawerOpen', 'roleData']);
-
+const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const name = ref();
-const name_uz = ref();
-const name_ru = ref();
-const permission = ref();
+const description = ref();
+const road_expenses = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -33,20 +32,27 @@ const closeNavigationDrawer = () => {
 };
 
 const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
+  refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      emit('roleData', {
-        id: 0,
-        name: name.value,
-        name_uz: name_uz.value,
-        name_ru: name_ru.value,
-        permission: permission.value,
-      });
-      emit('update:isDrawerOpen', false);
-      nextTick(() => {
-        refForm.value?.reset();
-        refForm.value?.resetValidation();
-      });
+      isFetching.value = true;
+      try {
+        await axios.post('/batches', {
+          name: name.value,
+          road_expenses: road_expenses.value,
+          description: description.value,
+        });
+        emit('fetchDatas');
+        toast('Успешно добавлено', {
+          theme: 'auto',
+          type: 'success',
+          dangerouslyHTMLString: true,
+        });
+        handleDrawerModelValueUpdate(false);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isFetching.value = false;
+      }
     }
   });
 };
@@ -61,12 +67,6 @@ const handleDrawerModelValueUpdate = (val) => {
   }
 };
 
-const fetchPermissions = async function () {
-  const r = await axios.get('/permissions/all');
-  permissions.value = r.data['permissions'];
-};
-
-watchEffect(fetchPermissions);
 </script>
 
 <template>
@@ -79,7 +79,7 @@ watchEffect(fetchPermissions);
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Добавить роль" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection title="Добавить" @cancel="closeNavigationDrawer" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -87,36 +87,28 @@ watchEffect(fetchPermissions);
           <!-- 👉 Форма -->
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
+              <!-- 👉 Полное имя -->
               <VCol cols="12">
                 <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="name_uz" :rules="[requiredValidator]" label="Имя (узб.)" />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField v-model="name_ru" :rules="[requiredValidator]" label="Имя (рус.)" />
-              </VCol>
-
-              <!-- 👉 Роль -->
-              <VCol cols="12">
-                <VSelect
-                  no-data-text="Нет данных"
-                  multiple
-                  persistent-hint
-                  v-model="permission"
-                  label="Выберите разрешение"
+                <VTextField
+                v-model="road_expenses"
                   :rules="[requiredValidator]"
-                  :items="permissions"
-                  item-title="name_ru"
-                  item-value="id"
+                  label="Дорожные расходы"
+                  type="number"
                 />
+              </VCol>
+              <VCol cols="12">
+                <VTextarea label="Описание" v-model="description" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->
               <VCol cols="12">
-                <VBtn type="submit" class="me-3"> Отправить </VBtn>
+                <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
+                  Отправить
+                </VBtn>
                 <VBtn type="reset" variant="tonal" color="secondary" @click="closeNavigationDrawer">
                   Отмена
                 </VBtn>

@@ -23,15 +23,8 @@ const isFetching = ref(false);
 const isFetchingStart = ref(true);
 const refForm = ref();
 const name = ref();
-const brand = ref();
-const supplier_id = ref();
-const category_id = ref();
-const season = ref('fall');
-const gender = ref('man');
-const sale = ref();
-
-
-
+const description = ref();
+const road_expenses = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -47,14 +40,10 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.put(`/products/${props.id}`, {
+        await axios.put(`/batches/${props.id}`, {
           name: name.value,
-          brand: brand.value,
-          // supplier_id: supplier_id.value,
-          category_id: category_id.value,
-          season: season.value,
-          gender: gender.value,
-          sale: sale.value,
+          road_expenses: road_expenses.value,
+          description: description.value,
         });
 
         toast('Успешно', {
@@ -87,17 +76,12 @@ const handleDrawerModelValueUpdate = (val) => {
 const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
-    const response = await axios.get(`/products/${props.id}`);
+    const response = await axios.get(`/batches/${props.id}`);
 
     if (response.status === 200) {
-      name.value = response.data.product.name;
-      brand.value = response.data.product.brand;
-      //supplier_id.value = response.data.product.supplier.id;
-      console.log(response.data.product.category.id)
-      category_id.value = response.data.product.category.id;
-      season.value = response.data.product.season;
-      gender.value = response.data.product.gender;
-      sale.value = response.data.product.sale;
+      name.value = response.data.batch.name;
+      road_expenses.value = response.data.batch.road_expenses;
+      description.value = response.data.batch.description;
     }
   } catch (error) {
     console.error('Ошибка:', error);
@@ -111,41 +95,6 @@ watch(
   async (newVal) => {
     if (newVal && props.id) fetchDataById();
   },
-);
-
-const categories_list = ref([]);
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get('/categories');
-
-    if (response.status === 200) {
-      categories_list.value = response.data.categories;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-// const suppliers_list = ref([]);
-// const fetchSuppliers = async () => {
-//   try {
-//     const response = await axios.get('/suppliers');
-
-//     if (response.status === 200) {
-//       suppliers_list.value = response.data.suppliers;
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
-watch(
-  () => props.isDrawerOpen,
-  () => {
-    fetchCategories();
-    // fetchSuppliers();
-  },
-  { once: true },
 );
 </script>
 
@@ -179,57 +128,15 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="brand" :rules="[requiredValidator]" label="Брэнд" />
-              </VCol>
-
-              <!-- <VCol cols="12">
-                <VSelect
-                  no-data-text="Нет данных"
-                  v-model="supplier_id"
-                  label="Выберите поставщика"
-                  :items="suppliers_list"
-                  item-title="name"
-                  item-value="id"
-                  clearable
-                  clear-icon="bx-x"
-                />
-              </VCol> -->
-
-              <VCol cols="12">
-                <VSelect
-                  no-data-text="Нет данных"
-                  v-model="category_id"
-                  label="Выберите категорию"
-                  :items="categories_list"
-                  item-title="name"
-                  item-value="id"
-                  clearable
-                  clear-icon="bx-x"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VRadioGroup v-model="season" inline :rules="[requiredValidator]">
-                  <VRadio label="Весенняя" value="spring" density="compact" color="success" />
-                  <VRadio label="Осенняя" value="fall" density="compact" color="warning" />
-                </VRadioGroup>
-              </VCol>
-
-              <VCol cols="12">
-                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
-                  <VRadio label="Мужской" value="man" density="compact" />
-                  <VRadio label="Женский" value="woman" density="compact" />
-                  <VRadio label="Универсальный" value="unisex" density="compact" />
-                </VRadioGroup>
-              </VCol>
-
-              <VCol cols="12">
                 <VTextField
-                  v-model="sale"
+                v-model="road_expenses"
                   :rules="[requiredValidator]"
-                  label="Скидка в процентах"
+                  label="Дорожные расходы"
                   type="number"
                 />
+              </VCol>
+              <VCol cols="12">
+                <VTextarea label="Описание" v-model="description" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->
