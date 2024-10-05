@@ -29,8 +29,6 @@ const password = ref()
 const error = ref(false)
 
 const login = () => {
-
-
   axios.post('/auth/login', {
     login: username.value,
     password: password.value,
@@ -62,8 +60,6 @@ const login = () => {
     // Redirect to `to` query if exist or redirect to index route
     router.replace(route.query.to ? String(route.query.to) : '/')
   }).catch(e => {
-    // const { errors: formErrors } = e.response.data
-
     error.value = true
 
     console.error(e)
