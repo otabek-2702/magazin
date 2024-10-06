@@ -53,6 +53,13 @@ export default [
         action: 'show'
       },
       {
+        title: 'Вариации товара',
+        to: { name: 'ProductVariants' },
+        // icon: { icon: 'mdi-cube-outline' },
+        subject: 'ProductVariants',
+        action: 'show'
+      },
+      {
         title: 'Настройки',
         to: { name: 'Settings' },
         subject: 'Settings',
@@ -75,6 +82,6 @@ export default [
     subject: 'Batches',
     action: 'show'
   },
-
+  
   
 ]

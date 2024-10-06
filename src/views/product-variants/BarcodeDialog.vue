@@ -15,28 +15,26 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isDrawerOpen']);
 
+const refForm = ref();
 const isFetchingStart = ref(true);
 const itemData = ref();
+const count = ref(1);
 
 const onFormCancel = () => {
   emit('update:isDrawerOpen', false);
- // nextTick(() => {
- //   setTimeout(() => {
- //     itemData.value = null;
- //   }, 500);
- // });
+
 };
 
 const fetchData = async () => {
   try {
     isFetchingStart.value = true;
 
-    const { data } = await axios.get(`/products/${props.productId}`);
+    const { data } = await axios.get(`/product_variants/${props.productId}`);
 
-    itemData.value = data.product;
+    itemData.value = data.products_variant;
 
     // After fetching data, generate the barcode
-    nextTick(() => generateBarcode(itemData.value.code));
+    nextTick(() => generateBarcode(itemData.value?.product.code));
   } catch (error) {
     console.log('Error fetching data:', error);
   } finally {
@@ -48,6 +46,7 @@ const fetchData = async () => {
 const barcodeContainer = ref();
 
 const generateBarcode = (bar_code) => {
+  console.log('first');
   if (barcodeContainer.value) {
     console.log('Rendering barcode for:', bar_code);
 
@@ -71,8 +70,8 @@ const generateBarcode = (bar_code) => {
 
 watch(
   () => props.isDrawerOpen,
-  () => {
-    if (props.isDrawerOpen && props.productId) fetchData();
+  (newVal) => {
+    if (newVal&& props.productId ) fetchData();
   },
 );
 
@@ -91,7 +90,7 @@ const formatPrice = (price) => {
       <DialogCloseBtn variant="text" size="small" @click="onFormCancel" />
 
       <VCardItem class="text-center pb-3">
-        <VCardTitle class="text-h5">{{ itemData?.name }}</VCardTitle>
+        <VCardTitle class="text-h5">{{ itemData?.product?.name }}</VCardTitle>
       </VCardItem>
 
       <div v-if="isFetchingStart" class="d-flex h-screen align-center justify-center">
@@ -100,7 +99,13 @@ const formatPrice = (price) => {
 
       <VCardText v-if="!isFetchingStart">
         <VRow class="justify-center">
-          <!-- <VCol cols="12" class="d-flex align-stretch g-4">
+          <VCol cols="12" class="d-flex align-stretch g-4">
+            <!-- <VTextField
+              type="number"
+              v-model="count"
+              :rules="[requiredValidator]"
+              label="Количество"
+            /> -->
             <VBtn v-print="'#printMe'" class="ms-3 w-100" size="x-large">
               Печать
               <VIcon
@@ -110,13 +115,13 @@ const formatPrice = (price) => {
                 style="color: rgb(var(--v-global-theme-primary))"
               />
             </VBtn>
-          </VCol> -->
+          </VCol>
           <div class="paper-look">
             <div id="printMe">
-               <!-- <p>
-                {{ itemData?.name }}
+              <p>
+                {{ itemData?.product?.name }}
               </p>
-              <b>narxi: {{ formatPrice(itemData?.price) }}</b>  -->
+              <b>narxi: {{ formatPrice(itemData?.price) }}</b>
               <svg ref="barcodeContainer" class="barcode" style="width: 100%; height: 150px"></svg>
             </div>
           </div>

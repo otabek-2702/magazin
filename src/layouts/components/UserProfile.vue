@@ -17,7 +17,7 @@ const reLogIn = async () => {
   axios
     .post('/auth/me')
     .then((r) => {
-      const { access_token, permissions, role, full_name } = r.data;
+      const {  permissions, role, full_name } = r.data;
 
       const datas = {
         role: role,
@@ -35,7 +35,6 @@ const reLogIn = async () => {
       localStorage.setItem('userAbilities', JSON.stringify(userAbilities));
       ability.update(userAbilities);
       localStorage.setItem('userData', JSON.stringify(datas));
-      localStorage.setItem('accessToken', access_token);
     })
     .catch((e) => {
       console.error(e);

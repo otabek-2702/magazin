@@ -1,5 +1,5 @@
 <script setup>
-import Colors from '@/views/batches/Colors.vue';
+import Colors from '@/views/batches/colors.vue';
 import Exchange from '@/views/batches/exchange.vue';
 import Sizes from '@/views/batches/sizes.vue';
 </script>

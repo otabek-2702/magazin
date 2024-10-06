@@ -102,6 +102,15 @@ const router = createRouter({
           }
         },
         {
+          path: 'product-variants',
+          name: 'ProductVariants',
+          component: () => import("@/pages/product-variants.vue"),
+          meta: {
+            action: 'show',
+            subject: 'ProductVariants',
+          }
+        },
+        {
           path: 'batches',
           name: 'Batches',
           component: () => import("@/pages/batches.vue"),

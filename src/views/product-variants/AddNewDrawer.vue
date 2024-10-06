@@ -1,7 +1,7 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { requiredValidator } from '@validators';
-import { nextTick, ref, watchEffect } from 'vue';
+import { nextTick, onMounted, ref, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
@@ -18,12 +18,9 @@ const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const name = ref();
-const brand = ref();
-const supplier_id = ref();
-const category_id = ref();
-const season = ref('fall');
-const gender = ref('man');
+const product_id = ref();
+const size_id = ref();
+const color_id = ref();
 const sale = ref();
 
 // 👉 drawer close
@@ -40,14 +37,11 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/products', {
-          name: name.value,
-          brand: brand.value,
-          supplier_id: supplier_id.value,
-          category_id: category_id.value,
-          season: season.value,
-          gender: gender.value,
-          sale:sale.value
+        await axios.post('/product_variants', {
+          product_id: product_id.value,
+          size_id: size_id.value,
+          color_id: color_id.value,
+          sale: sale.value,
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {
@@ -75,26 +69,40 @@ const handleDrawerModelValueUpdate = (val) => {
   }
 };
 
-const categories_list = ref([]);
-const fetchCategories = async () => {
+const products_list = ref([]);
+const fetchProducts = async () => {
   try {
-    const response = await axios.get('/categories');
+    const response = await axios.get('/products');
 
     if (response.status === 200) {
-      categories_list.value = response.data.categories;
+      products_list.value = response.data.products;
     }
   } catch (error) {
     console.log(error);
   }
 };
 
-const suppliers_list = ref([]);
-const fetchSuppliers = async () => {
+const sizes_list = ref([]);
+const fetchSizes = async () => {
   try {
-    const response = await axios.get('/suppliers');
+    const response = await axios.get('/sizes');
 
     if (response.status === 200) {
-      suppliers_list.value = response.data.suppliers;
+      sizes_list.value = response.data.sizes;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const colors_list = ref([]);
+const fetchColors = async () => {
+  try {
+    const response = await axios.get('/colors');
+
+    if (response.status === 200) {
+      console.log(response);
+      colors_list.value = response.data.colors;
     }
   } catch (error) {
     console.log(error);
@@ -104,11 +112,17 @@ const fetchSuppliers = async () => {
 watch(
   () => props.isDrawerOpen,
   () => {
-    fetchCategories();
-    fetchSuppliers();
+    fetchSizes();
+    // fetchColors();
+    fetchProducts();
   },
   { once: true },
 );
+// onMounted(() => {
+//   fetchColors();
+//   fetchSizes();
+//   fetchProducts();
+// });
 </script>
 
 <template>
@@ -129,21 +143,12 @@ watch(
           <!-- 👉 Форма -->
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
-              <!-- 👉 Полное имя -->
-              <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField v-model="brand" :rules="[requiredValidator]" label="Брэнд" />
-              </VCol>
-
               <VCol cols="12">
                 <VSelect
                   no-data-text="Нет данных"
-                  v-model="supplier_id"
-                  label="Выберите поставщика"
-                  :items="suppliers_list"
+                  v-model="product_id"
+                  label="Выберите товар"
+                  :items="products_list"
                   item-title="name"
                   item-value="id"
                   clearable
@@ -154,9 +159,9 @@ watch(
               <VCol cols="12">
                 <VSelect
                   no-data-text="Нет данных"
-                  v-model="category_id"
-                  label="Выберите категорию"
-                  :items="categories_list"
+                  v-model="size_id"
+                  label="Выберите размер"
+                  :items="sizes_list"
                   item-title="name"
                   item-value="id"
                   clearable
@@ -165,20 +170,16 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VRadioGroup v-model="season" inline :rules="[requiredValidator]">
-                  <VRadio label="Весна" value="spring" density="compact" color="success" />
-                  <VRadio label="Лето" value="summer" density="compact" color="#FFEB3B" />
-                  <VRadio label="Осень" value="fall" density="compact" color="#FF9800" />
-                  <VRadio label="Зима" value="winter" density="compact" color="#03A9F4" />
-                </VRadioGroup>
-              </VCol>
-
-              <VCol cols="12">
-                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
-                  <VRadio label="Мужской" value="man" density="compact" />
-                  <VRadio label="Женский" value="woman" density="compact" />
-                  <VRadio label="Универсальный" value="unisex" density="compact" />
-                </VRadioGroup>
+                <VSelect
+                  no-data-text="Нет данных"
+                  v-model="color_id"
+                  label="Выберите цвет"
+                  :items="colors_list"
+                  item-title="created_at"
+                  item-value="id"
+                  clearable
+                  clear-icon="bx-x"
+                />
               </VCol>
 
               <VCol cols="12">
