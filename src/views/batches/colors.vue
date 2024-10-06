@@ -9,6 +9,11 @@ import { requiredValidator } from '@/@core/utils/validators';
 const colors = ref([]);
 const isFetchingStart = ref(false);
 const isFetching = ref(false);
+const rowPerPage = ref(15);
+const currentPage = ref(1);
+const totalPage = ref(1);
+const totalDatasCount = ref(0);
+const lastFetchedPage = ref(null);
 const newElemName = ref();
 const editingId = ref(null);
 const isDialogVisible = ref(false);
@@ -20,14 +25,45 @@ const fetchData = async (force = false) => {
 
   try {
     isFetchingStart.value = true;
-    const { data } = await axios.get('/colors');
+    const { data } = await axios.get(`/colors?paginate=${rowPerPage.value}&page=${currentPage.value}`);
+
     colors.value = data['colors'];
+    lastFetchedPage.value = currentPage.value;
+    currentPage.value = data['meta']['pagination']['current_page'];
+    totalDatasCount.value = data['meta']['pagination']['total'];
+    console.log(data['meta']['pagination']['total'])
+    totalPage.value = data['meta']['pagination']['total_pages'];
+    rowPerPage.value = data['meta']['pagination']['per_page'];
   } catch (error) {
     console.error('Ошибка загрузки размеров:', error);
   } finally {
     isFetchingStart.value = false;
   }
 };
+
+// Pages start
+
+// 👉 watching current page
+watch(currentPage, () => {
+  if (!isFetching.value) {
+    fetchData();
+  }
+});
+
+// 👉 Watching current page
+watchEffect(() => {
+  if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
+});
+
+// 👉 Computing pagination data
+const paginationData = computed(() => {
+  const firstIndex = colors.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+  const lastIndex = colors.value.length + (currentPage.value - 1) * rowPerPage.value;
+
+  return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
+});
+
+// Pages end
 
 // Add
 const onAddSubmit = async () => {
@@ -36,13 +72,13 @@ const onAddSubmit = async () => {
     await axios.post('/colors', {
       name: newElemName.value,
     });
-    fetchData(true)
+    fetchData(true);
     toast('Успешно добавлено', {
       theme: 'auto',
       type: 'success',
       dangerouslyHTMLString: true,
     });
-    newElemName.value = null
+    newElemName.value = null;
   } catch (error) {
     console.error(error);
   } finally {
@@ -93,8 +129,7 @@ const deleteItem = async (id) => {
 onMounted(fetchData);
 </script>
 <template>
-  <VCol cols="6">
-    <VCard title="Фильтры поиска">
+    <VCard title="Цвета">
       <DeleteItemDialog
         @confirm="deleteItem"
         :isDialogVisible="isDialogVisible"
@@ -105,7 +140,13 @@ onMounted(fetchData);
       <VCardText class="d-flex flex-wrap">
         <VSpacer />
         <VCol cols="8">
-          <VTextField :disabled="isFetching" label="Имя" v-model="newElemName" :rules="[requiredValidator]" density="compact" />
+          <VTextField
+            :disabled="isFetching"
+            label="Имя"
+            v-model="newElemName"
+            :rules="[requiredValidator]"
+            density="compact"
+          />
         </VCol>
         <VCol cols="4" class="app-user-search-filter d-flex align-center">
           <Can I="add" a="Sizes">
@@ -170,8 +211,20 @@ onMounted(fetchData);
       </VTable>
 
       <VDivider />
+      <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+        <div class="d-flex align-center" style="width: 300px">
+          <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
+        </div>
+
+        <VPagination
+          v-if="colors.length"
+          v-model="currentPage"
+          size="small"
+          :total-visible="1"
+          :length="totalPage"
+        />
+      </VCardText>
     </VCard>
-  </VCol>
 </template>
 <style scoped>
 .app-user-search-filter {

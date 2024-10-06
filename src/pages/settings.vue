@@ -1,13 +1,20 @@
 <script setup>
 import Colors from '@/views/batches/Colors.vue';
+import Exchange from '@/views/batches/exchange.vue';
 import Sizes from '@/views/batches/sizes.vue';
 </script>
 
 <template>
   <section>
     <VRow>
-      <Sizes />
-      <Colors />
+      <VCol cols="6">
+        <Sizes />
+        <VSpacer class="py-6"/>
+        <Exchange />
+      </VCol>
+      <VCol cols="6">
+        <Colors />
+      </VCol>
     </VRow>
   </section>
 </template>

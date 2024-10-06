@@ -1,56 +1,55 @@
 import { isEmpty, isEmptyArray, isNullOrUndefined } from './index'
 
-// 👉 Required Validator
+// 👉 Валидатор обязательного поля
 export const requiredValidator = value => {
   if (isNullOrUndefined(value) || isEmptyArray(value) || value === false)
-    return 'This field is required'
+    return 'Это поле обязательно для заполнения'
   
-  return !!String(value).trim().length || 'This field is required'
+  return !!String(value).trim().length || 'Это поле обязательно для заполнения'
 }
 
-// 👉 Email Validator
+// 👉 Валидатор электронной почты
 export const emailValidator = value => {
   if (isEmpty(value))
     return true
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   if (Array.isArray(value))
-    return value.every(val => re.test(String(val))) || 'The Email field must be a valid email'
+    return value.every(val => re.test(String(val))) || 'Поле Email должно содержать действительный адрес электронной почты'
   
-  return re.test(String(value)) || 'The Email field must be a valid email'
+  return re.test(String(value)) || 'Поле Email должно содержать действительный адрес электронной почты'
 }
 
-// 👉 Password Validator
+// 👉 Валидатор пароля
 export const passwordValidator = password => {
   const regExp = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*()]).{8,}/
   const validPassword = regExp.test(password)
   
   return (
-    // eslint-disable-next-line operator-linebreak
     validPassword ||
-        'Field must contain at least one uppercase, lowercase, special character and digit with min 8 chars')
+        'Поле должно содержать как минимум одну заглавную букву, одну строчную букву, один специальный символ и одну цифру, а также быть не менее 8 символов в длину')
 }
 
-// 👉 Confirm Password Validator
-export const confirmedValidator = (value, target) => value === target || 'The Confirm Password field confirmation does not match'
+// 👉 Валидатор подтверждения пароля
+export const confirmedValidator = (value, target) => value === target || 'Подтверждение пароля не совпадает'
 
-// 👉 Between Validator
+// 👉 Валидатор диапазона
 export const betweenValidator = (value, min, max) => {
   const valueAsNumber = Number(value)
   
-  return (Number(min) <= valueAsNumber && Number(max) >= valueAsNumber) || `Enter number between ${min} and ${max}`
+  return (Number(min) <= valueAsNumber && Number(max) >= valueAsNumber) || `Введите число между ${min} и ${max}`
 }
 
-// 👉 Integer Validator
+// 👉 Валидатор целого числа
 export const integerValidator = value => {
   if (isEmpty(value))
     return true
   if (Array.isArray(value))
-    return value.every(val => /^-?[0-9]+$/.test(String(val))) || 'This field must be an integer'
+    return value.every(val => /^-?[0-9]+$/.test(String(val))) || 'Это поле должно быть целым числом'
   
-  return /^-?[0-9]+$/.test(String(value)) || 'This field must be an integer'
+  return /^-?[0-9]+$/.test(String(value)) || 'Это поле должно быть целым числом'
 }
 
-// 👉 Regex Validator
+// 👉 Валидатор регулярного выражения
 export const regexValidator = (value, regex) => {
   if (isEmpty(value))
     return true
@@ -60,39 +59,39 @@ export const regexValidator = (value, regex) => {
   if (Array.isArray(value))
     return value.every(val => regexValidator(val, regeX))
   
-  return regeX.test(String(value)) || 'The Regex field format is invalid'
+  return regeX.test(String(value)) || 'Формат поля Regex недействителен'
 }
 
-// 👉 Alpha Validator
+// 👉 Валидатор только буквенных символов
 export const alphaValidator = value => {
   if (isEmpty(value))
     return true
   
-  return /^[A-Z]*$/i.test(String(value)) || 'The Alpha field may only contain alphabetic characters'
+  return /^[A-Z]*$/i.test(String(value)) || 'Поле Alpha может содержать только буквенные символы'
 }
 
-// 👉 URL Validator
+// 👉 Валидатор URL
 export const urlValidator = value => {
   if (isEmpty(value))
     return true
   const re = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
   
-  return re.test(String(value)) || 'URL is invalid'
+  return re.test(String(value)) || 'URL недействителен'
 }
 
-// 👉 Length Validator
+// 👉 Валидатор длины
 export const lengthValidator = (value, length) => {
   if (isEmpty(value))
     return true
   
-  return String(value).length === length || `The Min Character field must be at least ${length} characters`
+  return String(value).length === length || `Поле должно содержать как минимум ${length} символов`
 }
 
-// 👉 Alpha-dash Validator
+// 👉 Валидатор буквенно-цифровых символов и дефиса
 export const alphaDashValidator = value => {
   if (isEmpty(value))
     return true
   const valueAsString = String(value)
   
-  return /^[0-9A-Z_-]*$/i.test(valueAsString) || 'All Character are not valid'
+  return /^[0-9A-Z_-]*$/i.test(valueAsString) || 'Не все символы допустимы'
 }

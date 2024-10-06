@@ -93,8 +93,7 @@ const deleteItem = async (id) => {
 onMounted(fetchData);
 </script>
 <template>
-  <VCol cols="6">
-    <VCard title="Фильтры поиска">
+    <VCard title="Размеры">
       <DeleteItemDialog
         @confirm="deleteItem"
         :isDialogVisible="isDialogVisible"
@@ -171,7 +170,6 @@ onMounted(fetchData);
 
       <VDivider />
     </VCard>
-  </VCol>
 </template>
 <style scoped>
 .app-user-search-filter {

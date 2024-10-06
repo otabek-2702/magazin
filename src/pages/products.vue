@@ -13,16 +13,16 @@ import { toast } from 'vue3-toastify';
 const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
-const rowPerPage = ref(10);
+const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
+const lastFetchedPage = ref(null);
 const totalDatasCount = ref(0);
 const products = ref([]);
 const updateID = ref(0);
 
 
 // Get main datas start
-const lastFetchedPage = ref(null);
 const isFetching = ref(false);
 const filtersChanged = ref(false);
 
