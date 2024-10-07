@@ -46,7 +46,6 @@ const fetchData = async () => {
 const barcodeContainer = ref();
 
 const generateBarcode = (bar_code) => {
-  console.log('first');
   if (barcodeContainer.value) {
     console.log('Rendering barcode for:', bar_code);
 
@@ -78,6 +77,8 @@ watch(
 const formatPrice = (price) => {
   return price?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
+
+
 </script>
 
 <template>
@@ -167,9 +168,9 @@ const formatPrice = (price) => {
   text-align: center;
   font-size: 14px;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limits to 2 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
+  padding-bottom: 5px;
   text-overflow: ellipsis; /* Adds "..." if the text overflows */
 }
 

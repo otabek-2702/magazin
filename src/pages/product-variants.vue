@@ -21,7 +21,6 @@ const totalDatasCount = ref(0);
 const products = ref([]);
 const updateID = ref(0);
 
-
 // Get main datas start
 const isFetching = ref(false);
 const filtersChanged = ref(false);
@@ -33,14 +32,14 @@ const fetchData = async (force = false) => {
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
-  
+
   try {
     isFetching.value = true;
     const { data } = await axios.get(
       `/product_variants?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    products.value = data['products_variants']
+    products.value = data['products_variants'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
@@ -177,6 +176,7 @@ const deleteItem = async function (id) {
     isDeleting.value = false;
   }
 };
+
 </script>
 
 <template>
@@ -219,7 +219,6 @@ const deleteItem = async function (id) {
                 <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
               </Can>
             </VCol>
-
           </VCardText>
 
           <VDivider />
@@ -240,12 +239,7 @@ const deleteItem = async function (id) {
             </thead>
 
             <tbody>
-              <tr
-                @click="() => handleInfoDialogOpen(variant.id)"
-                :style="{ cursor: 'pointer' }"
-                v-for="variant in products"
-                :key="variant.id"
-              >
+              <tr v-for="variant in products" :key="variant.id">
                 <td>{{ variant.id }}</td>
                 <td>
                   {{ variant.product?.name }}

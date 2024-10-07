@@ -9,6 +9,7 @@ import { requiredValidator } from '@/@core/utils/validators';
 const exchange_rates = ref([]);
 const isFetchingStart = ref(false);
 const isFetching = ref(false);
+const finalSearch = ref('');
 const newElem = ref({
   name: '',
   symbol: '',
@@ -24,7 +25,7 @@ const fetchData = async (force = false) => {
 
   try {
     isFetchingStart.value = true;
-    const { data } = await axios.get('/exchange_rates');
+    const { data } = await axios.get(`/exchange_rates?search=${finalSearch.value}`);
     exchange_rates.value = data['exchange_rates'];
   } catch (error) {
     console.error('Ошибка загрузки:', error);
@@ -41,12 +42,18 @@ const onAddSubmit = async () => {
       ...newElem.value,
     });
     fetchData(true);
+
     toast('Успешно добавлено', {
       theme: 'auto',
       type: 'success',
       dangerouslyHTMLString: true,
     });
-    newElemName.value = null;
+    finalSearch.value = '';
+    newElem.value = {
+      name: '',
+      symbol: '',
+      rate: '',
+    };
   } catch (error) {
     console.error(error);
   } finally {
@@ -98,6 +105,19 @@ const deleteItem = async (id) => {
   }
 };
 
+// search
+const searchElements = async () => {
+  finalSearch.value = newElem.value.name;
+  fetchData(true);
+};
+
+watch(() => newElem.value.name, (newVal) => {
+  if (!newVal) {
+    finalSearch.value = '';
+    fetchData(true);
+  }
+});
+
 onMounted(fetchData);
 </script>
 <template>
@@ -115,8 +135,8 @@ onMounted(fetchData);
         <VTextField
           :disabled="isFetching"
           label="Имя"
+          @keyup.enter="searchElements"
           v-model="newElem.name"
-          :rules="[requiredValidator]"
           density="compact"
         />
       </VCol>
@@ -130,7 +150,6 @@ onMounted(fetchData);
           :disabled="isFetching"
           label="Символ"
           v-model="newElem.symbol"
-          :rules="[requiredValidator]"
           density="compact"
         />
       </VCol>
@@ -140,7 +159,6 @@ onMounted(fetchData);
           type="number"
           label="Курс"
           v-model="newElem.rate"
-          :rules="[requiredValidator]"
           density="compact"
         />
       </VCol>
@@ -195,7 +213,7 @@ onMounted(fetchData);
           <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
             <Can I="update" a="Exchangerates">
               <VIcon
-              v-if="editingId === exchange.id"
+                v-if="editingId === exchange.id"
                 @click.stop="hideEditInput(exchange)"
                 size="30"
                 icon="bx-check"
@@ -203,7 +221,7 @@ onMounted(fetchData);
                 class="mx-2"
               />
               <VIcon
-              v-else
+                v-else
                 @click.stop="showEditInput(exchange.id)"
                 size="30"
                 icon="bx-edit-alt"

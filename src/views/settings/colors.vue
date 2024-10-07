@@ -9,6 +9,7 @@ import { requiredValidator } from '@/@core/utils/validators';
 const colors = ref([]);
 const isFetchingStart = ref(false);
 const isFetching = ref(false);
+const finalSearch = ref('');
 const rowPerPage = ref(15);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -25,13 +26,14 @@ const fetchData = async (force = false) => {
 
   try {
     isFetchingStart.value = true;
-    const { data } = await axios.get(`/colors?paginate=${rowPerPage.value}&page=${currentPage.value}`);
+    const { data } = await axios.get(
+      `/colors?paginate=${rowPerPage.value}&page=${currentPage.value}&search=${finalSearch.value}`,
+    );
 
     colors.value = data['colors'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
-    console.log(data['meta']['pagination']['total'])
     totalPage.value = data['meta']['pagination']['total_pages'];
     rowPerPage.value = data['meta']['pagination']['per_page'];
   } catch (error) {
@@ -73,6 +75,7 @@ const onAddSubmit = async () => {
       name: newElemName.value,
     });
     fetchData(true);
+    finalSearch.value = ''
     toast('Успешно добавлено', {
       theme: 'auto',
       type: 'success',
@@ -126,105 +129,120 @@ const deleteItem = async (id) => {
   }
 };
 
+// search
+const searchElements = async () => {
+  finalSearch.value = newElemName.value;
+  currentPage.value = 1;
+  fetchData(true);
+};
+
+watch(newElemName, (newVal) => {
+  if (!newVal) {
+    finalSearch.value = '';
+    currentPage.value = 1;
+    fetchData(true);
+  }
+});
+
 onMounted(fetchData);
 </script>
 <template>
-    <VCard title="Цвета">
-      <DeleteItemDialog
-        @confirm="deleteItem"
-        :isDialogVisible="isDialogVisible"
-        @update:isDialogVisible="isDialogVisible = $event"
-        :role="deleteData"
-        :isDeleting="isDeleting"
-      />
-      <VCardText class="d-flex flex-wrap">
-        <VSpacer />
-        <VCol cols="8">
-          <VTextField
-            :disabled="isFetching"
-            label="Имя"
-            v-model="newElemName"
-            :rules="[requiredValidator]"
-            density="compact"
-          />
-        </VCol>
-        <VCol cols="4" class="app-user-search-filter d-flex align-center">
-          <Can I="add" a="Sizes">
-            <VBtn :disabled="isFetching" :loader="isFetching" @click="onAddSubmit">Добавить</VBtn>
-          </Can>
-        </VCol>
-      </VCardText>
-
-      <VDivider />
-
-      <VTable class="text-no-wrap">
-        <thead>
-          <tr>
-            <th style="width: 48px">ID</th>
-            <th>ИМЯ</th>
-            <th>ДЕЙСТВИЯ</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr v-for="size in colors" :key="size.id" :style="{ cursor: 'pointer' }">
-            <td>{{ size.id }}</td>
-            <td>
-              <VTextField
-                v-model="size.name"
-                :rules="[requiredValidator]"
-                :readonly="editingId !== size.id"
-                @blur="hideEditInput(size)"
-                :class="{ 'text-input': editingId !== size.id }"
-                class="custom-input"
-                density="compact"
-              />
-            </td>
-            <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-              <Can I="update" a="Sizes">
-                <VIcon
-                  @click.stop="showEditInput(size.id)"
-                  size="30"
-                  icon="bx-edit-alt"
-                  style="color: rgb(var(--v-global-theme-primary))"
-                  class="mx-2"
-                />
-              </Can>
-              <Can I="delete" a="Size">
-                <VIcon
-                  size="30"
-                  icon="bx-trash"
-                  style="color: red"
-                  @click.stop="confirmDelete(size.id, size.name)"
-                />
-              </Can>
-            </td>
-          </tr>
-        </tbody>
-        <Skeleton :count="3" v-if="isFetchingStart && !colors.length" />
-
-        <tfoot v-if="!isFetchingStart && !colors.length">
-          <tr>
-            <td colspan="3" class="text-center text-body-1">Нет доступных данных</td>
-          </tr>
-        </tfoot>
-      </VTable>
-
-      <VDivider />
-      <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
-        <div class="d-flex align-center" style="width: 300px">
-          <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
-        </div>
-
-        <VPagination
-          v-if="colors.length"
-          v-model="currentPage"
-          size="small"
-          :total-visible="1"
-          :length="totalPage"
+  <VCard title="Цвета">
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="deleteData"
+      :isDeleting="isDeleting"
+    />
+    <VCardText class="d-flex flex-wrap">
+      <VSpacer />
+      <VCol cols="8">
+        <VTextField
+          :disabled="isFetching"
+          label="Имя"
+          v-model="newElemName"
+          @keyup.enter="searchElements"
+          density="compact"
         />
-      </VCardText>
-    </VCard>
+      </VCol>
+      <VCol cols="4" class="app-user-search-filter d-flex align-center">
+        <Can I="add" a="Sizes">
+          <VBtn :disabled="isFetching" :loader="isFetching" @click="onAddSubmit">Добавить</VBtn>
+        </Can>
+      </VCol>
+    </VCardText>
+
+    <VDivider />
+
+    <VTable class="text-no-wrap">
+      <thead>
+        <tr>
+          <th style="width: 48px">ID</th>
+          <th>ИМЯ</th>
+          <th>ДЕЙСТВИЯ</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="size in colors" :key="size.id" :style="{ cursor: 'pointer' }">
+          <td>{{ size.id }}</td>
+          <td>
+            <VTextField
+              v-model="size.name"
+              :rules="[requiredValidator]"
+              :readonly="editingId !== size.id"
+              @blur="hideEditInput(size)"
+              :class="{ 'text-input': editingId !== size.id }"
+              class="custom-input"
+              density="compact"
+            />
+          </td>
+          <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+            <Can I="update" a="Sizes">
+              <VIcon
+                @click.stop="showEditInput(size.id)"
+                size="30"
+                icon="bx-edit-alt"
+                style="color: rgb(var(--v-global-theme-primary))"
+                class="mx-2"
+              />
+            </Can>
+            <Can I="delete" a="Size">
+              <VIcon
+                size="30"
+                icon="bx-trash"
+                style="color: red"
+                @click.stop="confirmDelete(size.id, size.name)"
+              />
+            </Can>
+          </td>
+        </tr>
+      </tbody>
+      <Skeleton :count="3" v-if="isFetchingStart && !colors.length" />
+
+      <tfoot v-if="!isFetchingStart && !colors.length">
+        <tr>
+          <td colspan="3" class="text-center text-body-1">Нет доступных данных</td>
+        </tr>
+      </tfoot>
+    </VTable>
+
+    <VDivider />
+    <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+      <div class="d-flex align-center" style="width: 300px">
+        <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
+      </div>
+
+      <VPagination
+        v-if="colors.length"
+        v-model="currentPage"
+        size="small"
+        :total-visible="1"
+        :length="totalPage"
+      />
+    </VCardText>
+  </VCard>
 </template>
 <style scoped>
 .app-user-search-filter {

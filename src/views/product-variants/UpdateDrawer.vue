@@ -81,8 +81,6 @@ const fetchDataById = async () => {
     const response = await axios.get(`/product_variants/${props.id}`);
 
     if (response.status === 200) {
-      console.log(response);
-
       product_id.value = response.data.products_variant.id;
       size_id.value = response.data.products_variant.size.id;
       color_id.value = response.data.products_variant.color.d;

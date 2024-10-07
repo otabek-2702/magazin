@@ -126,7 +126,6 @@ const fetchData = async () => {
 const barcodeContainer = ref();
 
 const generateBarcode = (bar_code) => {
-  console.log('first');
   if (barcodeContainer.value) {
     console.log('Rendering barcode for:', bar_code);
 

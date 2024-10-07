@@ -101,7 +101,6 @@ const fetchColors = async () => {
     const response = await axios.get('/colors');
 
     if (response.status === 200) {
-      console.log(response);
       colors_list.value = response.data.colors;
     }
   } catch (error) {

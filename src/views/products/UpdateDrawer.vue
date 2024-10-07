@@ -89,8 +89,8 @@ const fetchDataById = async () => {
     if (response.status === 200) {
       name.value = response.data.product.name;
       brand.value = response.data.product.brand;
-      //supplier_id.value = response.data.product.supplier.id;
-      category_id.value = response.data.product.category.id;
+      // supplier_id.value = response.data.product.supplier?.id;
+      category_id.value = response.data.product.category?.id;
       season.value = response.data.product.season.name;
       gender.value = response.data.product.gender.name;
       sale.value = response.data.product.sale;

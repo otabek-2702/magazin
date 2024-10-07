@@ -1,7 +1,7 @@
 <script setup>
-import Colors from '@/views/batches/colors.vue';
-import Exchange from '@/views/batches/exchange.vue';
-import Sizes from '@/views/batches/sizes.vue';
+import Colors from '@/views/settings/colors.vue';
+import Exchange from '@/views/settings/exchange.vue';
+import Sizes from '@/views/settings/sizes.vue';
 </script>
 
 <template>
