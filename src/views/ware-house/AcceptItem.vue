@@ -213,27 +213,21 @@ const onArchive = async () => {
           </VCol>
           <VCol cols="6">
             <VSelect
-              no-data-text="Нет данных"
               v-model="selectedCompany"
               label="Выберите компанию"
               :items="companies_list"
               item-title="title"
               item-value="id"
-              clearable
-              clear-icon="bx-x"
             />
           </VCol>
           <VCol cols="6" class="d-flex justify-center align-center">
             <VSelect
-              no-data-text="Нет данных"
               v-if="vacancies_list.length && !isFetchingVacancy"
               v-model="selectedVacancy"
               label="Выберите вакансию"
               :items="vacancies_list"
               item-title="job_position_name_ru"
               item-value="id"
-              clearable
-              clear-icon="bx-x"
               aria-selected="true"
             />
             <VProgressCircular

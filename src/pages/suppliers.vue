@@ -151,6 +151,7 @@ const deleteItem = async function (id) {
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 placeholder="Поиск сотрудника"
+                :rules="[]"
                 density="compact"
                 class="me-6"
               />

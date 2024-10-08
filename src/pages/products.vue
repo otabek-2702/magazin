@@ -21,7 +21,6 @@ const totalDatasCount = ref(0);
 const products = ref([]);
 const updateID = ref(0);
 
-
 // Get main datas start
 const isFetching = ref(false);
 const filtersChanged = ref(false);
@@ -33,7 +32,7 @@ const fetchData = async (force = false) => {
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
-  
+
   try {
     isFetching.value = true;
     const { data } = await axios.get(
@@ -194,14 +193,14 @@ const deleteItem = async function (id) {
           <VCardText class="d-flex flex-wrap">
             <!-- <VCol cols="3" sm="3">
               <VSelect
-                no-data-text="Нет данных"
+                
                 v-model="selectedState"
                 label="Выберите статус"
                 :items="states_list"
                 item-title="name_ru"
                 item-value="id"
-                clearable
-                clear-icon="bx-x"
+                
+                
               />
             </VCol> -->
 
@@ -213,6 +212,7 @@ const deleteItem = async function (id) {
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 placeholder="Поиск товара"
+                :rules="[]"
                 density="compact"
                 class="me-6"
               />

@@ -176,40 +176,34 @@ watch(
             <VRow>
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="product_id"
                   label="Выберите товар"
                   :items="products_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
+                  
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="size_id"
                   label="Выберите размер"
                   :items="sizes_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
+                  
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="color_id"
                   label="Выберите цвет"
                   :items="colors_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
+                  
                 />
               </VCol>
               <VCol cols="12">

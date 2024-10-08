@@ -260,7 +260,6 @@ const headerValues = computed(() => {
 
               <VCol cols="7">
                 <VSelect
-                  no-data-text="Нет данных"
                   id="route-transition"
                   v-model="appRouteTransition"
                   :items="Object.entries(RouteTransitions).map(([key, value]) => ({ key, value }))"

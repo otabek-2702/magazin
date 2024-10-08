@@ -195,12 +195,10 @@ watch(
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   multiple
                   persistent-hint
                   v-model="languages"
                   label="Выберите язык"
-                  :rules="[requiredValidator]"
                   :items="languages_list"
                   item-title="name_ru"
                   item-value="id"

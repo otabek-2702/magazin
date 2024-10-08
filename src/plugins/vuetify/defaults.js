@@ -1,3 +1,5 @@
+import { requiredValidator } from "@/@core/utils/validators";
+
 export default {
   IconBtn: {
     icon: true,
@@ -71,6 +73,10 @@ export default {
     variant: 'outlined',
     color: 'primary',
     hideDetails: 'auto',
+    noDataText: 'Нет данных',
+    clearable: true,
+    clearIcon: 'bx-x',
+    defaultRules: () => [requiredValidator],
   },
   VRangeSlider: {
     // set v-range-slider default color to primary
@@ -107,6 +113,10 @@ export default {
     VChip: {
       density: 'default',
     },
+    noDataText: 'Нет данных',
+    clearable: true,
+    clearIcon: 'bx-x',
+    defaultRules: () => [requiredValidator],
   },
   VCombobox: {
     variant: 'outlined',

@@ -153,13 +153,13 @@ watchEffect(fetchRoles);
               </VCol>
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   persistent-hint
                   v-model="role_id"
                   label="Выбрать роль"
                   :items="roles_list"
                   item-title="name_ru"
                   item-value="id"
+                  :rules="[requiredValidator]"
                 />
               </VCol>
 

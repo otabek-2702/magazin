@@ -47,7 +47,7 @@ const onSubmit = () => {
           category_id: category_id.value,
           season: season.value,
           gender: gender.value,
-          sale:sale.value
+          sale: sale.value,
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {
@@ -140,27 +140,21 @@ watch(
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="supplier_id"
                   label="Выберите поставщика"
                   :items="suppliers_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="category_id"
                   label="Выберите категорию"
                   :items="categories_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
                 />
               </VCol>
 

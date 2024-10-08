@@ -128,7 +128,6 @@ const addressTypes = [
             <!-- 👉 Country -->
             <VCol cols="12" md="6">
               <VSelect
-                no-data-text="Нет данных"
                 v-model="billingAddress.country"
                 label="Country"
                 :items="['USA', 'Uk', 'France', 'Germany', 'Japan']"

@@ -229,14 +229,14 @@ onMounted(fetchData);
                 class="mx-2"
               />
             </Can>
-            <Can I="delete" a="Size">
+            <!-- <Can I="delete" a="Exchangerates">
               <VIcon
                 size="30"
                 icon="bx-trash"
                 style="color: red"
                 @click.stop="confirmDelete(exchange.id, exchange.name)"
               />
-            </Can>
+            </Can> -->
           </td>
         </tr>
       </tbody>

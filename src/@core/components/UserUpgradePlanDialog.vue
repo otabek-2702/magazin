@@ -51,7 +51,6 @@ const isConfirmDialogVisible = ref(false);
 
       <VCardText class="d-flex align-center flex-wrap flex-sm-nowrap px-15">
         <VSelect
-          no-data-text="Нет данных"
           v-model="selectedPlan"
           label="Choose Plan"
           :items="plansList"

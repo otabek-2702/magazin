@@ -123,12 +123,10 @@ watch(
               <!-- 👉 Роль -->
               <VCol cols="12" v-if="role_id != 1">
                 <VSelect
-                  no-data-text="Нет данных"
                   multiple
                   persistent-hint
                   v-model="permission"
                   label="Выберите разрешение"
-                  :rules="[requiredValidator]"
                   :items="permissions"
                   item-title="name_ru"
                   item-value="id"

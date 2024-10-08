@@ -103,7 +103,6 @@ const dialogVisibleUpdate = (val) => {
             <!-- 👉 Language -->
             <VCol cols="12" md="6">
               <VSelect
-                no-data-text="Нет данных"
                 v-model="userData.language"
                 label="Language"
                 :items="['English', 'Spanish', 'Portuguese', 'Russian', 'French', 'German']"
@@ -113,7 +112,6 @@ const dialogVisibleUpdate = (val) => {
             <!-- 👉 Country -->
             <VCol cols="12" md="6">
               <VSelect
-                no-data-text="Нет данных"
                 v-model="userData.country"
                 label="Country"
                 :items="['USA', 'UK', 'Spain', 'Russia', 'France', 'Germany']"

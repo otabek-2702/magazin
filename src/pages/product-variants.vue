@@ -9,6 +9,7 @@ import { useAppAbility } from '@/plugins/casl/useAppAbility';
 import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
+import AddNewDialog from '@/views/product-variants/AddNewDialog.vue';
 
 const { can } = useAppAbility();
 const searchQuery = ref('');
@@ -176,7 +177,6 @@ const deleteItem = async function (id) {
     isDeleting.value = false;
   }
 };
-
 </script>
 
 <template>
@@ -194,14 +194,14 @@ const deleteItem = async function (id) {
           <VCardText class="d-flex flex-wrap">
             <!-- <VCol cols="3" sm="3">
               <VSelect
-                no-data-text="Нет данных"
+                
                 v-model="selectedState"
                 label="Выберите статус"
                 :items="states_list"
                 item-title="name_ru"
                 item-value="id"
-                clearable
-                clear-icon="bx-x"
+                
+                
               />
             </VCol> -->
 
@@ -212,11 +212,12 @@ const deleteItem = async function (id) {
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 placeholder="Поиск товара"
+                :rules="[]"
                 density="compact"
                 class="me-6"
               />
               <Can I="add" a="Products">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
+                <AddNewDialog />
               </Can>
             </VCol>
           </VCardText>
@@ -276,14 +277,14 @@ const deleteItem = async function (id) {
                       class="mx-2"
                     ></VIcon>
                   </Can>
-                  <Can I="delete" a="Product">
+                  <!-- <Can I="delete" a="Productvariants">
                     <VIcon
                       size="30"
                       icon="bx-trash"
                       style="color: red"
                       @click="confirmDelete(variant.id, variant.product?.name)"
                     ></VIcon>
-                  </Can>
+                  </Can> -->
                 </td>
               </tr>
             </tbody>

@@ -193,6 +193,7 @@ const transformDate = (date) => {
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
+                :rules="[]"
                 placeholder="Поиск товара"
                 density="compact"
                 class="me-6"

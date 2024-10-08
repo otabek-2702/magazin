@@ -78,7 +78,7 @@ const handleDrawerModelValueUpdate = (val) => {
 
 const fetchRoles = async function () {
   const r = await axios.get('/roles');
-  r.data.roles.filter(e => e.id != 1);
+  r.data.roles.filter((e) => e.id != 1);
   roles_list.value = r.data.roles;
 };
 
@@ -122,11 +122,9 @@ watchEffect(fetchRoles);
               </VCol>
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   persistent-hint
                   v-model="role_id"
                   label="Выберите роль"
-                  :rules="[requiredValidator]"
                   :items="roles_list"
                   item-title="name_ru"
                   item-value="id"

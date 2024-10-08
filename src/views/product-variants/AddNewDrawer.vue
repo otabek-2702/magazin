@@ -97,8 +97,15 @@ const fetchSizes = async () => {
 
 const colors_list = ref([]);
 const fetchColors = async () => {
+  // ////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////////////////
+  // //////////////////////// PAGINATE QOSHILGAN ////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////////////////
   try {
-    const response = await axios.get('/colors');
+    const response = await axios.get('/colors?paginate=50');
 
     if (response.status === 200) {
       colors_list.value = response.data.colors;
@@ -112,7 +119,7 @@ watch(
   () => props.isDrawerOpen,
   () => {
     fetchSizes();
-    // fetchColors();
+    fetchColors();
     fetchProducts();
   },
   { once: true },
@@ -144,40 +151,31 @@ watch(
             <VRow>
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="product_id"
                   label="Выберите товар"
                   :items="products_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="size_id"
                   label="Выберите размер"
                   :items="sizes_list"
                   item-title="name"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  no-data-text="Нет данных"
                   v-model="color_id"
                   label="Выберите цвет"
                   :items="colors_list"
                   item-title="created_at"
                   item-value="id"
-                  clearable
-                  clear-icon="bx-x"
                 />
               </VCol>
 

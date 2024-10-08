@@ -280,14 +280,12 @@ const handleInfoDialogOpen = (id) => {
           <VCardText class="d-flex flex-wrap">
             <VCol cols="3" sm="3">
               <VSelect
-                no-data-text="Нет данных"
                 v-model="selectedState"
                 label="Выберите статус"
                 :items="states_list"
                 item-title="name_ru"
                 item-value="id"
-                clearable
-                clear-icon="bx-x"
+                :rules="[]"
               />
             </VCol>
 
@@ -299,6 +297,7 @@ const handleInfoDialogOpen = (id) => {
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 placeholder="Поиск товара"
+                :rules="[]"
                 density="compact"
                 class="me-6"
               />
