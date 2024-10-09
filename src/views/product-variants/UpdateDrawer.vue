@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watch, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -83,7 +82,7 @@ const fetchDataById = async () => {
     if (response.status === 200) {
       product_id.value = response.data.products_variant.id;
       size_id.value = response.data.products_variant.size.id;
-      color_id.value = response.data.products_variant.color.d;
+      color_id.value = response.data.products_variant.color.id;
       sale.value = response.data.products_variant.sale;
     }
   } catch (error) {
@@ -129,7 +128,7 @@ const fetchSizes = async () => {
 const colors_list = ref([]);
 const fetchColors = async () => {
   try {
-    const response = await axios.get('/colors');
+    const response = await axios.get('/colors?paginate=50');
 
     if (response.status === 200) {
       colors_list.value = response.data.colors;
@@ -143,7 +142,7 @@ watch(
   () => props.isDrawerOpen,
   () => {
     fetchSizes();
-    // fetchColors();
+    fetchColors();
     fetchProducts();
   },
   { once: true },
@@ -174,7 +173,7 @@ watch(
             @submit.prevent="onSubmit"
           >
             <VRow>
-              <VCol cols="12">
+              <!-- <VCol cols="12">
                 <VSelect
                   v-model="product_id"
                   label="Выберите товар"
@@ -205,14 +204,9 @@ watch(
                   item-value="id"
                   
                 />
-              </VCol>
+              </VCol> -->
               <VCol cols="12">
-                <VTextField
-                  v-model="sale"
-                  :rules="[requiredValidator]"
-                  label="Скидка в процентах"
-                  type="number"
-                />
+                <VTextField v-model="sale" label="Скидка в процентах" type="number" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->

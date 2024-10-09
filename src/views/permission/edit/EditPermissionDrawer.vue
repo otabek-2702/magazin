@@ -1,7 +1,6 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watch, watchEffect } from 'vue';
 
 const props = defineProps({
@@ -93,7 +92,7 @@ const handleDrawerModelValueUpdate = (val) => {
             <VRow>
               <!-- 👉 Full name -->
               <VCol cols="12">
-                <VTextField v-model="Name" :rules="[requiredValidator]" label="Name" />
+                <VTextField v-model="Name" label="Name" />
               </VCol>
 
               <!-- 👉 Submit and Cancel -->

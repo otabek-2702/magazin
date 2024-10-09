@@ -75,7 +75,7 @@ const onAddSubmit = async () => {
       name: newElemName.value,
     });
     fetchData(true);
-    finalSearch.value = ''
+    finalSearch.value = '';
     toast('Успешно добавлено', {
       theme: 'auto',
       type: 'success',
@@ -190,7 +190,6 @@ onMounted(fetchData);
           <td>
             <VTextField
               v-model="size.name"
-              :rules="[requiredValidator]"
               :readonly="editingId !== size.id"
               @blur="hideEditInput(size)"
               :class="{ 'text-input': editingId !== size.id }"

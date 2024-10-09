@@ -44,7 +44,7 @@ const onAddSubmit = async () => {
       type: 'success',
       dangerouslyHTMLString: true,
     });
-    finalSearch.value = ''
+    finalSearch.value = '';
     newElemName.value = null;
   } catch (error) {
     console.error(error);
@@ -152,7 +152,6 @@ onMounted(fetchData);
           <td>
             <VTextField
               v-model="size.name"
-              :rules="[requiredValidator]"
               :readonly="editingId !== size.id"
               @blur="hideEditInput(size)"
               :class="{ 'text-input': editingId !== size.id }"

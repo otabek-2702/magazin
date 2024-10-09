@@ -111,12 +111,15 @@ const searchElements = async () => {
   fetchData(true);
 };
 
-watch(() => newElem.value.name, (newVal) => {
-  if (!newVal) {
-    finalSearch.value = '';
-    fetchData(true);
-  }
-});
+watch(
+  () => newElem.value.name,
+  (newVal) => {
+    if (!newVal) {
+      finalSearch.value = '';
+      fetchData(true);
+    }
+  },
+);
 
 onMounted(fetchData);
 </script>
@@ -183,7 +186,6 @@ onMounted(fetchData);
           <td>
             <VTextField
               v-model="exchange.name"
-              :rules="[requiredValidator]"
               :readonly="editingId !== exchange.id"
               :class="{ 'text-input': editingId !== exchange.id }"
               class="custom-input"
@@ -193,7 +195,6 @@ onMounted(fetchData);
           <td>
             <VTextField
               v-model="exchange.symbol"
-              :rules="[requiredValidator]"
               :readonly="editingId !== exchange.id"
               :class="{ 'text-input': editingId !== exchange.id }"
               class="custom-input"
@@ -203,7 +204,6 @@ onMounted(fetchData);
           <td>
             <VTextField
               v-model="exchange.rate"
-              :rules="[requiredValidator]"
               :readonly="editingId !== exchange.id"
               :class="{ 'text-input': editingId !== exchange.id }"
               class="custom-input"

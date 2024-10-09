@@ -206,7 +206,6 @@ const deleteItem = async function (id) {
 
             <VSpacer />
 
-            <!-- <div class="app-user-search-filter d-flex align-center"> -->
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
               <VTextField
                 v-model="searchQuery"
@@ -221,7 +220,6 @@ const deleteItem = async function (id) {
               </Can>
             </VCol>
 
-            <!-- </div> -->
           </VCardText>
 
           <VDivider />
@@ -255,7 +253,7 @@ const deleteItem = async function (id) {
                 <td>{{ product.season?.translate }}</td>
                 <td>{{ product.gender?.translate }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <VIcon
+                  <!-- <VIcon
                     @click="
                       (event) => {
                         event.stopPropagation();
@@ -265,7 +263,7 @@ const deleteItem = async function (id) {
                     size="30"
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
-                  ></VIcon>
+                  ></VIcon> -->
                   <Can I="update" a="Products">
                     <VIcon
                       @click="

@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -88,15 +87,15 @@ watchEffect(fetchPermissions);
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
+                <VTextField v-model="name" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="name_uz" :rules="[requiredValidator]" label="Имя (узб.)" />
+                <VTextField v-model="name_uz" label="Имя (узб.)" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="name_ru" :rules="[requiredValidator]" label="Имя (рус.)" />
+                <VTextField v-model="name_ru" label="Имя (рус.)" />
               </VCol>
 
               <!-- 👉 Роль -->

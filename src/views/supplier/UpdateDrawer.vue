@@ -121,18 +121,14 @@ watch(
           >
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
+                <VTextField v-model="name" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="phone_number"
-                  :rules="[requiredValidator]"
-                  label="Номер телефона"
-                />
+                <VTextField v-model="phone_number" label="Номер телефона" />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="address" :rules="[requiredValidator]" label="Адрес" />
+                <VTextField v-model="address" label="Адрес" />
               </VCol>
               <!-- 👉 Кнопки отправки и отмены -->
               <VCol cols="12">

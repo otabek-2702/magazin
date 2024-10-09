@@ -10,6 +10,7 @@ import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 import AddNewDialog from '@/views/product-variants/AddNewDialog.vue';
+import AddToBatchDialog from '@/views/product-variants/AddToBatchDialog.vue';
 
 const { can } = useAppAbility();
 const searchQuery = ref('');
@@ -277,6 +278,7 @@ const deleteItem = async function (id) {
                       class="mx-2"
                     ></VIcon>
                   </Can>
+                  <AddToBatchDialog :variant_id="variant.id" />
                   <!-- <Can I="delete" a="Productvariants">
                     <VIcon
                       size="30"

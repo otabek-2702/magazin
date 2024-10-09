@@ -1,7 +1,7 @@
 <script setup>
 import axios from '@axios';
 import JsBarcode from 'jsbarcode';
-import { nextTick,  ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 
 const props = defineProps({
   productId: {
@@ -22,7 +22,6 @@ const count = ref(1);
 
 const onFormCancel = () => {
   emit('update:isDrawerOpen', false);
-
 };
 
 const fetchData = async () => {
@@ -70,15 +69,14 @@ const generateBarcode = (bar_code) => {
 watch(
   () => props.isDrawerOpen,
   (newVal) => {
-    if (newVal&& props.productId ) fetchData();
+    if (newVal && props.productId) fetchData();
   },
 );
 
 const formatPrice = (price) => {
+  // const priceWithoutZero = Math.round(price * 100) / 100
   return price?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
-
-
 </script>
 
 <template>
@@ -104,7 +102,7 @@ const formatPrice = (price) => {
             <!-- <VTextField
               type="number"
               v-model="count"
-              :rules="[requiredValidator]"
+              
               label="Количество"
             /> -->
             <VBtn v-print="'#printMe'" class="ms-3 w-100" size="x-large">
@@ -121,8 +119,9 @@ const formatPrice = (price) => {
             <div id="printMe">
               <p>
                 {{ itemData?.product?.name }}
+                {{ itemData?.size?.name }}
               </p>
-              <b>narxi: {{ formatPrice(itemData?.price) }}</b>
+              <b>narxi: {{ formatPrice(itemData?.product?.sell_price) }}</b>
               <svg ref="barcodeContainer" class="barcode" style="width: 100%; height: 150px"></svg>
             </div>
           </div>
@@ -150,7 +149,8 @@ const formatPrice = (price) => {
   justify-content: center;
   width: 57mm;
   height: 30mm;
-  padding: 1mm
+  padding-top: 1mm;
+  /* padding: 1mm; */
 }
 
 #printMe > * {
@@ -160,18 +160,15 @@ const formatPrice = (price) => {
 
 #printMe .barcode {
   width: 100%;
-  
 }
 
 #printMe p {
   text-wrap: wrap;
   text-align: center;
   font-size: 14px;
-  display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  padding-bottom: 5px;
-  text-overflow: ellipsis; /* Adds "..." if the text overflows */
+  padding-bottom: 10px;
 }
 
 @media print {

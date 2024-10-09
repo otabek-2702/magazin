@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watch, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -171,11 +170,11 @@ watch(
             <VRow>
               <!-- 👉 Полное имя -->
               <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
+                <VTextField v-model="name" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="brand" :rules="[requiredValidator]" label="Брэнд" />
+                <VTextField v-model="brand" label="Брэнд" />
               </VCol>
 
               <!-- <VCol cols="12">
@@ -202,7 +201,7 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VRadioGroup v-model="season" inline :rules="[requiredValidator]">
+                <VRadioGroup v-model="season" inline>
                   <VRadio label="Весна" value="spring" density="compact" color="success" />
                   <VRadio label="Лето" value="summer" density="compact" color="#FFEB3B" />
                   <VRadio label="Осень" value="fall" density="compact" color="#FF9800" />
@@ -211,7 +210,7 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
+                <VRadioGroup v-model="gender" inline>
                   <VRadio label="Мужской" value="man" density="compact" />
                   <VRadio label="Женский" value="woman" density="compact" />
                   <VRadio label="Универсальный" value="unisex" density="compact" />
@@ -219,12 +218,7 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="sale"
-                  :rules="[requiredValidator]"
-                  label="Скидка в процентах"
-                  type="number"
-                />
+                <VTextField v-model="sale" label="Скидка в процентах" type="number" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->

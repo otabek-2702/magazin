@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -96,14 +95,14 @@ const handleDrawerModelValueUpdate = (val) => {
           >
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
+                <VTextField v-model="name" label="Имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="phone_number" :rules="[requiredValidator]" label="Номер телефона" />
+                <VTextField v-model="phone_number" label="Номер телефона" />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="address" :rules="[requiredValidator]" label="Адрес" />
+                <VTextField v-model="address" label="Адрес" />
               </VCol>
 
               <!-- Кнопки "Отправить" и "Отмена" -->
@@ -122,5 +121,3 @@ const handleDrawerModelValueUpdate = (val) => {
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-
-

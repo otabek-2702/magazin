@@ -182,7 +182,7 @@ const formatPrice = (price) => {
             <!-- <VTextField
               type="number"
               v-model="count"
-              :rules="[requiredValidator]"
+              
               label="Количество"
             /> -->
             <VBtn v-print="'#printMe'" class="ms-3 w-100" size="x-large">

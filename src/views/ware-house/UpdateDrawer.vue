@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watch, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -144,53 +143,36 @@ watch(
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="full_name" :rules="[requiredValidator]" label="Полное имя" />
+                <VTextField v-model="full_name" label="Полное имя" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="phone_number"
-                  :rules="[requiredValidator]"
-                  label="Номер телефона"
-                />
+                <VTextField v-model="phone_number" label="Номер телефона" />
               </VCol>
               <VCol cols="12">
-                <VTextField
-                  type="number"
-                  v-model="age"
-                  :rules="[requiredValidator]"
-                  label="Возраст"
-                />
+                <VTextField type="number" v-model="age" label="Возраст" />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="address" :rules="[requiredValidator]" label="Адрес" />
+                <VTextField v-model="address" label="Адрес" />
               </VCol>
 
               <VCol cols="12">
-                <VRadioGroup v-model="gender" inline :rules="[requiredValidator]">
+                <VRadioGroup v-model="gender" inline>
                   <VRadio label="Мужчина" value="man" density="compact" />
                   <VRadio label="Женщина" value="woman" density="compact" />
                 </VRadioGroup>
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="positive_skills"
-                  :rules="[requiredValidator]"
-                  label="Положительные качества"
-                />
+                <VTextField v-model="positive_skills" label="Положительные качества" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="apps_text"
-                  :rules="[requiredValidator]"
-                  label="Описание приложений"
-                />
+                <VTextField v-model="apps_text" label="Описание приложений" />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="apps" :rules="[requiredValidator]" label="Приложения" />
+                <VTextField v-model="apps" label="Приложения" />
               </VCol>
 
               <VCol cols="12">

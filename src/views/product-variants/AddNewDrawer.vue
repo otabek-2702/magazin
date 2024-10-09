@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, onMounted, ref, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -180,12 +179,7 @@ watch(
               </VCol>
 
               <VCol cols="12">
-                <VTextField
-                  v-model="sale"
-                  :rules="[requiredValidator]"
-                  label="Скидка в процентах"
-                  type="number"
-                />
+                <VTextField v-model="sale" label="Скидка в процентах" type="number" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->

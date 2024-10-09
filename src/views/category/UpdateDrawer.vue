@@ -25,7 +25,6 @@ const refForm = ref();
 const name = ref();
 const description = ref();
 
-
 // 👉 drawer close
 const closeNavigationDrawer = () => {
   emit('update:isDrawerOpen', false);
@@ -78,8 +77,8 @@ const fetchDataById = async () => {
       data: { category },
     } = await axios.get(`/categories/${props.id}`);
 
-    name.value = category.name
-    description.value = category.description
+    name.value = category.name;
+    description.value = category.description;
   } catch (error) {
     console.error('Ошибка:', error);
   } finally {
@@ -119,7 +118,7 @@ watch(
           >
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="name" :rules="[requiredValidator]" label="Имя" />
+                <VTextField v-model="name" label="Имя" />
               </VCol>
 
               <VCol cols="12">

@@ -1,6 +1,5 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { requiredValidator } from '@validators';
 import { nextTick, ref, watch, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
@@ -159,7 +158,6 @@ watchEffect(fetchRoles);
                   :items="roles_list"
                   item-title="name_ru"
                   item-value="id"
-                  :rules="[requiredValidator]"
                 />
               </VCol>
 
