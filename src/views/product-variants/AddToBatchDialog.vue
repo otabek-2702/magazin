@@ -43,6 +43,7 @@ const onSubmit = () => {
           batch_id: batch_id.value ?? 0,
           purchase_exchange_rate_id: exchange_id.value ?? 0,
           purchase_price: removeSpaces(purchase_price.value ?? 0),
+          quantity: quantity.value,
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {

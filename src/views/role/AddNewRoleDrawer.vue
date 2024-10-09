@@ -3,6 +3,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { nextTick, ref, watchEffect } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps({
   isDrawerOpen: {
@@ -13,8 +14,9 @@ const props = defineProps({
 
 const permissions = ref([]);
 
-const emit = defineEmits(['update:isDrawerOpen', 'roleData']);
+const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
 
+const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const name = ref();
@@ -22,30 +24,29 @@ const name_uz = ref();
 const name_ru = ref();
 const permission = ref();
 
-// 👉 drawer close
-const closeNavigationDrawer = () => {
-  emit('update:isDrawerOpen', false);
-  nextTick(() => {
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
-  });
-};
-
 const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
+  refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      emit('roleData', {
-        id: 0,
-        name: name.value,
-        name_uz: name_uz.value,
-        name_ru: name_ru.value,
-        permission: permission.value,
-      });
-      emit('update:isDrawerOpen', false);
-      nextTick(() => {
-        refForm.value?.reset();
-        refForm.value?.resetValidation();
-      });
+      isFetching.value = true;
+      try {
+        await axios.post('/roles', {
+          name: name.value,
+          name_uz: name_uz.value,
+          name_ru: name_ru.value,
+          permissions: Array.from(permission.value),
+        });
+        emit('fetchDatas');
+        toast('Успешно добавлено', {
+          theme: 'auto',
+          type: 'success',
+          dangerouslyHTMLString: true,
+        });
+        handleDrawerModelValueUpdate(false);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isFetching.value = false;
+      }
     }
   });
 };
@@ -78,7 +79,7 @@ watchEffect(fetchPermissions);
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Добавить роль" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection title="Добавить роль" @cancel="handleDrawerModelValueUpdate(false)" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -114,7 +115,7 @@ watchEffect(fetchPermissions);
               <!-- 👉 Отправить и Отмена -->
               <VCol cols="12">
                 <VBtn type="submit" class="me-3"> Отправить </VBtn>
-                <VBtn type="reset" variant="tonal" color="secondary" @click="closeNavigationDrawer">
+                <VBtn type="reset" variant="tonal" color="secondary" @click="handleDrawerModelValueUpdate(false)">
                   Отмена
                 </VBtn>
               </VCol>

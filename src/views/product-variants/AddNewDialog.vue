@@ -37,22 +37,15 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        if (isWareHouseAddToo) {
-          await axios.post('/product_variants', {
-            variant_id: product_id.value,
-            size_id: size_id.value,
-            color_id: color_id.value,
-            batch_id: batches_id.value ?? 0,
-            purchase_exchange_rate_id: exchange_id.value ?? 0,
-            purchase_price: removeSpaces(initial_price.value ?? 0),
-          });
-        } else {
-          await axios.post('/product_variants', {
-            product_id: product_id.value,
-            size_id: size_id.value,
-            color_id: color_id.value,
-          });
-        }
+        await axios.post('/product_variants', {
+          product_id: product_id.value,
+          size_id: size_id.value,
+          color_id: color_id.value,
+          batch_id: batches_id.value ?? 0,
+          purchase_exchange_rate_id: exchange_id.value ?? 0,
+          purchase_price: removeSpaces(initial_price.value ?? 0),
+          quantity: quantity.value,
+        });
         emit('fetchDatas');
         toast('Успешно добавлено', {
           theme: 'auto',

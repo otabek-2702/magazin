@@ -126,6 +126,7 @@ onMounted(fetchData);
           label="Имя"
           v-model="newElemName"
           density="compact"
+          :rules="[]"
         />
       </VCol>
       <VCol cols="4" class="app-user-search-filter d-flex align-center">

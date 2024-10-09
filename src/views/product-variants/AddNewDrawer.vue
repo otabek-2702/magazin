@@ -22,15 +22,6 @@ const size_id = ref();
 const color_id = ref();
 const sale = ref();
 
-// 👉 drawer close
-const closeNavigationDrawer = () => {
-  emit('update:isDrawerOpen', false);
-  nextTick(() => {
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
-  });
-};
-
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
@@ -140,7 +131,7 @@ watch(
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Добавить" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection title="Добавить" @cancel="handleDrawerModelValueUpdate(false)" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -187,7 +178,7 @@ watch(
                 <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
                   Отправить
                 </VBtn>
-                <VBtn type="reset" variant="tonal" color="secondary" @click="closeNavigationDrawer">
+                <VBtn type="reset" variant="tonal" color="secondary" @click="handleDrawerModelValueUpdate(false)">
                   Отмена
                 </VBtn>
               </VCol>

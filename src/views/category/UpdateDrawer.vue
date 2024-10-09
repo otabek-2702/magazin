@@ -25,14 +25,6 @@ const refForm = ref();
 const name = ref();
 const description = ref();
 
-// 👉 drawer close
-const closeNavigationDrawer = () => {
-  emit('update:isDrawerOpen', false);
-  nextTick(() => {
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
-  });
-};
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
@@ -49,7 +41,7 @@ const onSubmit = () => {
             type: 'success',
             dangerouslyHTMLString: true,
           });
-          closeNavigationDrawer();
+          handleDrawerUpdate(false);
         }
       } catch (error) {
         console.error('Ошибка:', error);
@@ -60,7 +52,7 @@ const onSubmit = () => {
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
+const handleDrawerUpdate = (val) => {
   emit('update:isDrawerOpen', val);
   if (!val) {
     nextTick(() => {
@@ -99,10 +91,13 @@ watch(
     location="end"
     class="scrollable-content"
     :model-value="props.isDrawerOpen"
-    @update:model-value="handleDrawerModelValueUpdate"
+    @update:model-value="handleDrawerUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Обновить компанию" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection
+      title="Обновить компанию"
+      @cancel="handleDrawerUpdate(false)"
+    />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -129,7 +124,12 @@ watch(
                 <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
                   Отправить
                 </VBtn>
-                <VBtn type="reset" variant="tonal" color="secondary" @click="closeNavigationDrawer">
+                <VBtn
+                  type="reset"
+                  variant="tonal"
+                  color="secondary"
+                  @click="handleDrawerUpdate(false)"
+                >
                   Отмена
                 </VBtn>
               </VCol>

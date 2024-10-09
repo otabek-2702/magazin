@@ -1,5 +1,4 @@
 <script setup>
-import { avatarText } from '@core/utils/formatters';
 import { computed, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
 import AddNewRoleDrawer from '@/views/role/AddNewRoleDrawer.vue';
@@ -119,20 +118,6 @@ const paginationData = computed(() => {
 
 // Add
 const isAddNewRoleDrawerVisible = ref(false);
-const addNewRole = async (roleData) => {
-  let { name, name_uz, name_ru, permission } = roleData;
-  try {
-    await axios.post('/roles', {
-      name: name,
-      name_uz: name_uz,
-      name_ru: name_ru,
-      permissions: Array.from(permission),
-    });
-    await fetchData();
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 // Update
 const isUpdateRoleDrawerVisible = ref(false);
@@ -301,10 +286,14 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
     <!--     👉 Add New Role -->
-    <AddNewRoleDrawer v-model:isDrawerOpen="isAddNewRoleDrawerVisible" @role-data="addNewRole" />
+    <AddNewRoleDrawer
+      v-model:isDrawerOpen="isAddNewRoleDrawerVisible"
+      @fetchDatas="() => fetchData(true)"
+    />
     <UpdateRoleDrawer
       :id="updateID"
       v-model:isDrawerOpen="isUpdateRoleDrawerVisible"
+      @fetchDatas="() => fetchData(true)"
       @role-data="updateRole"
     />
     <DeleteItemDialog

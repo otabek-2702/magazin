@@ -1,6 +1,6 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, ref, watch, watchEffect } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
@@ -46,7 +46,7 @@ const onSubmit = () => {
         await axios.put(`/products/${props.id}`, {
           name: name.value,
           brand: brand.value,
-          // supplier_id: supplier_id.value,
+          supplier_id: supplier_id.value,
           category_id: category_id.value,
           season: season.value,
           gender: gender.value,
@@ -88,7 +88,7 @@ const fetchDataById = async () => {
     if (response.status === 200) {
       name.value = response.data.product.name;
       brand.value = response.data.product.brand;
-      // supplier_id.value = response.data.product.supplier?.id;
+      supplier_id.value = response.data.product.supplier?.id;
       category_id.value = response.data.product.category?.id;
       season.value = response.data.product.season.name;
       gender.value = response.data.product.gender.name;
@@ -121,24 +121,24 @@ const fetchCategories = async () => {
   }
 };
 
-// const suppliers_list = ref([]);
-// const fetchSuppliers = async () => {
-//   try {
-//     const response = await axios.get('/suppliers');
+const suppliers_list = ref([]);
+const fetchSuppliers = async () => {
+  try {
+    const response = await axios.get('/suppliers');
 
-//     if (response.status === 200) {
-//       suppliers_list.value = response.data.suppliers;
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+    if (response.status === 200) {
+      suppliers_list.value = response.data.suppliers;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 watch(
   () => props.isDrawerOpen,
   () => {
     fetchCategories();
-    // fetchSuppliers();
+    fetchSuppliers();
   },
   { once: true },
 );
@@ -177,7 +177,7 @@ watch(
                 <VTextField v-model="brand" label="Брэнд" />
               </VCol>
 
-              <!-- <VCol cols="12">
+              <VCol cols="12">
                 <VSelect
                   
                   v-model="supplier_id"
@@ -188,7 +188,7 @@ watch(
                   
                   
                 />
-              </VCol> -->
+              </VCol>
 
               <VCol cols="12">
                 <VSelect
