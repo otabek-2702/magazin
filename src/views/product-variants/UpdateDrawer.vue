@@ -141,9 +141,9 @@ const fetchColors = async () => {
 watch(
   () => props.isDrawerOpen,
   () => {
-    fetchSizes();
-    fetchColors();
-    fetchProducts();
+    // fetchSizes();
+    // fetchColors();
+    // fetchProducts();
   },
   { once: true },
 );

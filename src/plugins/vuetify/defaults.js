@@ -76,7 +76,7 @@ export default {
     noDataText: 'Нет данных',
     clearable: true,
     clearIcon: 'bx-x',
-    defaultRules: () => [requiredValidator],
+    rules: [requiredValidator],
   },
   VRangeSlider: {
     // set v-range-slider default color to primary
@@ -105,6 +105,7 @@ export default {
     variant: 'outlined',
     color: 'primary',
     hideDetails: 'auto',
+    rules: [requiredValidator],
   },
   VAutocomplete: {
     variant: 'outlined',
@@ -116,7 +117,7 @@ export default {
     noDataText: 'Нет данных',
     clearable: true,
     clearIcon: 'bx-x',
-    defaultRules: () => [requiredValidator],
+    rules: [requiredValidator],
   },
   VCombobox: {
     variant: 'outlined',

@@ -35,10 +35,11 @@ const removeSpaces = (input) => {
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
+    console.log('clicked', valid)
       isFetching.value = true;
       try {
         await axios.post('/batch_product_variants', {
-          variant_id: variant_id.value,
+          variant_id: product_variant.value.id,
           batch_id: batch_id.value ?? 0,
           purchase_exchange_rate_id: exchange_id.value ?? 0,
           purchase_price: removeSpaces(purchase_price.value ?? 0),
@@ -135,8 +136,11 @@ const handlePriceInput = (e) => {
     <VCard title="Добавить">
       <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
-        <h3 class="px-6 pt-3">{{ product_variant?.product.name }} | {{ product_variant?.color.name }} | {{ product_variant?.size.name }}</h3>
-        <VCardText >
+        <h3 class="px-6 pt-3">
+          {{ product_variant?.product.name }} | {{ product_variant?.color.name }} |
+          {{ product_variant?.size.name }}
+        </h3>
+        <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
               <VCol cols="6">

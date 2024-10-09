@@ -41,7 +41,7 @@ axiosIns.interceptors.response.use(response => {
   return response
 }, error => {
   if (error.response) {
-    toast(error?.message, {
+    toast(error.response.data.message ?? error?.message, {
       theme: 'auto',
       type: 'error',
       dangerouslyHTMLString: true,
