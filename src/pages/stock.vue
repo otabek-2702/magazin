@@ -181,7 +181,7 @@ const openBarcodeDialog = (id) => {
                 <th>КАТЕГОРИЯ</th>
                 <th>РАЗМЕР</th>
                 <th>ЦВЕТ</th>
-                <th>СЕЗОН</th>
+                <th>КОЛИЧЕСТВО</th>
                 <th>ПОЛ</th>
                 <th>ДЕЙСТВИЯ</th>
               </tr>
@@ -191,14 +191,14 @@ const openBarcodeDialog = (id) => {
               <tr v-for="stock in products" :key="stock.id">
                 <td>{{ stock.id }}</td>
                 <td>
-                  {{ stock.variant?.name }}
+                  {{ stock.variant?.product?.name }}
                 </td>
-                <td>{{ stock.variant?.brand }}</td>
-                <td>{{ stock.variant?.category?.name }}</td>
+                <td>{{ stock.variant?.product?.brand }}</td>
+                <td>{{ stock.variant?.product?.category }}</td>
                 <td>{{ stock.variant?.size?.name }}</td>
                 <td>{{ stock.variant?.color?.name }}</td>
-                <td>{{ stock.variant?.season?.translate }}</td>
-                <td>{{ stock.variant?.gender?.translate }}</td>
+                <td>{{ stock.quantity }}</td>
+                <td>{{ stock.variant?.product?.gender }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                   <VIcon
                     @click="
