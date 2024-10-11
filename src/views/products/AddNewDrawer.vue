@@ -32,6 +32,10 @@ const closeNavigationDrawer = () => {
   nextTick(() => {
     refForm.value?.reset();
     refForm.value?.resetValidation();
+    season.value = 'fall';
+    gender.value = 'man';
+    profit_percent.value = 100;
+    sale.value = 0;
   });
 };
 
