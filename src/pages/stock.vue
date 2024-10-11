@@ -33,7 +33,7 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}&product_id=${selectedProduct.value ?? ''}&batch_id=${selectedBatch.value??''}`,
     );
 
     products.value = data['stock'];
@@ -53,13 +53,15 @@ const fetchData = async (force = false) => {
 
 // Get main datas end
 
+const selectedProduct = ref()
+const selectedBatch = ref()
 // 👉 watching selected filters
-// watch([selectedState], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
+watch([selectedProduct, selectedBatch], () => {
+  // Сбрасываем на первую страницу при изменении фильтров
+  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
+  currentPage.value = 1;
+  fetchData(true);
+});
 
 // search
 const searchElements = () => {
@@ -76,18 +78,19 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-// const fetchStates = async () => {
-//   try {
-//     const states_r = await axios.get(`/states`);
-//     states_list.value = states_r.data.states.filter((el) => el.table === 'products');
-//   } catch (error) {
-//     console.error('Ошибка :', error);
-//   }
-// };
+const batches_list = ref([])
+const fetchBatches = async () => {
+  try {
+    const reponse = await axios.get(`/batches`);
+    batches_list.value = reponse.data.batches
+  } catch (error) {
+    console.error('Ошибка :', error);
+  }
+};
 
 onMounted(() => {
   fetchData();
-  // fetchStates();
+  fetchBatches();
 });
 
 const isBarcodeDialogVisible = ref(false);
@@ -124,7 +127,11 @@ const openBarcodeDialog = (id) => {
 };
 
 // end BarCode
+const products_list =  computed(() => products.value?.map((el) => ({name: el.variant.product.name, id: el.variant.id})))
 
+const getProductName = (variant) => {
+  return variant.product.name;
+};
 </script>
 
 <template>
@@ -140,18 +147,15 @@ const openBarcodeDialog = (id) => {
             :isDeleting="isDeleting"
           />
           <VCardText class="d-flex flex-wrap">
-            <!-- <VCol cols="3" sm="3">
+            <VCol cols="3" sm="3">
               <VSelect
-                
-                v-model="selectedState"
-                label="Выберите статус"
-                :items="states_list"
-                item-title="name_ru"
+                v-model="selectedBatch"
+                label="Выберите партию"
+                :items="batches_list"
+                item-title="name"
                 item-value="id"
-                
-                
               />
-            </VCol> -->
+            </VCol>
 
             <VSpacer />
 
@@ -176,7 +180,18 @@ const openBarcodeDialog = (id) => {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ИМЯ ПРОДУКТА</th>
+                <th>
+                  <VSelect
+                    v-model="selectedProduct"
+                    label="ИМЯ ПРОДУКТА"
+                    :items="products_list"
+                    :rules="[]"
+                    item-title="name"
+                    item-value="id"
+                    style="width: 200px"
+                    variant="plain"
+                  />
+                </th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>РАЗМЕР</th>
@@ -211,7 +226,6 @@ const openBarcodeDialog = (id) => {
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
-                 
                 </td>
               </tr>
             </tbody>
