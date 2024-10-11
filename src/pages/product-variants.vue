@@ -218,7 +218,7 @@ const deleteItem = async function (id) {
                 class="me-6"
               />
               <Can I="add" a="Products">
-                <AddNewDialog />
+                <AddNewDialog @fetchDatas="() => fetchData(true)" />
               </Can>
             </VCol>
           </VCardText>
