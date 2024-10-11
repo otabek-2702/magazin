@@ -21,35 +21,35 @@ handleSkinChanges();
 let scannedText = '';
 let scanning = false;
 
-document.addEventListener('keydown', (event) => {
-  // Check if the currently focused element is an input or a textarea
-  const activeElement = document.activeElement;
-  const isInputField = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
+// document.addEventListener('keydown', (event) => {
+//   // Check if the currently focused element is an input or a textarea
+//   const activeElement = document.activeElement;
+//   const isInputField = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
 
-  // If the user is not focused on an input/textarea, capture the scanner input
-  if (!isInputField) {
-    if (!scanning) {
-      // Start capturing input
-      scanning = true;
-      scannedText = ''; // Reset the scanned text
-    }
+//   // If the user is not focused on an input/textarea, capture the scanner input
+//   if (!isInputField) {
+//     if (!scanning) {
+//       // Start capturing input
+//       scanning = true;
+//       scannedText = ''; // Reset the scanned text
+//     }
 
-    // Check if the key pressed is Enter (to end the scan)
-    if (event.key === 'Enter') {
-      scanning = false;
-      console.log('Scanned code:', scannedText);
+//     // Check if the key pressed is Enter (to end the scan)
+//     if (event.key === 'Enter') {
+//       scanning = false;
+//       console.log('Scanned code:', scannedText);
 
-      // Process the scanned text (e.g., fetch product details based on code)
-      handleScannedCode(scannedText);
+//       // Process the scanned text (e.g., fetch product details based on code)
+//       handleScannedCode(scannedText);
 
-      // Reset the scanned text for the next scan
-      scannedText = '';
-    } else {
-      // Append the character to scannedText
-      scannedText += event.key;
-    }
-  }
-});
+//       // Reset the scanned text for the next scan
+//       scannedText = '';
+//     } else {
+//       // Append the character to scannedText
+//       scannedText += event.key;
+//     }
+//   }
+// });
 
 
 function handleScannedCode(code) {
