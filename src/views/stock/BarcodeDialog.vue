@@ -121,7 +121,7 @@ const formatPrice = (price) => {
                 {{ itemData?.product?.name }}
                 {{ itemData?.size?.name }}
               </p>
-              <b>narxi: {{ formatPrice(itemData?.product?.sell_price) }}</b>
+              <b> {{ formatPrice(itemData?.product?.sell_price) }} сум</b>
               <svg ref="barcodeContainer" class="barcode" style="width: 100%; height: 150px"></svg>
             </div>
           </div>
