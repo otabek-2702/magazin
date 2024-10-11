@@ -23,8 +23,8 @@ const supplier_id = ref();
 const category_id = ref();
 const season = ref('fall');
 const gender = ref('man');
-const profit_percent = ref();
-const sale = ref();
+const profit_percent = ref(100);
+const sale = ref(0);
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
