@@ -118,6 +118,8 @@ const formatPrice = (price) => {
           <div class="paper-look">
             <div id="printMe">
               <p>
+                {{ itemData?.product?.gender?.translate.slice(0,1) }}
+                .
                 {{ itemData?.product?.name }}
                 {{ itemData?.size?.name }}
               </p>
