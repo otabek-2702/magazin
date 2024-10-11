@@ -60,6 +60,13 @@ export default [
         action: 'show'
       },
       {
+        title: 'Склад',
+        to: { name: 'Stock' },
+        // icon: { icon: 'mdi-cube-outline' },
+        subject: 'Stock',
+        action: 'show'
+      },
+      {
         title: 'Настройки',
         to: { name: 'Settings' },
         subject: 'Settings',

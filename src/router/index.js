@@ -111,6 +111,15 @@ const router = createRouter({
           }
         },
         {
+          path: 'stock',
+          name: 'Stock',
+          component: () => import("@/pages/stock.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Stock',
+          }
+        },
+        {
           path: 'batches',
           name: 'Batches',
           component: () => import("@/pages/batches.vue"),
