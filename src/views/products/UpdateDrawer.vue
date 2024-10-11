@@ -51,6 +51,7 @@ const onSubmit = () => {
           category_id: category_id.value,
           season: season.value,
           gender: gender.value,
+          profit_percent: profit_percent.value,
           sale: sale.value,
         });
 
@@ -93,7 +94,7 @@ const fetchDataById = async () => {
       category_id.value = response.data.product.category?.id;
       season.value = response.data.product.season.name;
       gender.value = response.data.product.gender.name;
-      profit_percent.value =response.data.product.profit_percent
+      profit_percent.value = response.data.product.profit_percent;
       sale.value = response.data.product.sale;
     }
   } catch (error) {
@@ -181,14 +182,11 @@ watch(
 
               <VCol cols="12">
                 <VSelect
-                  
                   v-model="supplier_id"
                   label="Выберите поставщика"
                   :items="suppliers_list"
                   item-title="name"
                   item-value="id"
-                  
-                  
                 />
               </VCol>
 
