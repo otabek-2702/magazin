@@ -93,7 +93,7 @@ const fetchDataById = async () => {
       category_id.value = response.data.product.category?.id;
       season.value = response.data.product.season.name;
       gender.value = response.data.product.gender.name;
-      profit_percent: response.data.product.profit_percent.value,
+      profit_percent.value =response.data.product.profit_percent
       sale.value = response.data.product.sale;
     }
   } catch (error) {
