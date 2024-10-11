@@ -7,7 +7,7 @@ td:last-child:empty {
 // Styles for printing
 @media print {
   @page {
-    size: 30mm 57mm !important; /* Adjust to paper size */
+    size: 30mm 57mm landscape !important; /* Adjust to paper size */
   }
 }
 
