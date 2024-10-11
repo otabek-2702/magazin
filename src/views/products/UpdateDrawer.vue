@@ -27,6 +27,7 @@ const supplier_id = ref();
 const category_id = ref();
 const season = ref('fall');
 const gender = ref('man');
+const profit_percent = ref();
 const sale = ref();
 
 // 👉 drawer close
@@ -92,6 +93,7 @@ const fetchDataById = async () => {
       category_id.value = response.data.product.category?.id;
       season.value = response.data.product.season.name;
       gender.value = response.data.product.gender.name;
+      profit_percent: response.data.product.profit_percent.value,
       sale.value = response.data.product.sale;
     }
   } catch (error) {
@@ -215,6 +217,10 @@ watch(
                   <VRadio label="Женский" value="woman" density="compact" />
                   <VRadio label="Универсальный" value="unisex" density="compact" />
                 </VRadioGroup>
+              </VCol>
+
+              <VCol cols="12">
+                <VTextField v-model="profit_percent" label="Наценка в процентах" type="number" />
               </VCol>
 
               <VCol cols="12">

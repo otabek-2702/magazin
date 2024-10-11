@@ -23,6 +23,7 @@ const supplier_id = ref();
 const category_id = ref();
 const season = ref('fall');
 const gender = ref('man');
+const profit_percent = ref();
 const sale = ref();
 
 // 👉 drawer close
@@ -46,6 +47,7 @@ const onSubmit = () => {
           category_id: category_id.value,
           season: season.value,
           gender: gender.value,
+          profit_percent: profit_percent.value,
           sale: sale.value,
         });
         emit('fetchDatas');
@@ -172,6 +174,10 @@ watch(
                   <VRadio label="Женский" value="woman" density="compact" />
                   <VRadio label="Универсальный" value="unisex" density="compact" />
                 </VRadioGroup>
+              </VCol>
+
+              <VCol cols="12">
+                <VTextField v-model="profit_percent" label="Наценка в процентах" type="number" />
               </VCol>
 
               <VCol cols="12">
