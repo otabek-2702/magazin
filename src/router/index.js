@@ -111,6 +111,15 @@ const router = createRouter({
           }
         },
         {
+          path: 'branches',
+          name: 'Branches',
+          component: () => import("@/pages/branches.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Branches',
+          }
+        },
+        {
           path: 'stock',
           name: 'Stock',
           component: () => import("@/pages/stock.vue"),

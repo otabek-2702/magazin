@@ -75,6 +75,13 @@ export default [
     ]
   },
   {
+    title: 'Филиалы',
+    to: { name: 'Branches' },
+    icon: { icon: 'mdi-domain' },
+    subject: 'Branches',
+    action: 'show'
+  },
+  {
     title: 'Поставщики',
     to: { name: 'Suppliers' },
     icon: { icon: 'mdi-human-dolly' },
