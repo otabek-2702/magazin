@@ -163,6 +163,7 @@ onMounted(fetchData);
           label="Имя"
           v-model="newElemName"
           @keyup.enter="searchElements"
+          :rules="[]"
           density="compact"
         />
       </VCol>

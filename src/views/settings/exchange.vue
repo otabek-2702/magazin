@@ -139,6 +139,7 @@ onMounted(fetchData);
           :disabled="isFetching"
           label="Имя"
           @keyup.enter="searchElements"
+          :rules="[]"
           v-model="newElem.name"
           density="compact"
         />
@@ -152,6 +153,7 @@ onMounted(fetchData);
         <VTextField
           :disabled="isFetching"
           label="Символ"
+          :rules="[]"
           v-model="newElem.symbol"
           density="compact"
         />
@@ -161,6 +163,7 @@ onMounted(fetchData);
           :disabled="isFetching"
           type="number"
           label="Курс"
+          :rules="[]"
           v-model="newElem.rate"
           density="compact"
         />
