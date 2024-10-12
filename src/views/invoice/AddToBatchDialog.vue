@@ -5,18 +5,18 @@ import axios from '@axios';
 import { toast } from 'vue3-toastify';
 
 const emit = defineEmits(['fetchDatas']);
+const props = defineProps({
+  variant_id: { required: true, type: Number || String },
+});
 
 const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFormValid = ref(false);
-const isWareHouseAddToo = ref(false); //:)
 const refForm = ref();
-const product_id = ref();
-const size_id = ref();
-const color_id = ref();
-const batches_id = ref();
+const product_variant = ref();
+const batch_id = ref();
 const exchange_id = ref();
-const initial_price = ref('');
+const purchase_price = ref('');
 const quantity = ref();
 
 // 👉 drawer close
@@ -35,15 +35,14 @@ const removeSpaces = (input) => {
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
+    console.log('clicked', valid)
       isFetching.value = true;
       try {
-        await axios.post('/product_variants', {
-          product_id: product_id.value,
-          size_id: size_id.value,
-          color_id: color_id.value,
-          batch_id: batches_id.value ?? 0,
+        await axios.post('/batch_product_variants', {
+          variant_id: product_variant.value.id,
+          batch_id: batch_id.value ?? 0,
           purchase_exchange_rate_id: exchange_id.value ?? 0,
-          purchase_price: removeSpaces(initial_price.value ?? 0),
+          purchase_price: removeSpaces(purchase_price.value ?? 0),
           quantity: quantity.value,
         });
         emit('fetchDatas');
@@ -87,18 +86,14 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
     console.log(error);
   }
 };
-const products_list = ref([]);
-const sizes_list = ref([]);
-const colors_list = ref([]);
 const batches_list = ref([]);
 const exchanges_list = ref([]);
 
 watch(
   isDialogVisible,
   () => {
-    fetchOptions('/sizes', sizes_list, 'sizes');
-    fetchOptions('/colors', colors_list, 'colors');
-    fetchOptions('/products', products_list, 'products');
+    fetchOptions(`/product_variants/${props.variant_id}`, product_variant, 'products_variant');
+
     fetchOptions('/batches', batches_list, 'batches');
     fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {
       is: true,
@@ -121,7 +116,7 @@ const formatPrice = (price) => {
   return formattedPrice.trim();
 };
 const handlePriceInput = (e) => {
-  initial_price.value = formatPrice(e.target.value);
+  purchase_price.value = formatPrice(e.target.value);
 };
 </script>
 
@@ -129,89 +124,56 @@ const handlePriceInput = (e) => {
   <VDialog v-model="isDialogVisible" max-width="600">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props">Добавить товар</VBtn>
+      <VIcon
+        @click="isDialogVisible = true"
+        v-bind="props"
+        size="30"
+        icon="mdi-package-variant-closed-plus"
+        style="color: rgb(var(--v-theme-success))"
+      ></VIcon>
     </template>
 
     <!-- Dialog Content -->
     <VCard title="Добавить">
       <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
+        <h3 class="px-6 pt-3">
+          {{ product_variant?.product.name }} | {{ product_variant?.color.name }} |
+          {{ product_variant?.size.name }}
+        </h3>
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
-              <VCol cols="12">
+              <VCol cols="6">
                 <VAutocomplete
-                  v-model="product_id"
-                  label="Выберите товар"
-                  :items="products_list"
+                  v-model="batch_id"
+                  label="Выберите партию"
+                  :items="batches_list"
                   item-title="name"
                   item-value="id"
                 />
+              </VCol>
+              <VCol cols="6">
+                <VTextField v-model="quantity" label="Количество" type="number" />
               </VCol>
 
               <VCol cols="6">
                 <VSelect
-                  v-model="size_id"
-                  label="Выберите размер"
-                  :items="sizes_list"
+                  v-model="exchange_id"
+                  label="Валюта"
+                  :items="exchanges_list"
                   item-title="name"
                   item-value="id"
                 />
               </VCol>
-
               <VCol cols="6">
-                <VAutocomplete
-                  v-model="color_id"
-                  label="Выберите цвет"
-                  :items="colors_list"
-                  item-title="name"
-                  item-value="id"
-                />
-              </VCol>
-
-              <!-- <VCol cols="6">
                 <VTextField
-                  v-model="sale"
-                  
-                  label="Скидка в процентах"
-                  type="number"
+                  :value="formatPrice(purchase_price)"
+                  @input="handlePriceInput"
+                  label="Себестоимость"
+                  type="text"
                 />
-              </VCol> -->
-              <VCol cols="12" class="d-flex justify-content-end align-center">
-                <VSwitch v-model="isWareHouseAddToo" inset label="Также добавить товар на склад" />
               </VCol>
-              <template v-if="isWareHouseAddToo">
-                <VCol cols="6">
-                  <VAutocomplete
-                    v-model="batches_id"
-                    label="Выберите партию"
-                    :items="batches_list"
-                    item-title="name"
-                    item-value="id"
-                  />
-                </VCol>
-                <VCol cols="6">
-                  <VTextField v-model="quantity" label="Количество" type="number" />
-                </VCol>
-
-                <VCol cols="6">
-                  <VSelect
-                    v-model="exchange_id"
-                    label="Валюта"
-                    :items="exchanges_list"
-                    item-title="name"
-                    item-value="id"
-                  />
-                </VCol>
-                <VCol cols="6">
-                  <VTextField
-                    :value="formatPrice(initial_price)"
-                    @input="handlePriceInput"
-                    label="Себестоимость"
-                    type="text"
-                  />
-                </VCol>
-              </template>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
               <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">

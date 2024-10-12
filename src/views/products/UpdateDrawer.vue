@@ -214,6 +214,7 @@ watch(
                   <VRadio label="Мужской" value="man" density="compact" />
                   <VRadio label="Женский" value="woman" density="compact" />
                   <VRadio label="Универсальный" value="unisex" density="compact" />
+                  <VRadio label="Детский" value="kids" density="compact" />
                 </VRadioGroup>
               </VCol>
 

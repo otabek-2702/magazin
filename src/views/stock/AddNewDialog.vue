@@ -97,7 +97,7 @@ watch(
   isDialogVisible,
   () => {
     fetchOptions('/sizes', sizes_list, 'sizes');
-    fetchOptions('/colors?paginate=50', colors_list, 'colors');
+    fetchOptions('/colors', colors_list, 'colors');
     fetchOptions('/products', products_list, 'products');
     fetchOptions('/batches', batches_list, 'batches');
     fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {

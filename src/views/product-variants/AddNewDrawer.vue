@@ -95,7 +95,7 @@ const fetchColors = async () => {
   // ////////////////////////////////////////////////////////////////////////////////////
   // ////////////////////////////////////////////////////////////////////////////////////
   try {
-    const response = await axios.get('/colors?paginate=50');
+    const response = await axios.get('/colors');
 
     if (response.status === 200) {
       colors_list.value = response.data.colors;
@@ -178,7 +178,12 @@ watch(
                 <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
                   Отправить
                 </VBtn>
-                <VBtn type="reset" variant="tonal" color="secondary" @click="handleDrawerModelValueUpdate(false)">
+                <VBtn
+                  type="reset"
+                  variant="tonal"
+                  color="secondary"
+                  @click="handleDrawerModelValueUpdate(false)"
+                >
                   Отмена
                 </VBtn>
               </VCol>

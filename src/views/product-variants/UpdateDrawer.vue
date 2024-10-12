@@ -128,7 +128,7 @@ const fetchSizes = async () => {
 const colors_list = ref([]);
 const fetchColors = async () => {
   try {
-    const response = await axios.get('/colors?paginate=50');
+    const response = await axios.get('/colors');
 
     if (response.status === 200) {
       colors_list.value = response.data.colors;

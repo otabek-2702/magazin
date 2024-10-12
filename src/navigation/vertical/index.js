@@ -82,6 +82,13 @@ export default [
     action: 'show'
   },
   {
+    title: 'Накладной',
+    to: { name: 'Invoices' },
+    icon: { icon: 'mdi-clipboard-list' },
+    subject: 'Invoices',
+    action: 'show'
+  },
+  {
     title: 'Поставщики',
     to: { name: 'Suppliers' },
     icon: { icon: 'mdi-human-dolly' },

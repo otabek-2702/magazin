@@ -91,7 +91,7 @@ const fetchDataById = async () => {
 
 watch(
   () => props.isDrawerOpen,
-  async (newVal) => {
+  (newVal) => {
     if (newVal && props.id) fetchDataById();
   },
 );

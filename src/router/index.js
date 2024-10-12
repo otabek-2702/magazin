@@ -146,6 +146,15 @@ const router = createRouter({
             subject: 'Settings',
           }
         },
+        {
+          path: 'invoices',
+          name: 'Invoices',
+          component: () => import("@/pages/invoices.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Invoices',
+          }
+        },
       ],
     },
     ...setupLayouts(routes),

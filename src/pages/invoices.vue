@@ -1,18 +1,14 @@
 <script setup>
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/product-variants/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/product-variants/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/product-variants/InfoDialog.vue';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
-import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
+import InfoDialog from '@/views/invoice/InfoDialog.vue';
+import BarcodeDialog from '@/views/invoice/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
-import AddNewDialog from '@/views/product-variants/AddNewDialog.vue';
-import AddToBatchDialog from '@/views/product-variants/AddToBatchDialog.vue';
+import AddNewDialog from '@/views/invoice/AddNewDialog.vue';
+import { transformPrice } from '@/helpers';
 
-const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(30);
@@ -20,7 +16,7 @@ const currentPage = ref(1);
 const totalPage = ref(1);
 const lastFetchedPage = ref(null);
 const totalDatasCount = ref(0);
-const products = ref([]);
+const invoices = ref([]);
 const updateID = ref(0);
 
 // Get main datas start
@@ -38,10 +34,10 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/product_variants?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    products.value = data['products_variants'];
+    invoices.value = data['invoices'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
@@ -50,7 +46,7 @@ const fetchData = async (force = false) => {
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error('Ошибка загрузки :', error);
   } finally {
     isFetching.value = false;
   }
@@ -84,7 +80,7 @@ watch(searchQuery, (newVal) => {
 // const fetchStates = async () => {
 //   try {
 //     const states_r = await axios.get(`/states`);
-//     states_list.value = states_r.data.states.filter((el) => el.table === 'products');
+//     states_list.value = states_r.data.states.filter((el) => el.table === 'invoices');
 //   } catch (error) {
 //     console.error('Ошибка :', error);
 //   }
@@ -95,8 +91,6 @@ onMounted(() => {
   // fetchStates();
 });
 
-const isAddNewDrawerVisible = ref(false);
-const isUpdateDrawerVisible = ref(false);
 const isInfoDialogVisible = ref(false);
 const isBarcodeDialogVisible = ref(false);
 
@@ -116,8 +110,8 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = invoices.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+  const lastIndex = invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -133,12 +127,6 @@ const openBarcodeDialog = (id) => {
 
 // end BarCode
 
-// Edit
-const openEditDrawer = (id) => {
-  updateID.value = id;
-  isUpdateDrawerVisible.value = true;
-};
-
 // Show one
 const infoDialogItemId = ref(0);
 
@@ -147,36 +135,17 @@ const handleInfoDialogOpen = (id) => {
   isInfoDialogVisible.value = true;
 };
 
-// Delete
-const isDialogVisible = ref(false);
-const isDeleting = ref(false);
-const deleteData = ref({
-  id: 1,
-  name: null,
-});
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    draft: { color: 'primary', translate: 'Черновик' },
+    cancel: { color: 'warning', translate: 'Отменен' },
+    archive: { color: 'secondary' },
+    success: { color: 'success' },
+    invite: { color: 'info' },
+    block: { color: 'error' },
+  };
 
-const confirmDelete = function (id, name) {
-  deleteData.value.id = id;
-  deleteData.value.name = name;
-  isDialogVisible.value = true;
-};
-
-const deleteItem = async function (id) {
-  try {
-    isDeleting.value = true;
-    await axios.delete('/product_variants/' + id);
-    toast('Успешно удалено', {
-      theme: 'auto',
-      type: 'success',
-      dangerouslyHTMLString: true,
-    });
-    await fetchData(true);
-    isDialogVisible.value = false;
-  } catch (error) {
-    console.error('Ошибка :', error);
-  } finally {
-    isDeleting.value = false;
-  }
+  return roleMap[status] || { color: 'primary', translate: '' };
 };
 </script>
 
@@ -185,13 +154,6 @@ const deleteItem = async function (id) {
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
           <VCardText class="d-flex flex-wrap">
             <!-- <VCol cols="3" sm="3">
               <VSelect
@@ -212,12 +174,12 @@ const deleteItem = async function (id) {
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
-                placeholder="Поиск товара"
+                placeholder="Поиск "
                 :rules="[]"
                 density="compact"
                 class="me-6"
               />
-              <Can I="add" a="Products">
+              <Can I="add" a="Invoices">
                 <AddNewDialog @fetchDatas="() => fetchData(true)" />
               </Can>
             </VCol>
@@ -229,47 +191,50 @@ const deleteItem = async function (id) {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ИМЯ ПРОДУКТА</th>
-                <th>БРЭНД</th>
-                <th>КАТЕГОРИЯ</th>
-                <th>РАЗМЕР</th>
-                <th>ЦВЕТ</th>
-                <th>СЕЗОН</th>
-                <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th>ПАРТИЯ</th>
+                <th>КУРС</th>
+                <th>СТАТУС</th>
+                <th>ОБЩАЯ СУММА</th>
+                <!-- <th>ДЕЙСТВИЯ</th> -->
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="variant in products" :key="variant.id">
-                <td>{{ variant.id }}</td>
+              <tr v-for="invoice in invoices" :key="invoice.id" @click="handleInfoDialogOpen(invoice.id)" style="cursor: pointer">
+                <td>{{ invoice.id }}</td>
+
+                <td>{{ invoice.batch.name }}</td>
+                <td>{{ transformPrice(invoice.exchange_rate) }} {{ invoice.currency.symbol }}</td>
                 <td>
-                  {{ variant.product?.name }}
+                  <VChip
+                    :color="resolveInvoiceStatus(invoice.status).color"
+                    density="compact"
+                    label
+                    class="text-uppercase"
+                  >
+                    {{ resolveInvoiceStatus(invoice.status).translate }}
+                  </VChip>
                 </td>
-                <td>{{ variant.product?.brand }}</td>
-                <td>{{ variant.product?.category?.name }}</td>
-                <td>{{ variant.size?.name }}</td>
-                <td>{{ variant.color?.name }}</td>
-                <td>{{ variant.product?.season?.translate }}</td>
-                <td>{{ variant.product?.gender?.translate }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td>{{ transformPrice(invoice.total_amount) }}{{ invoice.currency.symbol }}</td>
+
+                <!-- <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                   <VIcon
                     @click="
                       (event) => {
                         event.stopPropagation();
-                        openBarcodeDialog(variant.id);
+                        openBarcodeDialog(invoice.id);
                       }
                     "
                     size="30"
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
-                  <Can I="update" a="Products">
+                  <Can I="update" a="Invoices">
                     <VIcon
                       @click="
                         (event) => {
                           event.stopPropagation();
-                          openEditDrawer(variant.id);
+                          openEditDrawer(invoice.id);
                         }
                       "
                       size="30"
@@ -278,23 +243,14 @@ const deleteItem = async function (id) {
                       class="mx-2"
                     ></VIcon>
                   </Can>
-                  <AddToBatchDialog :variant_id="variant.id" />
-                  <!-- <Can I="delete" a="Productvariants">
-                    <VIcon
-                      size="30"
-                      icon="bx-trash"
-                      style="color: red"
-                      @click="confirmDelete(variant.id, variant.product?.name)"
-                    ></VIcon>
-                  </Can> -->
-                </td>
+                </td> -->
               </tr>
             </tbody>
-            <Skeleton :count="9" v-show="isFetching && !products.length" />
+            <Skeleton :count="5" v-show="isFetching && !invoices.length" />
 
-            <tfoot v-show="!isFetching && !products.length">
+            <tfoot v-show="!isFetching && !invoices.length">
               <tr>
-                <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="15" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
             </tfoot>
           </VTable>
@@ -307,7 +263,7 @@ const deleteItem = async function (id) {
             </div>
 
             <VPagination
-              v-if="products.length"
+              v-if="invoices.length"
               v-model="currentPage"
               size="small"
               :total-visible="1"
@@ -318,19 +274,9 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
 
-    <AddNewDrawer
-      v-model:isDrawerOpen="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
-    <UpdateDrawer
-      :id="updateID"
-      v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
-
     <InfoDialog
-      v-model:isDrawerOpen="isInfoDialogVisible"
-      :productId="infoDialogItemId"
+      v-model:isDialogOpen="isInfoDialogVisible"
+      :id="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     />
     <BarcodeDialog
