@@ -284,6 +284,7 @@ const calculateCount = computed(() => {
                   :readonly="currency_id == 3 || status != 'Черновик'"
                   :clearable="status == 'Черновик'"
                   label="Курс"
+                  :prefix="rate_symbol"
                   type="text"
                 />
               </VCol>

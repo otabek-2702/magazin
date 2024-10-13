@@ -96,7 +96,7 @@ watch(
       is: true,
     });
     fetchOptions('/batches', batches_list, 'batches');
-    fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates');
+    fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {is:true, method: (el) => ({...el, name: `${el.symbol} ${el.name}`})});
   },
   { once: true },
 );
@@ -190,6 +190,7 @@ const calculateCount = computed(() => {
                   v-model="exchange_rate"
                   :readonly="currency_id == 3"
                   label="Курс"
+                  :prefix="rate_symbol"
                   type="text"
                 />
               </VCol>
