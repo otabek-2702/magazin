@@ -137,12 +137,12 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    draft: { color: 'primary', translate: 'Черновик' },
-    rejected: { color: 'secondary', translate: 'Отменен' },
-    confirmed: { color: 'success', translate: 'Подтвержденный' },
+    'Черновик': { color: 'primary' },
+    'Отклонено': { color: 'secondary' },
+    'Подтверждено': { color: 'success' },
   };
 
-  return roleMap[status] || { color: 'primary', translate: '' };
+  return roleMap[status] || { color: 'primary' };
 };
 </script>
 
@@ -209,7 +209,7 @@ const resolveInvoiceStatus = (status) => {
                     label
                     class="text-uppercase"
                   >
-                    {{ resolveInvoiceStatus(invoice.status).translate }}
+                    {{ invoice.status }}
                   </VChip>
                 </td>
                 <td>{{ transformPrice(invoice.total_amount) }}{{ invoice.currency.symbol }}</td>

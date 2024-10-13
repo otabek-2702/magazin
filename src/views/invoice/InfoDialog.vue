@@ -263,8 +263,8 @@ const calculateCount = computed(() => {
                   :items="batches_list"
                   item-title="name"
                   item-value="id"
-                  :readonly="status != 'draft'"
-                  :clearable="status == 'draft'"
+                  :readonly="status != 'Черновик'"
+                  :clearable="status == 'Черновик'"
                 />
               </VCol>
               <VCol cols="4">
@@ -274,15 +274,15 @@ const calculateCount = computed(() => {
                   :items="exchanges_list"
                   item-title="name"
                   item-value="id"
-                  :readonly="status != 'draft'"
-                  :clearable="status == 'draft'"
+                  :readonly="status != 'Черновик'"
+                  :clearable="status == 'Черновик'"
                 />
               </VCol>
               <VCol cols="4">
                 <VTextField
                   v-model="exchange_rate"
-                  :readonly="currency_id == 3 || status != 'draft'"
-                  :clearable="status == 'draft'"
+                  :readonly="currency_id == 3 || status != 'Черновик'"
+                  :clearable="status == 'Черновик'"
                   label="Курс"
                   type="text"
                 />
@@ -298,7 +298,7 @@ const calculateCount = computed(() => {
                       <th>ТОВАР</th>
                       <th>ЦЕНА</th>
                       <th>КОЛИЧЕСТВО</th>
-                      <th v-if="status == 'draft'">ДЕЙСТВИЯ</th>
+                      <th v-if="status == 'Черновик'">ДЕЙСТВИЯ</th>
                     </tr>
                   </thead>
 
@@ -313,7 +313,7 @@ const calculateCount = computed(() => {
                       <td
                         class="text-center"
                         :style="{ width: '80px', zIndex: '10' }"
-                        v-if="status == 'draft'"
+                        v-if="status == 'Черновик'"
                       >
                         <VIcon
                           size="30"
@@ -347,7 +347,7 @@ const calculateCount = computed(() => {
 
               <VDivider />
 
-              <template v-if="status == 'draft'">
+              <template v-if="status == 'Черновик'">
                 <VCol cols="4">
                   <VAutocomplete
                     v-model="product_variant_id"
@@ -384,7 +384,7 @@ const calculateCount = computed(() => {
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
               <VBtn
-                v-if="status == 'draft'"
+                v-if="status == 'Черновик'"
                 :loading="isFetching == 'submit'"
                 :disabled="isFetching == 'submit'"
                 type="submit"
@@ -397,7 +397,7 @@ const calculateCount = computed(() => {
                 :disabled="isFetching == 'confirm'"
                 @click="onConfirmSubmit"
                 color="success"
-                v-if="status == 'draft'"
+                v-if="status == 'Черновик'"
                 class="me-3"
               >
                 Подтвердить
@@ -408,7 +408,7 @@ const calculateCount = computed(() => {
                 :disabled="isFetching == 'reject'"
                 @click="onRejectSubmit"
                 color="secondary"
-                v-if="status == 'draft'"
+                v-if="status == 'Черновик'"
                 class="me-3"
               >
                 Отменить <VIcon end icon="bx-minus-circle" />
