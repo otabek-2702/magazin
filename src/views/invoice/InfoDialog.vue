@@ -4,6 +4,7 @@ import { nextTick, onMounted, ref, watch } from 'vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
 import { transformPrice } from '@/helpers';
+import Skeleton from '../skeleton/Skeleton.vue';
 
 const props = defineProps({
   id: {
@@ -16,13 +17,14 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:isDialogOpen', 'fetchDatas']);
 
-const isFetchingStart = ref(false);
-const isFetching = ref(false);
+const isFetchingStart = ref(true);
+const isFetching = ref('');
 const isFormValid = ref(false);
 const refForm = ref();
 const batches_id = ref();
 const currency_id = ref();
 const exchange_rate = ref();
+const status = ref();
 const product_variant_id = ref();
 const quantity = ref();
 const price = ref('');
@@ -41,15 +43,11 @@ const fetchDataById = async () => {
       batches_id.value = invoice.batch.id;
       currency_id.value = invoice.currency.id;
       exchange_rate.value = invoice.exchange_rate;
+      status.value = invoice.status;
       product_variants.value = invoice.items.map((el) => ({
         ...el,
         variant: product_variants_list.value.find((e) => e.id == el.product_variant_id),
       }));
-      console.log(product_variants.value);
-
-      // name.value = response.data.batch.name;
-      // road_expenses.value = response.data.batch.road_expenses;
-      // description.value = response.data.batch.description;
     }
   } catch (error) {
     console.error('Ошибка:', error);
@@ -64,9 +62,9 @@ const removeSpaces = (input) => {
 
 const onSubmit = async () => {
   if (true) {
-    isFetching.value = true;
+    isFetching.value = 'submit';
     try {
-      await axios.post('/invoices', {
+      await axios.put(`/invoices/${props.id}`, {
         batch_id: batches_id.value ?? 0,
         currency_id: currency_id.value,
         exchange_rate: exchange_rate.value,
@@ -78,7 +76,7 @@ const onSubmit = async () => {
         })),
       });
       emit('fetchDatas');
-      toast('Успешно добавлено', {
+      toast('Успешно', {
         theme: 'auto',
         type: 'success',
         dangerouslyHTMLString: true,
@@ -87,8 +85,50 @@ const onSubmit = async () => {
     } catch (error) {
       console.error(error);
     } finally {
-      isFetching.value = false;
+      isFetching.value = '';
     }
+  }
+};
+
+const onConfirmSubmit = async () => {
+  isFetching.value = 'confirm';
+  try {
+    const reponse = await axios.post(`/invoices/confirm/${props.id}`);
+    if (reponse.status === 200) {
+      toast('Успешно', {
+        theme: 'auto',
+        type: 'success',
+        dangerouslyHTMLString: true,
+      });
+      emit('fetchDatas');
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = '';
+  }
+};
+
+const onRejectSubmit = async () => {
+  isFetching.value = 'reject';
+  try {
+    const reponse = await axios.post(`/invoices/reject/${props.id}`);
+    if (reponse.status === 200) {
+      toast('Успешно', {
+        theme: 'auto',
+        type: 'success',
+        dangerouslyHTMLString: true,
+      });
+      emit('fetchDatas');
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = '';
   }
 };
 
@@ -98,6 +138,7 @@ const handleDialogModelValueUpdate = (val) => {
     nextTick(() => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
+      product_variants.value = [];
     });
   }
 };
@@ -127,17 +168,22 @@ watch(currency_id, (newVal) => {
 });
 
 onMounted(() => {
-  fetchOptions('/product_variants', product_variants_list, 'products_variants', {
-    method: (el) => ({ ...el, name: `${el.product.name} | ${el.size.name} | ${el.color.name}` }),
-    is: true,
-  });
   fetchOptions('/batches', batches_list, 'batches');
   fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates');
 });
 watch(
   () => props.isDialogOpen,
-  (newVal) => {
-    if (newVal && props.id) fetchDataById();
+  async (newVal) => {
+    if (newVal && props.id) {
+      await fetchOptions('/product_variants', product_variants_list, 'products_variants', {
+        method: (el) => ({
+          ...el,
+          name: `${el.product.name} | ${el.size.name} | ${el.color.name}`,
+        }),
+        is: true,
+      });
+      await fetchDataById();
+    }
   },
 );
 
@@ -154,6 +200,19 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
+  if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
+    toast('Дубликат', {
+      theme: 'auto',
+      type: 'error',
+      dangerouslyHTMLString: true,
+    });
+    setTimeout(() => {
+      product_variant_id.value = null;
+      price.value = null;
+      quantity.value = null;
+    }, 300);
+    return;
+  }
   const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
 
   product_variants.value.push({
@@ -204,6 +263,8 @@ const calculateCount = computed(() => {
                   :items="batches_list"
                   item-title="name"
                   item-value="id"
+                  :readonly="status != 'draft'"
+                  :clearable="status == 'draft'"
                 />
               </VCol>
               <VCol cols="4">
@@ -213,12 +274,15 @@ const calculateCount = computed(() => {
                   :items="exchanges_list"
                   item-title="name"
                   item-value="id"
+                  :readonly="status != 'draft'"
+                  :clearable="status == 'draft'"
                 />
               </VCol>
               <VCol cols="4">
                 <VTextField
                   v-model="exchange_rate"
-                  :readonly="currency_id == 3"
+                  :readonly="currency_id == 3 || status != 'draft'"
+                  :clearable="status == 'draft'"
                   label="Курс"
                   type="text"
                 />
@@ -234,7 +298,7 @@ const calculateCount = computed(() => {
                       <th>ТОВАР</th>
                       <th>ЦЕНА</th>
                       <th>КОЛИЧЕСТВО</th>
-                      <th>ДЕЙСТВИЯ</th>
+                      <th v-if="status == 'draft'">ДЕЙСТВИЯ</th>
                     </tr>
                   </thead>
 
@@ -242,12 +306,15 @@ const calculateCount = computed(() => {
                     <tr v-for="(variant, i) in product_variants" :key="variant.id">
                       <td>{{ i + 1 }}</td>
                       <td>
-                        {{ variant.product?.name }} | {{ variant.size.name }} |
-                        {{ variant.color.name }}
+                        {{ variant.variant.name }}
                       </td>
                       <td>{{ variant.price }} {{ rate_symbol }}</td>
                       <td>{{ variant.quantity }}</td>
-                      <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                      <td
+                        class="text-center"
+                        :style="{ width: '80px', zIndex: '10' }"
+                        v-if="status == 'draft'"
+                      >
                         <VIcon
                           size="30"
                           icon="mdi-minus-circle-outline"
@@ -262,11 +329,15 @@ const calculateCount = computed(() => {
                     <tr>
                       <td colspan="2"></td>
                       <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
-                      <td class="text-body-1">Общая количество: {{ calculateCount }}</td>
-                      <td colspan="10"></td>
+                      <td class="text-body-1">Общее количество: {{ calculateCount }}</td>
+                      <td></td>
+                      <td></td>
                     </tr>
                   </tfoot>
-                  <tfoot v-show="!product_variants.length">
+
+                  <Skeleton :count="5" v-show="isFetchingStart && !product_variants.length" />
+
+                  <tfoot v-show="!isFetchingStart && !product_variants.length">
                     <tr>
                       <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
                     </tr>
@@ -276,42 +347,71 @@ const calculateCount = computed(() => {
 
               <VDivider />
 
-              <VCol cols="4">
-                <VAutocomplete
-                  v-model="product_variant_id"
-                  label="Выберите товар"
-                  :items="product_variants_list"
-                  item-title="name"
-                  item-value="id"
-                  :rules="[]"
-                />
-              </VCol>
+              <template v-if="status == 'draft'">
+                <VCol cols="4">
+                  <VAutocomplete
+                    v-model="product_variant_id"
+                    label="Выберите товар"
+                    :items="product_variants_list"
+                    item-title="name"
+                    item-value="id"
+                    :rules="[]"
+                  />
+                </VCol>
 
-              <VCol cols="4">
-                <VTextField
-                  :value="transformPrice(price)"
-                  @input="handlePriceInput"
-                  label="Цена"
-                  type="number"
-                  :rules="[]"
-                />
-              </VCol>
+                <VCol cols="4">
+                  <VTextField
+                    :value="transformPrice(price)"
+                    @input="handlePriceInput"
+                    label="Цена"
+                    type="number"
+                    :rules="[]"
+                  />
+                </VCol>
 
-              <VCol cols="3">
-                <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
-              </VCol>
-              <VCol cols="1" class="d-flex justify-center align-center">
-                <VIcon
-                  size="30"
-                  icon="bx-plus"
-                  style="color: white; background-color: #4caf50; border-radius: 5px"
-                  @click="addToList()"
-                ></VIcon>
-              </VCol>
+                <VCol cols="3">
+                  <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
+                </VCol>
+                <VCol cols="1" class="d-flex justify-center align-center">
+                  <VIcon
+                    size="30"
+                    icon="bx-plus"
+                    style="color: white; background-color: #4caf50; border-radius: 5px"
+                    @click="addToList()"
+                  ></VIcon>
+                </VCol>
+              </template>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
-                Отправить
+              <VBtn
+                v-if="status == 'draft'"
+                :loading="isFetching == 'submit'"
+                :disabled="isFetching == 'submit'"
+                type="submit"
+                class="me-3"
+              >
+                Сохранить изменения
+              </VBtn>
+              <VBtn
+                :loading="isFetching == 'confirm'"
+                :disabled="isFetching == 'confirm'"
+                @click="onConfirmSubmit"
+                color="success"
+                v-if="status == 'draft'"
+                class="me-3"
+              >
+                Подтвердить
+                <VIcon end icon="bx-check-circle" />
+              </VBtn>
+              <VBtn
+                :loading="isFetching == 'reject'"
+                :disabled="isFetching == 'reject'"
+                @click="onRejectSubmit"
+                color="secondary"
+                v-if="status == 'draft'"
+                class="me-3"
+              >
+                Отменить <VIcon end icon="bx-minus-circle" />
               </VBtn>
             </VCardText>
           </VForm>

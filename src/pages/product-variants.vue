@@ -4,15 +4,11 @@ import axios from '@axios';
 import AddNewDrawer from '@/views/product-variants/AddNewDrawer.vue';
 import UpdateDrawer from '@/views/product-variants/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/product-variants/InfoDialog.vue';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
 import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 import AddNewDialog from '@/views/product-variants/AddNewDialog.vue';
-import AddToBatchDialog from '@/views/product-variants/AddToBatchDialog.vue';
 
-const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(30);
@@ -232,8 +228,6 @@ const deleteItem = async function (id) {
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
-                <th>РАЗМЕР</th>
-                <th>ЦВЕТ</th>
                 <th>СЕЗОН</th>
                 <th>ПОЛ</th>
                 <th>ДЕЙСТВИЯ</th>
@@ -244,12 +238,10 @@ const deleteItem = async function (id) {
               <tr v-for="variant in products" :key="variant.id">
                 <td>{{ variant.id }}</td>
                 <td>
-                  {{ variant.product?.name }}
+                  {{ variant.product?.name }} <b>({{ variant.color?.name }} | {{ variant.size?.name }})</b>
                 </td>
                 <td>{{ variant.product?.brand }}</td>
                 <td>{{ variant.product?.category?.name }}</td>
-                <td>{{ variant.size?.name }}</td>
-                <td>{{ variant.color?.name }}</td>
                 <td>{{ variant.product?.season?.translate }}</td>
                 <td>{{ variant.product?.gender?.translate }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
@@ -278,15 +270,6 @@ const deleteItem = async function (id) {
                       class="mx-2"
                     ></VIcon>
                   </Can>
-                  <AddToBatchDialog :variant_id="variant.id" />
-                  <!-- <Can I="delete" a="Productvariants">
-                    <VIcon
-                      size="30"
-                      icon="bx-trash"
-                      style="color: red"
-                      @click="confirmDelete(variant.id, variant.product?.name)"
-                    ></VIcon>
-                  </Can> -->
                 </td>
               </tr>
             </tbody>
@@ -328,11 +311,6 @@ const deleteItem = async function (id) {
       @fetchDatas="() => fetchData(true)"
     />
 
-    <InfoDialog
-      v-model:isDrawerOpen="isInfoDialogVisible"
-      :productId="infoDialogItemId"
-      @fetchDatas="() => fetchData(true)"
-    />
     <BarcodeDialog
       v-model:isDrawerOpen="isBarcodeDialogVisible"
       :productId="barcodeDialogId"

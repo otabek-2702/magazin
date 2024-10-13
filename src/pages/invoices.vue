@@ -138,11 +138,8 @@ const handleInfoDialogOpen = (id) => {
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
     draft: { color: 'primary', translate: 'Черновик' },
-    cancel: { color: 'warning', translate: 'Отменен' },
-    archive: { color: 'secondary' },
-    success: { color: 'success' },
-    invite: { color: 'info' },
-    block: { color: 'error' },
+    rejected: { color: 'secondary', translate: 'Отменен' },
+    confirmed: { color: 'success', translate: 'Подтвержденный' },
   };
 
   return roleMap[status] || { color: 'primary', translate: '' };

@@ -3,6 +3,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { nextTick, ref, watch } from 'vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
+import { transformPrice } from '@/helpers';
 
 const emit = defineEmits(['fetchDatas']);
 
@@ -113,6 +114,14 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
+  if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
+    toast('Дубликат', {
+      theme: 'auto',
+      type: 'error',
+      dangerouslyHTMLString: true,
+    });
+    return
+  }
   const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
 
   product_variants.value.push({
@@ -148,7 +157,7 @@ const calculateCount = computed(() => {
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props">Добавить товар</VBtn>
+      <VBtn @click="isDialogVisible = true" v-bind="props">Создать накладную</VBtn>
     </template>
 
     <!-- Dialog Content -->
@@ -247,7 +256,7 @@ const calculateCount = computed(() => {
 
               <VCol cols="4">
                 <VTextField
-                  :value="formatPrice(price)"
+                  :value="transformPrice(price)"
                   @input="handlePriceInput"
                   label="Цена"
                   type="number"
