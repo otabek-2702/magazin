@@ -28,12 +28,12 @@ const fetchData = async () => {
   try {
     isFetchingStart.value = true;
 
-    const { data } = await axios.get(`/product_variants/${props.productId}`);
+    const { data } = await axios.get(`/stock/${props.productId}`);
 
-    itemData.value = data.products_variant;
+    itemData.value = data.stock;
 
     // After fetching data, generate the barcode
-    nextTick(() => generateBarcode(itemData.value?.sku));
+    nextTick(() => generateBarcode(itemData.value?.variant.sku));
   } catch (error) {
     console.log('Error fetching data:', error);
   } finally {
@@ -89,7 +89,7 @@ const formatPrice = (price) => {
       <DialogCloseBtn variant="text" size="small" @click="onFormCancel" />
 
       <VCardItem class="text-center pb-3">
-        <VCardTitle class="text-h5">{{ itemData?.product?.name }}</VCardTitle>
+        <VCardTitle class="text-h5">{{ itemData?.variant.product?.name }}</VCardTitle>
       </VCardItem>
 
       <div v-if="isFetchingStart" class="d-flex h-screen align-center justify-center">
@@ -118,12 +118,12 @@ const formatPrice = (price) => {
           <div class="paper-look">
             <div id="printMe">
               <p>
-                {{ itemData?.product?.gender?.translate.slice(0,1) }}
+                {{ itemData?.variant.product?.gender?.slice(0,1) }}
                 .
-                {{ itemData?.product?.name }}
-                {{ itemData?.size?.name }}
+                {{ itemData?.variant.product?.name }}
+                {{ itemData?.variant.size?.name }}
               </p>
-              <b> {{ formatPrice(itemData?.product?.sell_price) }} сум</b>
+              <b> {{ formatPrice(itemData?.variant.product?.sell_price) }} сум</b>
               <svg ref="barcodeContainer" class="barcode" style="width: 100%; height: 150px"></svg>
             </div>
           </div>

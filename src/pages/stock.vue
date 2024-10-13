@@ -2,12 +2,9 @@
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-// import InfoDialog from '@/views/stock/InfoDialog.vue';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
 import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
 import { toast } from 'vue3-toastify';
 
-const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(30);
@@ -16,7 +13,6 @@ const totalPage = ref(1);
 const lastFetchedPage = ref(null);
 const totalDatasCount = ref(0);
 const products = ref([]);
-const updateID = ref(0);
 
 // Get main datas start
 const isFetching = ref(false);
@@ -33,7 +29,7 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}&product_id=${selectedProduct.value ?? ''}&batch_id=${selectedBatch.value??''}`,
+      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
     products.value = data['stock'];
@@ -53,15 +49,13 @@ const fetchData = async (force = false) => {
 
 // Get main datas end
 
-const selectedProduct = ref()
-const selectedBatch = ref()
 // 👉 watching selected filters
-watch([selectedProduct, selectedBatch], () => {
-  // Сбрасываем на первую страницу при изменении фильтров
-  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-  currentPage.value = 1;
-  fetchData(true);
-});
+// watch([], () => {
+//   // Сбрасываем на первую страницу при изменении фильтров
+//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
+//   currentPage.value = 1;
+//   fetchData(true);
+// });
 
 // search
 const searchElements = () => {
@@ -78,19 +72,9 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-const batches_list = ref([])
-const fetchBatches = async () => {
-  try {
-    const reponse = await axios.get(`/batches`);
-    batches_list.value = reponse.data.batches
-  } catch (error) {
-    console.error('Ошибка :', error);
-  }
-};
 
 onMounted(() => {
   fetchData();
-  fetchBatches();
 });
 
 const isBarcodeDialogVisible = ref(false);
@@ -127,11 +111,7 @@ const openBarcodeDialog = (id) => {
 };
 
 // end BarCode
-const products_list =  computed(() => products.value?.map((el) => ({name: el.variant.product.name, id: el.variant.id})))
 
-const getProductName = (variant) => {
-  return variant.product.name;
-};
 </script>
 
 <template>
@@ -147,15 +127,6 @@ const getProductName = (variant) => {
             :isDeleting="isDeleting"
           />
           <VCardText class="d-flex flex-wrap">
-            <VCol cols="3" sm="3">
-              <VSelect
-                v-model="selectedBatch"
-                label="Выберите партию"
-                :items="batches_list"
-                item-title="name"
-                item-value="id"
-              />
-            </VCol>
 
             <VSpacer />
 
@@ -180,22 +151,9 @@ const getProductName = (variant) => {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>
-                  <VSelect
-                    v-model="selectedProduct"
-                    label="ИМЯ ПРОДУКТА"
-                    :items="products_list"
-                    :rules="[]"
-                    item-title="name"
-                    item-value="id"
-                    style="width: 200px"
-                    variant="plain"
-                  />
-                </th>
+                <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
-                <th>РАЗМЕР</th>
-                <th>ЦВЕТ</th>
                 <th>КОЛИЧЕСТВО</th>
                 <th>ПОЛ</th>
                 <th>ДЕЙСТВИЯ</th>
@@ -206,12 +164,10 @@ const getProductName = (variant) => {
               <tr v-for="stock in products" :key="stock.id">
                 <td>{{ stock.id }}</td>
                 <td>
-                  {{ stock.variant?.product?.name }}
+                  {{ stock?.variant.product?.name }} <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
                 </td>
                 <td>{{ stock.variant?.product?.brand }}</td>
                 <td>{{ stock.variant?.product?.category }}</td>
-                <td>{{ stock.variant?.size?.name }}</td>
-                <td>{{ stock.variant?.color?.name }}</td>
                 <td>{{ stock.quantity }}</td>
                 <td>{{ stock.variant?.product?.gender }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
