@@ -132,11 +132,11 @@ watch(
       <VCard flat>
         <VCardText>
           <!-- 👉 Форма -->
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit" >
             <VRow>
               <!-- 👉 Полное имя -->
               <VCol cols="12">
-                <VTextField v-model="name" label="Имя" />
+                <VTextField v-model="name" label="Имя" autofocus />
               </VCol>
 
               <VCol cols="12">

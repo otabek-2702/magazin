@@ -61,33 +61,35 @@ const removeSpaces = (input) => {
 };
 
 const onSubmit = async () => {
-  if (true) {
-    isFetching.value = 'submit';
-    try {
-      await axios.put(`/invoices/${props.id}`, {
-        batch_id: batches_id.value ?? 0,
-        currency_id: currency_id.value,
-        exchange_rate: exchange_rate.value,
+  refForm.value?.validate().then(async ({ valid }) => {
+    if (valid) {
+      isFetching.value = 'submit';
+      try {
+        await axios.put(`/invoices/${props.id}`, {
+          batch_id: batches_id.value ?? 0,
+          currency_id: currency_id.value,
+          exchange_rate: exchange_rate.value,
 
-        items: product_variants.value.map((el) => ({
-          product_variant_id: el.variant.id,
-          price: removeSpaces(el.price),
-          quantity: el.quantity,
-        })),
-      });
-      emit('fetchDatas');
-      toast('Успешно', {
-        theme: 'auto',
-        type: 'success',
-        dangerouslyHTMLString: true,
-      });
-      handleDialogModelValueUpdate(false);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      isFetching.value = '';
+          items: product_variants.value.map((el) => ({
+            product_variant_id: el.variant.id,
+            price: removeSpaces(el.price),
+            quantity: el.quantity,
+          })),
+        });
+        emit('fetchDatas');
+        toast('Успешно', {
+          theme: 'auto',
+          type: 'success',
+          dangerouslyHTMLString: true,
+        });
+        handleDialogModelValueUpdate(false);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isFetching.value = '';
+      }
     }
-  }
+  });
 };
 
 const onConfirmSubmit = async () => {
@@ -178,7 +180,7 @@ watch(
       await fetchOptions('/product_variants', product_variants_list, 'products_variants', {
         method: (el) => ({
           ...el,
-          name: `${el.product.name} | ${el.size.name} | ${el.color.name}`,
+          name: `${el.product.name} | ${el.color.name} | ${el.size.name}`,
         }),
         is: true,
       });
@@ -200,29 +202,38 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
-  if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
-    toast('Дубликат', {
+  if (product_variant_id.value && price.value && quantity.value) {
+    if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
+      toast('Дубликат', {
+        theme: 'auto',
+        type: 'error',
+        dangerouslyHTMLString: true,
+      });
+      setTimeout(() => {
+        product_variant_id.value = null;
+        price.value = null;
+        quantity.value = null;
+      }, 300);
+      return;
+    }
+    const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
+
+    product_variants.value.push({
+      variant: productObj,
+      price: price.value,
+      quantity: quantity.value,
+    });
+    product_variant_id.value = null;
+    76;
+    price.value = null;
+    quantity.value = null;
+  } else {
+    toast('Заполните все поля формы', {
       theme: 'auto',
       type: 'error',
       dangerouslyHTMLString: true,
     });
-    setTimeout(() => {
-      product_variant_id.value = null;
-      price.value = null;
-      quantity.value = null;
-    }, 300);
-    return;
   }
-  const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
-
-  product_variants.value.push({
-    variant: productObj,
-    price: price.value,
-    quantity: quantity.value,
-  });
-  product_variant_id.value = null;
-  price.value = null;
-  quantity.value = null;
 };
 
 const deleteListItem = (id) => {
@@ -250,7 +261,7 @@ const calculateCount = computed(() => {
     :model-value="props.isDialogOpen"
     @update:model-value="handleDialogModelValueUpdate"
   >
-    <VCard title="Добавить">
+    <VCard title="Накладная">
       <DialogCloseBtn variant="text" size="small" @click="handleDialogModelValueUpdate(false)" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
@@ -265,6 +276,7 @@ const calculateCount = computed(() => {
                   item-value="id"
                   :readonly="status != 'Черновик'"
                   :clearable="status == 'Черновик'"
+                  autofocus
                 />
               </VCol>
               <VCol cols="4">

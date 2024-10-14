@@ -27,17 +27,16 @@ export default [
     ]
   },
   {
+    title: 'Главный склад',
+    to: { name: 'Stock' },
+    icon: { icon: 'mdi-warehouse' },
+    subject: 'Stock',
+    action: 'show'
+  },
+  {
     title: 'Управление товарами',
     icon: { icon: 'mdi-package-variant' },
     children: [
-      
-      // {
-      //   title: 'Склад',
-      //   to: { name: 'WareHouse' },
-      // // icon: { icon: 'mdi-warehouse' },
-      //   subject: 'WareHouse',
-      //   action: 'show'
-      // },
       {
         title: 'Категории',
         to: { name: 'Categories' },
@@ -60,13 +59,6 @@ export default [
         action: 'show'
       },
       {
-        title: 'Склад',
-        to: { name: 'Stock' },
-        // icon: { icon: 'mdi-cube-outline' },
-        subject: 'Stock',
-        action: 'show'
-      },
-      {
         title: 'Настройки',
         to: { name: 'Settings' },
         subject: 'Settings',
@@ -75,11 +67,17 @@ export default [
     ]
   },
   {
-    title: 'Филиалы',
-    to: { name: 'Branches' },
+    title: 'Управление филиалами',
     icon: { icon: 'mdi-domain' },
-    subject: 'Branches',
-    action: 'show'
+    children: [
+      {
+        title: 'Филиалы',
+        to: { name: 'Branches' },
+        subject: 'Branches',
+        action: 'show'
+      },
+
+    ]
   },
   {
     title: 'Накладной',
@@ -103,6 +101,6 @@ export default [
     subject: 'Batches',
     action: 'show'
   },
-  
-  
+
+
 ]

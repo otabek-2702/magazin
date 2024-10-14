@@ -4,7 +4,6 @@ import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
-import { requiredValidator } from '@/@core/utils/validators';
 
 const exchange_rates = ref([]);
 const isFetchingStart = ref(false);

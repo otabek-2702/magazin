@@ -87,7 +87,7 @@ const handleDrawerModelValueUpdate = (val) => {
             <VRow>
               <!-- 👉 Полное имя -->
               <VCol cols="12">
-                <VTextField v-model="name" label="Имя" />
+                <VTextField v-model="name" label="Имя" autofocus />
               </VCol>
 
               <VCol cols="12">

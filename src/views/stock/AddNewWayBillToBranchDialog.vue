@@ -11,13 +11,13 @@ const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const batches_id = ref();
-const currency_id = ref();
-const exchange_rate = ref();
-const product_variant_id = ref();
+const branch_id = ref();
+const sku_input = ref();
+const product_variant_sku = ref();
+const product_variant_data = ref();
+const quantity_input = ref();
 const quantity = ref();
-const price = ref('');
-const rate_symbol = ref();
+const quantity_inline_input = ref();
 const product_variants = ref([]);
 
 const removeSpaces = (input) => {
@@ -30,9 +30,7 @@ const onSubmit = () => {
       isFetching.value = true;
       try {
         await axios.post('/invoices', {
-          batch_id: batches_id.value ?? 0,
-          currency_id: currency_id.value,
-          exchange_rate: exchange_rate.value,
+          branch_id: branch_id.value ?? 0,
 
           items: product_variants.value.map((el) => ({
             product_variant_id: el.variant.id,
@@ -82,73 +80,84 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
   }
 };
 const product_variants_list = ref([]);
-const batches_list = ref([]);
-const exchanges_list = ref([]);
-
-// auto exchange_rate
-watch(currency_id, (newVal) => {
-  exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
-});
+const branches_list = ref([]);
 
 watch(
   isDialogVisible,
   () => {
     fetchOptions('/product_variants', product_variants_list, 'products_variants', {
-      method: (el) => ({ ...el, name: `${el.product.name} | ${el.color.name} | ${el.size.name} ` }),
+      method: (el) => ({ ...el, name: `${el.product.name} | ${el.color.name} | ${el.size.name}` }),
       is: true,
     });
-    fetchOptions('/batches', batches_list, 'batches');
-    fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {
-      is: true,
-      method: (el) => ({ ...el, name: `${el.symbol} ${el.name}` }),
-    });
+    fetchOptions('/branches', branches_list, 'branches');
   },
   { once: true },
 );
-
-watch(currency_id, (newVal) => {
-  if (newVal) {
-    rate_symbol.value =
-      exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ?? '';
-  }
-});
-
-// format
-const handlePriceInput = (e) => {
-  price.value = transformPrice(e.target.value);
-};
-
-const addToList = () => {
-  if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
-    toast('Дубликат', {
+const findProductVariant = (sku) => {
+  product_variant_data.value = product_variants_list.value.find(
+    (e) => e.sku == product_variant_sku.value,
+  );
+  if (!product_variant_data.value) {
+    toast('Товар не найден', {
       theme: 'auto',
       type: 'error',
       dangerouslyHTMLString: true,
     });
     return;
   }
-  const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
+  quantity_input.value.focus();
+  quantity.value = product_variant_data.value.amount_remainder;
+  product_variant_sku.value = null;
+};
+
+const addToList = () => {
+  if (!product_variant_data.value) {
+    toast('Товар не найден', {
+      theme: 'auto',
+      type: 'error',
+      dangerouslyHTMLString: true,
+    });
+    product_variant_data.value = null;
+    quantity.value = null;
+    sku_input.value.focus();
+    return;
+  } else if (product_variants.value.find((el) => el.variant.id == product_variant_data.value.id)) {
+    toast('Дубликат', {
+      theme: 'auto',
+      type: 'error',
+      dangerouslyHTMLString: true,
+    });
+    product_variant_data.value = null;
+    quantity.value = null;
+    sku_input.value.focus();
+    return;
+  }
 
   product_variants.value.push({
-    variant: productObj,
-    price: price.value,
+    variant: product_variant_data.value,
     quantity: quantity.value,
   });
-  product_variant_id.value = null;
-  price.value = null;
+  product_variant_data.value = null;
   quantity.value = null;
+  sku_input.value.focus();
+};
+
+// Edit
+const editingId = ref(null);
+
+const showEditInput = (id) => {
+  editingId.value = id;
+};
+
+const hideEditInput = async (exchange) => {
+  if (editingId.value === exchange.id) {
+  }
+  editingId.value = null;
 };
 
 const deleteListItem = (id) => {
   product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
 };
-
-const calculatePrice = computed(() => {
-  return product_variants.value.reduce(
-    (accumulator, el) => accumulator + el.quantity * el.price,
-    0,
-  );
-});
 
 const calculateCount = computed(() => {
   return product_variants.value.reduce(
@@ -162,7 +171,7 @@ const calculateCount = computed(() => {
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props">Создать накладную</VBtn>
+      <VBtn @click="isDialogVisible = true" v-bind="props">Накладная для филиала</VBtn>
     </template>
 
     <!-- Dialog Content -->
@@ -174,30 +183,12 @@ const calculateCount = computed(() => {
             <VRow>
               <VCol cols="4">
                 <VAutocomplete
-                  v-model="batches_id"
-                  label="Выберите партию"
-                  :items="batches_list"
+                  v-model="branch_id"
+                  label="Выберите филиал"
+                  :items="branches_list"
                   item-title="name"
                   item-value="id"
                   autofocus
-                />
-              </VCol>
-              <VCol cols="4">
-                <VSelect
-                  v-model="currency_id"
-                  label="Валюта"
-                  :items="exchanges_list"
-                  item-title="name"
-                  item-value="id"
-                />
-              </VCol>
-              <VCol cols="4">
-                <VTextField
-                  v-model="exchange_rate"
-                  :readonly="currency_id == 3"
-                  label="Курс"
-                  :prefix="rate_symbol"
-                  type="text"
                 />
               </VCol>
 
@@ -209,7 +200,6 @@ const calculateCount = computed(() => {
                     <tr>
                       <th style="width: 48px">ID</th>
                       <th>ТОВАР</th>
-                      <th>ЦЕНА</th>
                       <th>КОЛИЧЕСТВО</th>
                       <th>ДЕЙСТВИЯ</th>
                     </tr>
@@ -219,9 +209,35 @@ const calculateCount = computed(() => {
                     <tr v-for="(variant, i) in product_variants" :key="variant.id">
                       <td>{{ i + 1 }}</td>
                       <td>{{ variant.variant.name }}</td>
-                      <td>{{ variant.price }} {{ rate_symbol }}</td>
-                      <td>{{ variant.quantity }}</td>
+                      <td>
+                        <VTextField
+                          v-model="variant.quantity"
+                          :readonly="editingId != variant.variant.id"
+                          :class="{ 'text-input': editingId != variant.variant.id }"
+                          @keyup.enter="hideEditInput(variant.variant.id)"
+                          :autofocus="editingId == variant.variant.id"
+                          class="custom-input"
+                          density="compact"
+                          type="number"
+                        />
+                      </td>
                       <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                        <VIcon
+                          v-if="editingId == variant.variant?.id"
+                          @click.stop="hideEditInput(variant.variant.id)"
+                          size="30"
+                          icon="bx-check"
+                          style="color: rgb(var(--v-theme-success))"
+                          class="mx-2"
+                        />
+                        <VIcon
+                          v-else
+                          @click.stop="showEditInput(variant.variant.id)"
+                          size="30"
+                          icon="bx-edit-alt"
+                          style="color: rgb(var(--v-global-theme-primary))"
+                          class="mx-2"
+                        />
                         <VIcon
                           size="30"
                           icon="mdi-minus-circle-outline"
@@ -235,9 +251,9 @@ const calculateCount = computed(() => {
                   <tfoot v-show="product_variants.length">
                     <tr>
                       <td colspan="2"></td>
-                      <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
                       <td class="text-body-1">Общая количество: {{ calculateCount }}</td>
-                      <td colspan="10"></td>
+                      <td></td>
+                      <td></td>
                     </tr>
                   </tfoot>
                   <tfoot v-show="!product_variants.length">
@@ -250,38 +266,48 @@ const calculateCount = computed(() => {
 
               <VDivider />
 
-              <VCol cols="4">
-                <VAutocomplete
-                  v-model="product_variant_id"
-                  label="Выберите товар"
-                  :items="product_variants_list"
-                  item-title="name"
-                  item-value="id"
-                  :rules="[]"
-                />
-              </VCol>
+              <VForm class="pt-3 w-100">
+                <VRow>
+                  <VCol cols="3">
+                    <VTextField
+                      v-model="product_variant_sku"
+                      ref="sku_input"
+                      @keyup.enter="findProductVariant(product_variant_sku)"
+                      label="Штрих код товара"
+                      :items="product_variants_list"
+                      item-title="name"
+                      item-value="id"
+                      :rules="[]"
+                    />
+                  </VCol>
 
-              <VCol cols="4">
-                <VTextField
-                  :value="transformPrice(price)"
-                  @input="handlePriceInput"
-                  label="Цена"
-                  type="number"
-                  :rules="[]"
-                />
-              </VCol>
+                  <VCol cols="3">
+                    <h4 class="pt-1">Товар: {{ product_variant_data?.name }}</h4>
+                    <p class="pt-2 mb-0">
+                      На складе: <b>{{ product_variant_data?.amount_remainder }}</b>
+                    </p>
+                  </VCol>
 
-              <VCol cols="3">
-                <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
-              </VCol>
-              <VCol cols="1" class="d-flex justify-center align-center">
-                <VIcon
-                  size="30"
-                  icon="bx-plus"
-                  style="color: white; background-color: #4caf50; border-radius: 5px"
-                  @click="addToList()"
-                ></VIcon>
-              </VCol>
+                  <VCol cols="3">
+                    <VTextField
+                      v-model="quantity"
+                      ref="quantity_input"
+                      @keyup.enter="addToList"
+                      label="Количество"
+                      type="number"
+                      :rules="[]"
+                    />
+                  </VCol>
+                  <VCol cols="1" class="d-flex justify-center align-center">
+                    <VIcon
+                      size="30"
+                      icon="bx-plus"
+                      @click="addToList"
+                      style="color: white; background-color: #4caf50; border-radius: 5px"
+                    ></VIcon>
+                  </VCol>
+                </VRow>
+              </VForm>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
               <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
@@ -296,7 +322,25 @@ const calculateCount = computed(() => {
 </template>
 
 <style scoped>
-.bg-green {
-  background-color: green;
+.text-input {
+  background-color: transparent !important;
+}
+
+.text-input :deep(.v-field__outline) {
+  opacity: 0 !important;
+}
+
+/* .text-input :deep(.v-field__input) {
+  padding-inline-start: 0 !important;
+  padding-inline-end: 0 !important;
+} */
+
+.text-input :deep(.v-label) {
+  opacity: 0 !important;
+}
+
+.custom-input {
+  margin: 1px;
+  width: 50%
 }
 </style>

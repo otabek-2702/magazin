@@ -146,6 +146,7 @@ watch(
                   :items="products_list"
                   item-title="name"
                   item-value="id"
+                  autofocus
                 />
               </VCol>
 

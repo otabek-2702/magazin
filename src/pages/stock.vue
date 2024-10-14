@@ -4,6 +4,7 @@ import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
 import { toast } from 'vue3-toastify';
+import AddNewWayBillToBranchDialog from '@/views/stock/AddNewWayBillToBranchDialog.vue';
 
 const searchQuery = ref('');
 const finalSearch = ref('');
@@ -72,7 +73,6 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-
 onMounted(() => {
   fetchData();
 });
@@ -111,7 +111,6 @@ const openBarcodeDialog = (id) => {
 };
 
 // end BarCode
-
 </script>
 
 <template>
@@ -127,6 +126,7 @@ const openBarcodeDialog = (id) => {
             :isDeleting="isDeleting"
           />
           <VCardText class="d-flex flex-wrap">
+            <AddNewWayBillToBranchDialog @fetchDatas="() => fetchData(true)" />
 
             <VSpacer />
 
@@ -164,7 +164,8 @@ const openBarcodeDialog = (id) => {
               <tr v-for="stock in products" :key="stock.id">
                 <td>{{ stock.id }}</td>
                 <td>
-                  {{ stock?.variant.product?.name }} <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
+                  {{ stock?.variant.product?.name }}
+                  <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
                 </td>
                 <td>{{ stock.variant?.product?.brand }}</td>
                 <td>{{ stock.variant?.product?.category }}</td>
@@ -185,7 +186,7 @@ const openBarcodeDialog = (id) => {
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="9" v-show="isFetching && !products.length" />
+            <Skeleton :count="7" v-show="isFetching && !products.length" />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>

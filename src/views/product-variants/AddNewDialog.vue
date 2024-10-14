@@ -95,7 +95,7 @@ watch(
       <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit" >
             <VRow>
               <VCol cols="12">
                 <VAutocomplete
@@ -103,7 +103,7 @@ watch(
                   label="Выберите товар"
                   :items="products_list"
                   item-title="name"
-                  item-value="id"
+                  item-value="id" autofocus
                 />
               </VCol>
 
