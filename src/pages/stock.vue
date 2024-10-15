@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
-import { toast } from 'vue3-toastify';
 import AddNewWayBillToBranchDialog from '@/views/stock/AddNewWayBillToBranchDialog.vue';
 
 const searchQuery = ref('');
@@ -118,19 +117,12 @@ const openBarcodeDialog = (id) => {
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
           <VCardText class="d-flex flex-wrap">
             <AddNewWayBillToBranchDialog @fetchDatas="() => fetchData(true)" />
 
             <VSpacer />
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
+            <VCol cols="4" class="app-user-search-filter d-flex align-center">
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
@@ -139,9 +131,6 @@ const openBarcodeDialog = (id) => {
                 density="compact"
                 class="me-6"
               />
-              <Can I="add" a="Products">
-                <AddNewDialog />
-              </Can>
             </VCol>
           </VCardText>
 

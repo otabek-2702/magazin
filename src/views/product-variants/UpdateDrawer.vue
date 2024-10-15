@@ -24,7 +24,6 @@ const refForm = ref();
 const product_id = ref();
 const size_id = ref();
 const color_id = ref();
-const sale = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -40,11 +39,10 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/product_variants', {
+        await axios.put('/product_variants', {
           product_id: product_id.value,
           size_id: size_id.value,
           color_id: color_id.value,
-          sale: sale.value,
         });
 
         toast('Успешно', {
@@ -83,7 +81,6 @@ const fetchDataById = async () => {
       product_id.value = response.data.products_variant.id;
       size_id.value = response.data.products_variant.size.id;
       color_id.value = response.data.products_variant.color.id;
-      sale.value = response.data.products_variant.sale;
     }
   } catch (error) {
     console.error('Ошибка:', error);
@@ -141,8 +138,8 @@ const fetchColors = async () => {
 watch(
   () => props.isDrawerOpen,
   () => {
-    // fetchSizes();
-    // fetchColors();
+     fetchSizes();
+     fetchColors();
     // fetchProducts();
   },
   { once: true },
@@ -182,7 +179,7 @@ watch(
                   item-value="id"
                   
                 />
-              </VCol>
+              </VCol> -->
 
               <VCol cols="12">
                 <VSelect
@@ -204,9 +201,6 @@ watch(
                   item-value="id"
                   
                 />
-              </VCol> -->
-              <VCol cols="12">
-                <VTextField v-model="sale" label="Скидка в процентах" type="number" />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->
