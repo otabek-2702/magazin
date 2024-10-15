@@ -39,7 +39,7 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.put('/product_variants', {
+        await axios.put(`/product_variants/${props.id}`, {
           product_id: product_id.value,
           size_id: size_id.value,
           color_id: color_id.value,
