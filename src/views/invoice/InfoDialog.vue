@@ -43,6 +43,7 @@ const fetchDataById = async () => {
       batches_id.value = invoice.batch.id;
       currency_id.value = invoice.currency.id;
       exchange_rate.value = invoice.exchange_rate;
+
       status.value = invoice.status;
       product_variants.value = invoice.items.map((el) => ({
         ...el,
@@ -166,7 +167,7 @@ const exchanges_list = ref([]);
 
 // auto exchange_rate
 watch(currency_id, (newVal) => {
-  exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
+  if(!exchange_rate)  exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
 });
 
 onMounted(() => {
@@ -241,17 +242,17 @@ const deleteListItem = (id) => {
 };
 
 const calculatePrice = computed(() => {
-  return product_variants.value.reduce(
+  return transformPrice(product_variants.value.reduce(
     (accumulator, el) => accumulator + el.quantity * el.price,
     0,
-  );
+  ))
 });
 
 const calculateCount = computed(() => {
-  return product_variants.value.reduce(
+  return transformPrice(product_variants.value.reduce(
     (accumulator, el) => accumulator + parseFloat(el.quantity),
     0,
-  );
+  ))
 });
 </script>
 
@@ -320,7 +321,7 @@ const calculateCount = computed(() => {
                       <td>
                         {{ variant.variant.name }}
                       </td>
-                      <td>{{ variant.price }} {{ rate_symbol }}</td>
+                      <td>{{ transformPrice(variant.price) }} {{ rate_symbol }}</td>
                       <td>{{ variant.quantity }}</td>
                       <td
                         class="text-center"
