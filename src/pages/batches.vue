@@ -199,7 +199,7 @@ const transformDate = (date) => {
                 class="me-6"
               />
               <Can I="add" a="Batchs">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
+                <VBtn @click="isAddNewDrawerVisible = true">Добавить</VBtn>
               </Can>
             </VCol>
           </VCardText>

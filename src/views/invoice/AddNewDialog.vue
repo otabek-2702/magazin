@@ -289,7 +289,7 @@ const calculateCount = computed(() => {
               </VForm>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
+              <VBtn :loading="isFetching" :disabled="isFetching" type="button" @click="onSubmit" class="me-3">
                 Отправить
               </VBtn>
             </VCardText>

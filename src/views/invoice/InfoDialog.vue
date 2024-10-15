@@ -276,7 +276,6 @@ const calculateCount = computed(() => {
                   item-value="id"
                   :readonly="status != 'Черновик'"
                   :clearable="status == 'Черновик'"
-                  autofocus
                 />
               </VCol>
               <VCol cols="4">
@@ -360,39 +359,51 @@ const calculateCount = computed(() => {
 
               <VDivider />
 
-              <template v-if="status == 'Черновик'">
-                <VCol cols="4">
-                  <VAutocomplete
-                    v-model="product_variant_id"
-                    label="Выберите товар"
-                    :items="product_variants_list"
-                    item-title="name"
-                    item-value="id"
-                    :rules="[]"
-                  />
-                </VCol>
+              <VForm v-if="status == 'Черновик'" class="w-100 py-5">
+                <VRow>
+                  <VCol cols="4">
+                    <VAutocomplete
+                      v-model="product_variant_id"
+                      label="Выберите товар"
+                      :items="product_variants_list"
+                      item-title="name"
+                      item-value="id"
+                      :rules="[]"
+                    />
+                  </VCol>
 
-                <VCol cols="4">
-                  <VTextField
-                    :value="transformPrice(price)"
-                    @input="handlePriceInput"
-                    label="Цена"
-                    :rules="[]"
-                  />
-                </VCol>
+                  <VCol cols="4">
+                    <VTextField
+                      :value="transformPrice(price)"
+                      @input="handlePriceInput"
+                      label="Цена"
+                      :rules="[]"
+                    />
+                  </VCol>
 
-                <VCol cols="3">
-                  <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
-                </VCol>
-                <VCol cols="1" class="d-flex justify-center align-center">
-                  <VIcon
-                    size="30"
-                    icon="bx-plus"
-                    style="color: white; background-color: #4caf50; border-radius: 5px"
-                    @click="addToList()"
-                  ></VIcon>
-                </VCol>
-              </template>
+                  <VCol cols="3">
+                    <VTextField
+                      v-model="quantity"
+                      label="Количество"
+                      type="number"
+                      :rules="[]"
+                      @keyup.enter="addToList"
+                    />
+                  </VCol>
+                  <VCol cols="1" class="d-flex justify-center align-center">
+                    <VBtn
+                      @click="addToList"
+                      style="
+                        color: white !important;
+                        background-color: #4caf50 !important;
+                        border-radius: 5px !important;
+                      "
+                    >
+                      <VIcon size="35" icon="bx-plus"></VIcon>
+                    </VBtn>
+                  </VCol>
+                </VRow>
+              </VForm>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
               <VBtn

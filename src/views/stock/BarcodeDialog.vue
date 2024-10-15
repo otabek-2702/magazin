@@ -122,6 +122,8 @@ const formatPrice = (price) => {
                 .
                 {{ itemData?.variant.product?.name }}
                 {{ itemData?.variant.size?.name }}
+                <br>
+                {{itemData.color.name}}
               </p>
               <b> {{ formatPrice(itemData?.variant.product?.sell_price) }} сум</b>
               <svg ref="barcodeContainer" class="barcode" style="width: 100%; height: 150px"></svg>
@@ -151,7 +153,7 @@ const formatPrice = (price) => {
   justify-content: center;
   width: 57mm;
   height: 30mm;
-  padding-top: 1mm;
+  padding-top: 0.5mm;
   /* padding: 1mm; */
 }
 
@@ -165,12 +167,12 @@ const formatPrice = (price) => {
 }
 
 #printMe p {
-  text-wrap: wrap;
+  /* text-wrap: wrap; */
   text-align: center;
-  font-size: 14px;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  padding-bottom: 10px;
+  font-size: 10px;
+  /* -webkit-box-orient: vertical;
+  overflow: hidden; */
+  /* padding-bottom: 5px; */
 }
 
 @media print {
