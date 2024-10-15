@@ -4,13 +4,9 @@ import axios from '@axios';
 import AddNewDrawer from '@/views/products/AddNewDrawer.vue';
 import UpdateDrawer from '@/views/products/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/products/InfoDialog.vue';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
-import BarcodeDialog from '@/views/products/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 
-const { can } = useAppAbility();
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(30);
@@ -56,14 +52,6 @@ const fetchData = async (force = false) => {
 
 // Get main datas end
 
-// 👉 watching selected filters
-// watch([selectedState], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
-
 // search
 const searchElements = () => {
   finalSearch.value = searchQuery.value;
@@ -79,25 +67,13 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-// const fetchStates = async () => {
-//   try {
-//     const states_r = await axios.get(`/states`);
-//     states_list.value = states_r.data.states.filter((el) => el.table === 'products');
-//   } catch (error) {
-//     console.error('Ошибка :', error);
-//   }
-// };
 
 onMounted(() => {
   fetchData();
-  // fetchStates();
 });
 
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
-const isInfoDialogVisible = ref(false);
-const isBarcodeDialogVisible = ref(false);
-
 // Pages start
 
 // 👉 watching current page
@@ -122,27 +98,10 @@ const paginationData = computed(() => {
 
 // Pages end
 
-// BarCode
-const barcodeDialogId = ref(0);
-const openBarcodeDialog = (id) => {
-  barcodeDialogId.value = id;
-  isBarcodeDialogVisible.value = true;
-};
-
-// end BarCode
-
 // Edit
 const openEditDrawer = (id) => {
   updateID.value = id;
   isUpdateDrawerVisible.value = true;
-};
-
-// Show one
-const infoDialogItemId = ref(0);
-
-const handleInfoDialogOpen = (id) => {
-  infoDialogItemId.value = id;
-  isInfoDialogVisible.value = true;
 };
 
 // Delete
@@ -191,19 +150,6 @@ const deleteItem = async function (id) {
             :isDeleting="isDeleting"
           />
           <VCardText class="d-flex flex-wrap">
-            <!-- <VCol cols="3" sm="3">
-              <VSelect
-                
-                v-model="selectedState"
-                label="Выберите статус"
-                :items="states_list"
-                item-title="name_ru"
-                item-value="id"
-                
-                
-              />
-            </VCol> -->
-
             <VSpacer />
 
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
@@ -219,7 +165,6 @@ const deleteItem = async function (id) {
                 <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
               </Can>
             </VCol>
-
           </VCardText>
 
           <VDivider />
@@ -253,17 +198,6 @@ const deleteItem = async function (id) {
                 <td>{{ product.season?.translate }}</td>
                 <td>{{ product.gender?.translate }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <!-- <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openBarcodeDialog(product.id);
-                      }
-                    "
-                    size="30"
-                    icon="mdi-barcode"
-                    style="color: rgb(var(--v-theme-grey-800))"
-                  ></VIcon> -->
                   <Can I="update" a="Products">
                     <VIcon
                       @click="
@@ -324,17 +258,6 @@ const deleteItem = async function (id) {
     <UpdateDrawer
       :id="updateID"
       v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
-
-    <!-- <InfoDialog
-      v-model:isDrawerOpen="isInfoDialogVisible"
-      :productId="infoDialogItemId"
-      @fetchDatas="() => fetchData(true)"
-    /> -->
-    <BarcodeDialog
-      v-model:isDrawerOpen="isBarcodeDialogVisible"
-      :productId="barcodeDialogId"
       @fetchDatas="() => fetchData(true)"
     />
   </section>

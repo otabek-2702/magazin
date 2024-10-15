@@ -9,15 +9,15 @@ const pageMiscError = useGenerateImageVariant(pageMiscErrorLight, pageMiscErrorD
 <template>
   <div class="misc-wrapper">
     <ErrorHeader
-      error-title="Page Not Found ⚠️"
-      error-description="Oops! 😖 The requested URL was not found on this server."
+      error-title="Страница не найдена ⚠️"
+      error-description="Упс! 😖 Запрашиваемый URL не найден на этом сервере."
     />
 
-    <!-- 👉 Image -->
+    <!-- 👉 Изображение -->
     <div class="misc-avatar w-100 text-center">
       <VImg
         :src="pageMiscError"
-        alt="Coming Soon"
+        alt="Скоро будет"
         :max-width="500"
         class="mx-auto"
       />
@@ -25,7 +25,7 @@ const pageMiscError = useGenerateImageVariant(pageMiscErrorLight, pageMiscErrorD
         to="/"
         class="mt-10"
       >
-        Back to Home
+        Назад на главную
       </VBtn>
     </div>
   </div>

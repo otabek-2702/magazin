@@ -273,7 +273,7 @@ const deleteItem = async function (id) {
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="9" v-show="isFetching && !products.length" />
+            <Skeleton :count="7" v-show="isFetching && !products.length" />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>

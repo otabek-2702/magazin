@@ -170,7 +170,7 @@ const deleteItem = async function (id) {
 const transformDate = (date) => {
   const value = new Date(date);
   const addZero = (v) => v<10 ? '0' + v.toString() : v
-  return `${addZero(value.getDate())}-${addZero(value.getMonth())}-${value.getFullYear()}`
+  return `${addZero(value.getDate())}-${addZero(value.getMonth() + 1)}-${value.getFullYear()}`
 };
 </script>
 

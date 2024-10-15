@@ -377,7 +377,6 @@ const calculateCount = computed(() => {
                     :value="transformPrice(price)"
                     @input="handlePriceInput"
                     label="Цена"
-                    type="number"
                     :rules="[]"
                   />
                 </VCol>

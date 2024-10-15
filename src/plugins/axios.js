@@ -1,104 +1,83 @@
-import axios from 'axios'
-import router from "@/router"
+import axios from 'axios';
+import router from "@/router";
 import { toast } from 'vue3-toastify';
 
+// Set default headers
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
-axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*'
-
-
+// Create an Axios instance
 const axiosIns = axios.create({
-  // You can add your headers here
-  // ================================
   baseURL: import.meta.env.VITE_BASE_URL,
+});
 
-  // timeout: 1000,
-  // headers: {'X-Custom-Header': 'foobar'}
-})
-
-
-// ℹ️ Add request interceptor to send the authorization header on each subsequent request after login
 axiosIns.interceptors.request.use(config => {
-  // Retrieve token from localStorage
-  const token = localStorage.getItem('accessToken')
-
-
-  // If token is found
+  const token = localStorage.getItem('accessToken');
   if (token) {
-    // Get request headers and if headers is undefined assign blank object
-    config.headers = config.headers || {}
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-    config.headers.Authorization = token ? `Bearer ${token}` : ''
+/**
+ * Handle redirection based on response error status.
+ * @param {number} status - The HTTP status code from the response error.
+ */
+const handleRedirect = (status) => {
+  let path = '';
+
+  switch (status) {
+    case 404:
+      path = '/404';
+      break;
+    case 401:
+      localStorage.removeItem('userAbilities');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('accessToken');
+      path = '/login';
+      break;
+    case 403:
+      path = '/forbidden';
+      break;
+    default:
+      return; // No redirection for other status codes
   }
 
+  // Redirect to the specified path
+  router.push({ path }).then(() => {
+    window.location.reload();
+  }).catch(err => {
+    console.error('Navigation error:', err);
+    window.location.reload();
+  });
+};
 
+/**
+ * Add response interceptor to handle errors and notify user.
+ * @param {Object} response - The Axios response object.
+ * @returns {Object} The response object if successful.
+ * @throws {Promise} Rejects with the error object if an error occurs.
+ */
+axiosIns.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      // Log error before showing toast
+      console.error('Error response:', error.response);
+      toast(error.response.data.message ?? error.message, {
+        theme: 'auto',
+        type: 'error',
+        dangerouslyHTMLString: true,
+      });
 
-  // Return modified config
-  return config
-})
+      // Handle redirection for specific status codes if not in development mode
+      if (!import.meta.env.VITE_DEV_MODE) {
+        handleRedirect(error.response.status);
+      }
+    }
 
-axiosIns.interceptors.response.use(response => {
-  // Возвращаем ответ, если всё нормально
-  return response
-}, error => {
-  if (error.response) {
-    toast(error.response.data.message ?? error?.message, {
-      theme: 'auto',
-      type: 'error',
-      dangerouslyHTMLString: true,
-    });
+    return Promise.reject(error);
   }
-  if (!import.meta.env.VITE_DEV_MODE) {
-    if (error.response && error.response.status === 404) {
+);
 
-      // Redirect to the 404 page
-      // eslint-disable-next-line promise/no-promise-in-callback
-      router.push({ path: '/404' }).then(() => {
-        // Force reload after navigation
-        window.location.reload()
-      }).catch(err => {
-        // Handle navigation error (if needed)
-        console.error('Navigation error:', err)
-        window.location.reload()
-      })
-    }
-
-
-    if (error.response && error.response.status === 401) {
-
-      // Redirect to the 404 page
-      // eslint-disable-next-line promise/no-promise-in-callback
-      router.push({ path: '/login' }).then(() => {
-
-        localStorage.removeItem('userAbilities')
-        localStorage.removeItem('userData')
-        localStorage.removeItem('accessToken')
-
-        // Force reload after navigation
-        window.location.reload()
-      }).catch(err => {
-        // Handle navigation error (if needed)
-        console.error('Navigation error:', err)
-        window.location.reload()
-      })
-    }
-
-    if (error.response && error.response.status === 403) {
-
-      // Redirect to the forbidden page
-      // eslint-disable-next-line promise/no-promise-in-callback
-      router.push({ path: '/forbidden' }).then(() => {
-
-        // Force reload after navigation
-        window.location.reload()
-      }).catch(err => {
-        // Handle navigation error (if needed)
-        console.error('Navigation error:', err)
-        window.location.reload()
-      })
-    }
-  }
-
-  return Promise.reject(error)
-})
-
-export default axiosIns
+export default axiosIns;

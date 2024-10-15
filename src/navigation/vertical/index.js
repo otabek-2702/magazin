@@ -38,13 +38,6 @@ export default [
     icon: { icon: 'mdi-package-variant' },
     children: [
       {
-        title: 'Категории',
-        to: { name: 'Categories' },
-        // icon: { icon: 'mdi-view-grid-plus-outline' },
-        subject: 'Categories',
-        action: 'show'
-      },
-      {
         title: 'Товары',
         to: { name: 'Products' },
         // icon: { icon: 'mdi-cube-outline' },
@@ -56,6 +49,13 @@ export default [
         to: { name: 'ProductVariants' },
         // icon: { icon: 'mdi-cube-outline' },
         subject: 'ProductVariants',
+        action: 'show'
+      },
+      {
+        title: 'Категории',
+        to: { name: 'Categories' },
+        // icon: { icon: 'mdi-view-grid-plus-outline' },
+        subject: 'Categories',
         action: 'show'
       },
       {
@@ -76,6 +76,12 @@ export default [
         subject: 'Branches',
         action: 'show'
       },
+      // {
+      //   title: 'Склад филиала',
+      //   to: { name: 'WareHouse' },
+      //   subject: 'WareHouse',
+      //   action: 'show'
+      // },
 
     ]
   },
