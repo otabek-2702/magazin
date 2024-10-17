@@ -26,7 +26,7 @@ const currency_id = ref();
 const exchange_rate = ref();
 const status = ref();
 const product_variant_id = ref();
-const quantity = ref();
+const quantity = ref(1);
 const price = ref('');
 const rate_symbol = ref();
 const product_variants = ref([]);
@@ -167,7 +167,8 @@ const exchanges_list = ref([]);
 
 // auto exchange_rate
 watch(currency_id, (newVal) => {
-  if(!exchange_rate)  exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
+  if (!exchange_rate)
+    exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
 });
 
 onMounted(() => {
@@ -242,17 +243,15 @@ const deleteListItem = (id) => {
 };
 
 const calculatePrice = computed(() => {
-  return transformPrice(product_variants.value.reduce(
-    (accumulator, el) => accumulator + el.quantity * el.price,
-    0,
-  ))
+  return transformPrice(
+    product_variants.value.reduce((accumulator, el) => accumulator + el.quantity * el.price, 0),
+  );
 });
 
 const calculateCount = computed(() => {
-  return transformPrice(product_variants.value.reduce(
-    (accumulator, el) => accumulator + parseFloat(el.quantity),
-    0,
-  ))
+  return transformPrice(
+    product_variants.value.reduce((accumulator, el) => accumulator + parseFloat(el.quantity), 0),
+  );
 });
 </script>
 
@@ -344,7 +343,7 @@ const calculateCount = computed(() => {
                       <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
                       <td class="text-body-1">Общее количество: {{ calculateCount }}</td>
                       <td></td>
-                      <td></td>
+                      <td v-if="status == 'Черновик'"></td>
                     </tr>
                   </tfoot>
 

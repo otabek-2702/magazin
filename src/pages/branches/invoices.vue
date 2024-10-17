@@ -2,11 +2,8 @@
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/invoice/InfoDialog.vue';
-import BarcodeDialog from '@/views/invoice/BarcodeDialog.vue';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
-import AddNewDialog from '@/views/invoice/AddNewDialog.vue';
+import InfoDialog from '@/views/branch/invoice/InfoDialog.vue';
+import AddNewDialog from '@/views/branch/invoice/AddNewDialog.vue';
 import { transformPrice } from '@/helpers';
 
 const searchQuery = ref('');
@@ -17,7 +14,6 @@ const totalPage = ref(1);
 const lastFetchedPage = ref(null);
 const totalDatasCount = ref(0);
 const invoices = ref([]);
-const updateID = ref(0);
 
 // Get main datas start
 const isFetching = ref(false);
@@ -34,10 +30,10 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/stock_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    invoices.value = data['invoices'];
+    invoices.value = data['stock_movement_invoices'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
@@ -51,16 +47,6 @@ const fetchData = async (force = false) => {
     isFetching.value = false;
   }
 };
-
-// Get main datas end
-
-// 👉 watching selected filters
-// watch([selectedState], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
 
 // search
 const searchElements = () => {
@@ -77,22 +63,12 @@ watch(searchQuery, (newVal) => {
   }
 });
 
-// const fetchStates = async () => {
-//   try {
-//     const states_r = await axios.get(`/states`);
-//     states_list.value = states_r.data.states.filter((el) => el.table === 'invoices');
-//   } catch (error) {
-//     console.error('Ошибка :', error);
-//   }
-// };
 
 onMounted(() => {
   fetchData();
-  // fetchStates();
 });
 
 const isInfoDialogVisible = ref(false);
-const isBarcodeDialogVisible = ref(false);
 
 // Pages start
 
@@ -118,15 +94,6 @@ const paginationData = computed(() => {
 
 // Pages end
 
-// BarCode
-const barcodeDialogId = ref(0);
-const openBarcodeDialog = (id) => {
-  barcodeDialogId.value = id;
-  isBarcodeDialogVisible.value = true;
-};
-
-// end BarCode
-
 // Show one
 const infoDialogItemId = ref(0);
 
@@ -137,9 +104,9 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    'Черновик': { color: 'primary' },
-    'Отклонено': { color: 'secondary' },
-    'Подтверждено': { color: 'success' },
+    Черновик: { color: 'primary' },
+    Отклонено: { color: 'secondary' },
+    Подтверждено: { color: 'success' },
   };
 
   return roleMap[status] || { color: 'primary' };
@@ -152,19 +119,6 @@ const resolveInvoiceStatus = (status) => {
       <VCol cols="12">
         <VCard title="Фильтры поиска">
           <VCardText class="d-flex flex-wrap">
-            <!-- <VCol cols="3" sm="3">
-              <VSelect
-                
-                v-model="selectedState"
-                label="Выберите статус"
-                :items="states_list"
-                item-title="name_ru"
-                item-value="id"
-                
-                
-              />
-            </VCol> -->
-
             <VSpacer />
 
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
@@ -188,20 +142,19 @@ const resolveInvoiceStatus = (status) => {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ПАРТИЯ</th>
-                <th>КУРС</th>
                 <th>СТАТУС</th>
-                <th>ОБЩАЯ СУММА</th>
-                <!-- <th>ДЕЙСТВИЯ</th> -->
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="invoice in invoices" :key="invoice.id" @click="handleInfoDialogOpen(invoice.id)" style="cursor: pointer">
+              <tr
+                v-for="invoice in invoices"
+                :key="invoice.id"
+                @click="handleInfoDialogOpen(invoice.id)"
+                style="cursor: pointer"
+              >
                 <td>{{ invoice.id }}</td>
 
-                <td>{{ invoice.batch.name }}</td>
-                <td>{{ transformPrice(invoice.exchange_rate) }} {{ invoice.currency.symbol }}</td>
                 <td>
                   <VChip
                     :color="resolveInvoiceStatus(invoice.status).color"
@@ -212,38 +165,9 @@ const resolveInvoiceStatus = (status) => {
                     {{ invoice.status }}
                   </VChip>
                 </td>
-                <td>{{ transformPrice(invoice.total_amount) }}{{ invoice.currency.symbol }}</td>
-
-                <!-- <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openBarcodeDialog(invoice.id);
-                      }
-                    "
-                    size="30"
-                    icon="mdi-barcode"
-                    style="color: rgb(var(--v-theme-grey-800))"
-                  ></VIcon>
-                  <Can I="update" a="Invoices">
-                    <VIcon
-                      @click="
-                        (event) => {
-                          event.stopPropagation();
-                          openEditDrawer(invoice.id);
-                        }
-                      "
-                      size="30"
-                      icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
-                      class="mx-2"
-                    ></VIcon>
-                  </Can>
-                </td> -->
               </tr>
             </tbody>
-            <Skeleton :count="5" v-show="isFetching && !invoices.length" />
+            <Skeleton :count="2" v-show="isFetching && !invoices.length" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>
@@ -274,11 +198,6 @@ const resolveInvoiceStatus = (status) => {
     <InfoDialog
       v-model:isDialogOpen="isInfoDialogVisible"
       :id="infoDialogItemId"
-      @fetchDatas="() => fetchData(true)"
-    />
-    <BarcodeDialog
-      v-model:isDrawerOpen="isBarcodeDialogVisible"
-      :productId="barcodeDialogId"
       @fetchDatas="() => fetchData(true)"
     />
   </section>
