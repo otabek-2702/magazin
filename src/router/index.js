@@ -47,6 +47,7 @@ const router = createRouter({
             subject: 'Statistics',
           }
         },
+        // system
         {
           path: 'roles',
           name: 'Roles',
@@ -65,33 +66,17 @@ const router = createRouter({
             subject: 'Users',
           }
         },
+        // stock
         {
-          path: 'suppliers',
-          name: 'Suppliers',
-          component: () => import("@/pages/suppliers.vue"),
+          path: 'stock',
+          name: 'Stock',
+          component: () => import("@/pages/stock.vue"),
           meta: {
             action: 'show',
-            subject: 'Suppliers',
+            subject: 'Stock',
           }
         },
-        {
-          path: 'ware-house',
-          name: 'WareHouse',
-          component: () => import("@/pages/ware-house.vue"),
-          meta: {
-            action: 'show',
-            subject: 'WareHouse',
-          }
-        },
-        {
-          path: 'cateories',
-          name: 'Categories',
-          component: () => import("@/pages/categories.vue"),
-          meta: {
-            action: 'show',
-            subject: 'Categories',
-          }
-        },
+        // products
         {
           path: 'products',
           name: 'Products',
@@ -111,30 +96,12 @@ const router = createRouter({
           }
         },
         {
-          path: 'branches',
-          name: 'Branches',
-          component: () => import("@/pages/branches.vue"),
+          path: 'cateories',
+          name: 'Categories',
+          component: () => import("@/pages/categories.vue"),
           meta: {
             action: 'show',
-            subject: 'Branches',
-          }
-        },
-        {
-          path: 'stock',
-          name: 'Stock',
-          component: () => import("@/pages/stock.vue"),
-          meta: {
-            action: 'show',
-            subject: 'Stock',
-          }
-        },
-        {
-          path: 'batches',
-          name: 'Batches',
-          component: () => import("@/pages/batches.vue"),
-          meta: {
-            action: 'show',
-            subject: 'Batches',
+            subject: 'Categories',
           }
         },
         {
@@ -146,6 +113,40 @@ const router = createRouter({
             subject: 'Settings',
           }
         },
+        // branches
+        {
+          path: 'branches/',
+          children: [
+            {
+              path: '',
+              name: 'Branches',
+              component: () => import("@/pages/branches/index.vue"),
+              meta: {
+                action: 'show',
+                subject: 'Branches',
+              },
+            },
+            {
+              path: 'ware-house',
+              name: 'BranchesWareHouse',
+              component: () => import("@/pages/branches/ware-house.vue"),
+              meta: {
+                action: 'show',
+                subject: 'BranchesWareHouse',
+              }
+            },
+            {
+              path: 'invoices',
+              name: 'BranchesInvoices',
+              component: () => import("@/pages/branches/invoices.vue"),
+              meta: {
+                action: 'show',
+                subject: 'BranchesInvoices',
+              }
+            },
+          ]
+        },
+        // invoice
         {
           path: 'invoices',
           name: 'Invoices',
@@ -155,15 +156,27 @@ const router = createRouter({
             subject: 'Invoices',
           }
         },
+        // suppliers        
         {
-          path: 'ware-house',
-          name: 'WareHouse',
-          component: () => import("@/pages/ware-house.vue"),
+          path: 'suppliers',
+          name: 'Suppliers',
+          component: () => import("@/pages/suppliers.vue"),
           meta: {
             action: 'show',
-            subject: 'WareHouse',
+            subject: 'Suppliers',
           }
         },
+        // batches
+        {
+          path: 'batches',
+          name: 'Batches',
+          component: () => import("@/pages/batches.vue"),
+          meta: {
+            action: 'show',
+            subject: 'Batches',
+          }
+        },
+
       ],
     },
     ...setupLayouts(routes),

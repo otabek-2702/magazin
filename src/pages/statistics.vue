@@ -30,40 +30,39 @@ const chartJsCustomColors = {
   <section>
     <VRow>
       <VCol cols="12" md="6">
-        <VCard title="Expense Ratio" subtitle="Spending on various categories">
+        <VCard title="Соотношение расходов" subtitle="Расходы по различным категориям">
           <VCardText>
             <ApexChartExpenseRatio />
           </VCardText>
         </VCard>
       </VCol>
       <VCol
-      cols="12"
-      md="6"
-    >
-      <VCard>
-        <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-          <VCardTitle>Latest Statistics</VCardTitle>
+        cols="12"
+        md="6"
+      >
+        <VCard>
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Последняя статистика</VCardTitle>
 
-          <template #append>
-            <div class="date-picker-wrapper">
-              <AppDateTimePicker
-                model-value="2022-06-09"
-                prepend-inner-icon="bx-calendar-alt"
-                density="compact"
-                :config="{ position: 'auto right' }"
-              />
-            </div>
-          </template>
-        </VCardItem>
+            <template #append>
+              <div class="date-picker-wrapper">
+                <AppDateTimePicker
+                  model-value="2022-06-09"
+                  prepend-inner-icon="bx-calendar-alt"
+                  density="compact"
+                  :config="{ position: 'auto right' }"
+                />
+              </div>
+            </template>
+          </VCardItem>
 
-        <VCardText>
-          <ChartJsBarChart :colors="chartJsCustomColors" />
-        </VCardText>
-      </VCard>
-    </VCol>
+          <VCardText>
+            <ChartJsBarChart :colors="chartJsCustomColors" />
+          </VCardText>
+        </VCard>
+      </VCol>
     </VRow>
   </section>
 </template>
 
 <style></style>
-

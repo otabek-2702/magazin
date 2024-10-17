@@ -78,11 +78,16 @@ export default [
       },
       // {
       //   title: 'Склад филиала',
-      //   to: { name: 'WareHouse' },
-      //   subject: 'WareHouse',
+      //   to: { name: 'BranchesWareHouse' },
+      //   subject: 'BranchesWareHouse',
       //   action: 'show'
       // },
-
+      {
+        title: 'Накладные филиала',
+        to: { name: 'BranchesInvoices' },
+        subject: 'BranchesInvoices',
+        action: 'show'
+      },
     ]
   },
   {

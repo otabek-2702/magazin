@@ -7,7 +7,7 @@ const colorVariables = themeColors => {
   const themeDisabledTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['disabled-opacity']})`
   const themeBorderColor = `rgba(${hexToRgb(String(themeColors.variables['border-color']))},${themeColors.variables['border-opacity']})`
   const themePrimaryTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['high-emphasis-opacity']})`
-  
+
   return { themeSecondaryTextColor, themeDisabledTextColor, themeBorderColor, themePrimaryTextColor }
 }
 
@@ -19,7 +19,7 @@ export const getScatterChartConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -67,7 +67,7 @@ export const getScatterChartConfig = themeColors => {
 }
 export const getLineChartSimpleConfig = themeColors => {
   const { themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -133,7 +133,7 @@ export const getLineChartSimpleConfig = themeColors => {
 }
 export const getBarChartConfig = themeColors => {
   const { themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -166,7 +166,7 @@ export const getBarChartConfig = themeColors => {
     xaxis: {
       axisBorder: { show: false },
       axisTicks: { color: themeBorderColor },
-      categories: ['MON, 11', 'THU, 14', 'FRI, 15', 'MON, 18', 'WED, 20', 'FRI, 21', 'MON, 23'],
+      categories: ['ПН, 11', 'ЧТ, 14', 'ПТ, 15', 'ПН, 18', 'СР, 20', 'ПТ, 21', 'ПН, 23'],
       labels: {
         style: { colors: themeDisabledTextColor },
       },
@@ -180,7 +180,7 @@ export const getCandlestickChartConfig = themeColors => {
   }
 
   const { themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -234,10 +234,10 @@ export const getRadialBarChartConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themePrimaryTextColor } = colorVariables(themeColors)
-  
+
   return {
     stroke: { lineCap: 'round' },
-    labels: ['Comments', 'Replies', 'Shares'],
+    labels: ['Комментарии', 'Ответы', 'Поделились'],
     legend: {
       show: true,
       position: 'bottom',
@@ -271,7 +271,7 @@ export const getRadialBarChartConfig = themeColors => {
           total: {
             show: true,
             fontWeight: 400,
-            label: 'Comments',
+            label: 'Комментарии',
             fontSize: '1.125rem',
             color: themePrimaryTextColor,
             formatter(w) {
@@ -306,10 +306,11 @@ export const getDonutChartConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themePrimaryTextColor } = colorVariables(themeColors)
-  
+
   return {
     stroke: { width: 0 },
-    labels: ['Operational', 'Networking', 'Hiring', 'R&D'],
+    labels: ['Оперативный', 'Сетевое взаимодействие', 'Найм', 'Научные исследования и разработки'],
+
     colors: [donutColors.series1, donutColors.series5, donutColors.series3, donutColors.series2],
     dataLabels: {
       enabled: true,
@@ -340,7 +341,7 @@ export const getDonutChartConfig = themeColors => {
             total: {
               show: true,
               fontSize: '1.5rem',
-              label: 'Operational',
+              label: 'Оперативный',
               formatter: () => '31%',
               color: themePrimaryTextColor,
             },
@@ -397,7 +398,7 @@ export const getAreaChartSplineConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -474,7 +475,7 @@ export const getColumnChartConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       offsetX: -10,
@@ -549,7 +550,7 @@ export const getColumnChartConfig = themeColors => {
 }
 export const getHeatMapChartConfig = themeColors => {
   const { themeSecondaryTextColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -612,7 +613,7 @@ export const getRadarChartConfig = themeColors => {
   }
 
   const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(themeColors)
-  
+
   return {
     chart: {
       parentHeightOffset: 0,
@@ -661,7 +662,7 @@ export const getRadarChartConfig = themeColors => {
     },
     yaxis: { show: false },
     xaxis: {
-      categories: ['Battery', 'Brand', 'Camera', 'Memory', 'Storage', 'Display', 'OS', 'Price'],
+      categories: ['Аккумулятор', 'Бренд', 'Камера', 'Память', 'Хранилище', 'Дисплей', 'Операционная система', 'Цена'],
       labels: {
         style: {
           colors: [
