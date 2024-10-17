@@ -19,6 +19,7 @@ const emit = defineEmits(['update:isDialogOpen', 'fetchDatas']);
 
 const isFetchingStart = ref(true);
 const isFetching = ref('');
+const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const batches_id = ref();
@@ -30,6 +31,7 @@ const quantity = ref(1);
 const price = ref('');
 const rate_symbol = ref();
 const product_variants = ref([]);
+const variant_search_input = ref('');
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -161,6 +163,29 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
     console.log(error);
   }
 };
+const fetchVariants = async () => {
+  isFetchingVariant.value = true;
+  try {
+    const response = await axios.get('/product_variants', {
+      params: {
+        paginate: 50,
+        search: variant_search_input.value,
+      },
+    });
+
+    if (response.status === 200) {
+      product_variant_options.value = response.data['products_variants']?.map((el) => ({
+        id: el.id,
+        name: `${el.product.name} | ${el.color.name} | ${el.size.name} `,
+      }));
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetchingVariant.value = false;
+  }
+};
+const product_variant_options = ref([]);
 const product_variants_list = ref([]);
 const batches_list = ref([]);
 const exchanges_list = ref([]);
@@ -169,6 +194,14 @@ const exchanges_list = ref([]);
 watch(currency_id, (newVal) => {
   if (!exchange_rate)
     exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
+});
+
+watch(variant_search_input, (newVal) => {
+  if (newVal?.length >= 2) {
+    fetchVariants();
+  } else if (newVal?.length == 0) {
+    fetchVariants();
+  }
 });
 
 onMounted(() => {
@@ -365,10 +398,13 @@ const calculateCount = computed(() => {
                     <VAutocomplete
                       v-model="product_variant_id"
                       label="Выберите товар"
-                      :items="product_variants_list"
+                      variant="filled"
+                      :items="product_variant_options"
                       item-title="name"
                       item-value="id"
                       :rules="[]"
+                      v-model:search="variant_search_input"
+                      :loading="isFetchingVariant"
                     />
                   </VCol>
 

@@ -19,7 +19,6 @@ const quantity_input = ref();
 const quantity = ref();
 const product_variants = ref([]);
 
-
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
@@ -206,11 +205,25 @@ const calculateCount = computed(() => {
                       <td>
                         {{ variant.variant.name }}
                       </td>
-                      <td>{{ variant.quantity }}</td>
-                      <td
-                        class="text-center"
-                        :style="{ width: '80px', zIndex: '10' }"
-                      >
+                      <td>
+                        <VIcon
+                v-if="editingId === variant.id"
+                @click.stop="hideEditInput(exchange)"
+                size="30"
+                icon="bx-check"
+                style="color: rgb(var(--v-theme-success))"
+                class="mx-2"
+              />
+              <VIcon
+                v-else
+                @click.stop="showEditInput(exchange.id)"
+                size="30"
+                icon="bx-edit-alt"
+                style="color: rgb(var(--v-global-theme-primary))"
+                class="mx-2"
+              />
+                        {{ variant.quantity }}</td>
+                      <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                         <VIcon
                           size="30"
                           icon="mdi-minus-circle-outline"
@@ -273,21 +286,23 @@ const calculateCount = computed(() => {
                       />
                     </VCol>
                     <VCol cols="1" class="d-flex justify-center align-center">
-                      <VIcon
-                        size="30"
-                        icon="bx-plus"
+                      <VBtn
                         @click="addToList"
-                        style="color: white; background-color: #4caf50; border-radius: 5px"
-                      ></VIcon>
+                        style="
+                          color: white !important;
+                          background-color: #4caf50 !important;
+                          border-radius: 5px !important;
+                        "
+                      >
+                        <VIcon size="35" icon="bx-plus"></VIcon>
+                      </VBtn>
                     </VCol>
                   </VRow>
                 </VForm>
               </VCol>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="submit" >
-                Отправить
-              </VBtn>
+              <VBtn :loading="isFetching" :disabled="isFetching" type="submit"> Отправить </VBtn>
             </VCardText>
           </VForm>
         </VCardText>

@@ -28,7 +28,6 @@ const product_variant_sku = ref();
 const product_variant_data = ref();
 const quantity_input = ref();
 const quantity = ref();
-const rate_symbol = ref();
 const product_variants = ref([]);
 
 const fetchDataById = async () => {
@@ -134,6 +133,7 @@ const handleDialogModelValueUpdate = (val) => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
       product_variants.value = [];
+      status.value= ""
     });
   }
 };
@@ -156,9 +156,6 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
 const product_variants_list = ref([]);
 const branches_list = ref([]);
 
-onMounted(() => {
-  fetchOptions('/branches', branches_list, 'branches');
-});
 watch(
   () => props.isDialogOpen,
   async (newVal) => {
@@ -174,6 +171,10 @@ watch(
     }
   },
 );
+
+onMounted(() => {
+  fetchOptions('/branches', branches_list, 'branches');
+});
 
 const findProductVariant = (sku) => {
   product_variant_data.value = product_variants_list.value.find((e) => e.sku == sku);
@@ -299,7 +300,7 @@ const calculateCount = computed(() => {
                       <td colspan="2"></td>
                       <td class="text-body-1">Общее количество: {{ calculateCount }}</td>
                       <td></td>
-                      <td></td>
+                      <td v-if="status == 'Черновик'"></td>
                     </tr>
                   </tfoot>
 
@@ -348,12 +349,16 @@ const calculateCount = computed(() => {
                     />
                   </VCol>
                   <VCol cols="1" class="d-flex justify-center align-center">
-                    <VIcon
-                      size="30"
-                      icon="bx-plus"
+                    <VBtn
                       @click="addToList"
-                      style="color: white; background-color: #4caf50; border-radius: 5px"
-                    ></VIcon>
+                      style="
+                        color: white !important;
+                        background-color: #4caf50 !important;
+                        border-radius: 5px !important;
+                      "
+                    >
+                      <VIcon size="35" icon="bx-plus"></VIcon>
+                    </VBtn>
                   </VCol>
                 </VRow>
               </VForm>

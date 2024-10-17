@@ -9,6 +9,7 @@ const emit = defineEmits(['fetchDatas']);
 
 const isDialogVisible = ref(false);
 const isFetching = ref(false);
+const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const batches_id = ref();
@@ -19,6 +20,7 @@ const quantity = ref(1);
 const price = ref('');
 const rate_symbol = ref();
 const product_variants = ref([]);
+const variant_search_input = ref('');
 
 const removeSpaces = (input) => {
   return input.replace(/\s+/g, '');
@@ -81,6 +83,29 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
     console.log(error);
   }
 };
+const fetchVariants = async () => {
+  isFetchingVariant.value = true;
+  try {
+    const response = await axios.get('/product_variants', {
+      params: {
+        paginate: 50,
+        search: variant_search_input.value,
+      },
+    });
+
+    if (response.status === 200) {
+      product_variants_list.value = response.data['products_variants']?.map((el) => ({
+        id: el.id,
+        name: `${el.product.name} | ${el.color.name} | ${el.size.name} `,
+      }));
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetchingVariant.value = false;
+  }
+};
+
 const product_variants_list = ref([]);
 const batches_list = ref([]);
 const exchanges_list = ref([]);
@@ -93,10 +118,7 @@ watch(currency_id, (newVal) => {
 watch(
   isDialogVisible,
   () => {
-    fetchOptions('/product_variants', product_variants_list, 'products_variants', {
-      method: (el) => ({ ...el, name: `${el.product.name} | ${el.color.name} | ${el.size.name} ` }),
-      is: true,
-    });
+    fetchVariants();
     fetchOptions('/batches', batches_list, 'batches');
     fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {
       is: true,
@@ -110,6 +132,14 @@ watch(currency_id, (newVal) => {
   if (newVal) {
     rate_symbol.value =
       exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ?? '';
+  }
+});
+
+watch(variant_search_input, (newVal) => {
+  if (newVal?.length >= 2) {
+    fetchVariants();
+  } else if (newVal?.length == 0) {
+    fetchVariants();
   }
 });
 
@@ -237,8 +267,8 @@ const calculateCount = computed(() => {
                       <td colspan="2"></td>
                       <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
                       <td class="text-body-1">Общая количество: {{ calculateCount }}</td>
-                      <td ></td>
-                      <td ></td>
+                      <td></td>
+                      <td></td>
                     </tr>
                   </tfoot>
                   <tfoot v-show="!product_variants.length">
@@ -257,10 +287,13 @@ const calculateCount = computed(() => {
                     <VAutocomplete
                       v-model="product_variant_id"
                       label="Выберите товар"
+                      variant="filled"
                       :items="product_variants_list"
                       item-title="name"
                       item-value="id"
                       :rules="[]"
+                      v-model:search="variant_search_input"
+                      :loading="isFetchingVariant"
                     />
                   </VCol>
 
@@ -278,19 +311,28 @@ const calculateCount = computed(() => {
                     <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
                   </VCol>
                   <VCol cols="1" class="d-flex justify-center align-center">
-                    <VBtn @click="addToList" style="color: white !important; background-color: #4caf50 !important; border-radius: 5px !important">
-                      <VIcon
-                        size="35"
-                        icon="bx-plus"
-                        
-                      ></VIcon>
+                    <VBtn
+                      @click="addToList"
+                      style="
+                        color: white !important;
+                        background-color: #4caf50 !important;
+                        border-radius: 5px !important;
+                      "
+                    >
+                      <VIcon size="35" icon="bx-plus"></VIcon>
                     </VBtn>
                   </VCol>
                 </VRow>
               </VForm>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="button" @click="onSubmit" class="me-3">
+              <VBtn
+                :loading="isFetching"
+                :disabled="isFetching"
+                type="button"
+                @click="onSubmit"
+                class="me-3"
+              >
                 Отправить
               </VBtn>
             </VCardText>
