@@ -1,9 +1,9 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, onMounted, ref, watchEffect } from 'vue';
-import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, onMounted, ref, watchEffect } from "vue";
+import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
 
 const props = defineProps({
   isDrawerOpen: {
@@ -12,31 +12,31 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
+const emit = defineEmits(["update:isDrawerOpen", "fetchDatas"]);
 
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const product_id = ref();
-const size_id = ref();
-const color_id = ref();
-const sale = ref();
+const sizes_id = ref();
+const colors_id = ref();
+const sale = ref(0);
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/product_variants', {
+        await axios.post("/product_variants", {
           product_id: product_id.value,
-          size_id: size_id.value,
-          color_id: color_id.value,
+          sizes_list: sizes_id.value,
+          colors_list: colors_id.value,
           sale: sale.value,
         });
-        emit('fetchDatas');
-        toast('Успешно добавлено', {
-          theme: 'auto',
-          type: 'success',
+        emit("fetchDatas");
+        toast("Успешно добавлено", {
+          theme: "auto",
+          type: "success",
           dangerouslyHTMLString: true,
         });
         handleDrawerModelValueUpdate(false);
@@ -50,7 +50,7 @@ const onSubmit = () => {
 };
 
 const handleDrawerModelValueUpdate = (val) => {
-  emit('update:isDrawerOpen', val);
+  emit("update:isDrawerOpen", val);
   if (!val) {
     nextTick(() => {
       refForm.value?.reset();
@@ -60,45 +60,24 @@ const handleDrawerModelValueUpdate = (val) => {
 };
 
 const products_list = ref([]);
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get('/products');
-
-    if (response.status === 200) {
-      products_list.value = response.data.products;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const sizes_list = ref([]);
-const fetchSizes = async () => {
-  try {
-    const response = await axios.get('/sizes');
-
-    if (response.status === 200) {
-      sizes_list.value = response.data.sizes;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const colors_list = ref([]);
-const fetchColors = async () => {
-  // ////////////////////////////////////////////////////////////////////////////////////
-  // ////////////////////////////////////////////////////////////////////////////////////
-  // ////////////////////////////////////////////////////////////////////////////////////
-  // //////////////////////// PAGINATE QOSHILGAN ////////////////////////////////////////
-  // ////////////////////////////////////////////////////////////////////////////////////
-  // ////////////////////////////////////////////////////////////////////////////////////
-  // ////////////////////////////////////////////////////////////////////////////////////
+
+const fetchOptions = async (
+  url,
+  dataState,
+  key,
+  customization = { is: false }
+) => {
   try {
-    const response = await axios.get('/colors');
+    const response = await axios.get(url);
 
     if (response.status === 200) {
-      colors_list.value = response.data.colors;
+      if (customization.is) {
+        dataState.value = response.data[key].map(customization.method);
+      } else {
+        dataState.value = response.data[key];
+      }
     }
   } catch (error) {
     console.log(error);
@@ -108,17 +87,12 @@ const fetchColors = async () => {
 watch(
   () => props.isDrawerOpen,
   () => {
-    fetchSizes();
-    fetchColors();
-    fetchProducts();
+    fetchOptions("/products", products_list, "products");
+    fetchOptions("/sizes", sizes_list, "sizes");
+    fetchOptions("/colors", colors_list, "colors");
   },
-  { once: true },
+  { once: true }
 );
-// onMounted(() => {
-//   fetchColors();
-//   fetchSizes();
-//   fetchProducts();
-// });
 </script>
 
 <template>
@@ -131,7 +105,10 @@ watch(
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Добавить" @cancel="handleDrawerModelValueUpdate(false)" />
+    <AppDrawerHeaderSection
+      title="Добавить"
+      @cancel="handleDrawerModelValueUpdate(false)"
+    />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -152,31 +129,42 @@ watch(
 
               <VCol cols="12">
                 <VSelect
-                  v-model="size_id"
+                  v-model="sizes_id"
                   label="Выберите размер"
                   :items="sizes_list"
                   item-title="name"
                   item-value="id"
+                  multiple
                 />
               </VCol>
 
               <VCol cols="12">
                 <VSelect
-                  v-model="color_id"
+                  v-model="colors_id"
                   label="Выберите цвет"
                   :items="colors_list"
-                  item-title="created_at"
+                  item-title="name"
                   item-value="id"
+                  multiple
                 />
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="sale" label="Скидка в процентах" type="number" />
+                <VTextField
+                  v-model="sale"
+                  label="Скидка в процентах"
+                  type="number"
+                />
               </VCol>
 
               <!-- 👉 Отправить и Отмена -->
               <VCol cols="12">
-                <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
+                <VBtn
+                  :loading="isFetching"
+                  :disabled="isFetching"
+                  type="submit"
+                  class="me-3"
+                >
                   Отправить
                 </VBtn>
                 <VBtn

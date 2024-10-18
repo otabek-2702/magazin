@@ -28,7 +28,7 @@ const category_id = ref();
 const season = ref('fall');
 const gender = ref('man');
 const profit_percent = ref();
-const sale = ref();
+const sale = ref(0);
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {

@@ -7,7 +7,6 @@ import Skeleton from '@/views/skeleton/Skeleton.vue';
 import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
-import AddNewDialog from '@/views/product-variants/AddNewDialog.vue';
 
 const searchQuery = ref('');
 const finalSearch = ref('');
@@ -214,7 +213,8 @@ const deleteItem = async function (id) {
                 class="me-6"
               />
               <Can I="add" a="Products">
-                <AddNewDialog @fetchDatas="() => fetchData(true)" />
+                <VBtn @click="isAddNewDrawerVisible = true">Добавить вариации</VBtn>
+
               </Can>
             </VCol>
           </VCardText>
