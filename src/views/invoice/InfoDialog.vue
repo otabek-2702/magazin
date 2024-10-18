@@ -155,6 +155,7 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
     if (response.status === 200) {
       if (customization.is) {
         dataState.value = response.data[key].map(customization.method);
+        console.log(dataState.value);
       } else {
         dataState.value = response.data[key];
       }
@@ -164,19 +165,20 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
   }
 };
 const fetchVariants = async () => {
+  if (product_variant_id.value) return;
   isFetchingVariant.value = true;
   try {
     const response = await axios.get('/product_variants', {
       params: {
         paginate: 50,
-        search: variant_search_input.value,
+        search: variant_search_input.value?.slice(0, 5),
       },
     });
 
     if (response.status === 200) {
-      product_variant_options.value = response.data['products_variants']?.map((el) => ({
+      product_variant_options.value = response.data.products_variants?.map((el) => ({
         id: el.id,
-        name: `${el.product.name} | ${el.color.name} | ${el.size.name} `,
+        name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
       }));
     }
   } catch (error) {
@@ -197,14 +199,13 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2) {
-    fetchVariants();
-  } else if (newVal?.length == 0) {
+  if (newVal?.length >= 2 && !product_variant_id.value) {
     fetchVariants();
   }
 });
 
 onMounted(() => {
+  fetchVariants();
   fetchOptions('/batches', batches_list, 'batches');
   fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates');
 });
@@ -215,7 +216,7 @@ watch(
       await fetchOptions('/product_variants', product_variants_list, 'products_variants', {
         method: (el) => ({
           ...el,
-          name: `${el.product.name} | ${el.color.name} | ${el.size.name}`,
+          name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name}`,
         }),
         is: true,
       });
@@ -298,7 +299,7 @@ const calculateCount = computed(() => {
       <DialogCloseBtn variant="text" size="small" @click="handleDialogModelValueUpdate(false)" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm ref="refForm" v-model="isFormValid">
             <VRow>
               <VCol cols="4">
                 <VAutocomplete
@@ -429,6 +430,7 @@ const calculateCount = computed(() => {
                   <VCol cols="1" class="d-flex justify-center align-center">
                     <VBtn
                       @click="addToList"
+                      type="button"
                       style="
                         color: white !important;
                         background-color: #4caf50 !important;
@@ -446,7 +448,8 @@ const calculateCount = computed(() => {
                 v-if="status == 'Черновик'"
                 :loading="isFetching == 'submit'"
                 :disabled="isFetching == 'submit'"
-                type="submit"
+                @click="onSubmit"
+                type="button"
                 class="me-3"
               >
                 Сохранить изменения

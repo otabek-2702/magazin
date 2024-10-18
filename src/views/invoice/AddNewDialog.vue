@@ -21,6 +21,9 @@ const price = ref('');
 const rate_symbol = ref();
 const product_variants = ref([]);
 const variant_search_input = ref('');
+const product_variant_ref = ref()
+const price_ref = ref()
+const quantity_ref = ref()
 
 const removeSpaces = (input) => {
   return input.replace(/\s+/g, '');
@@ -89,7 +92,7 @@ const fetchVariants = async () => {
     const response = await axios.get('/product_variants', {
       params: {
         paginate: 50,
-        search: variant_search_input.value,
+        search: variant_search_input.value?.slice(0, 5),
       },
     });
 
@@ -136,11 +139,9 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2) {
+  if (newVal?.length >= 2 && !product_variant_id.value) {
     fetchVariants();
-  } else if (newVal?.length == 0) {
-    fetchVariants();
-  }
+  } 
 });
 
 // format
@@ -149,7 +150,15 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
-  if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
+  if (!product_variant_id.value || !price.value || quantity.value<=0) {
+    toast('Поля неправильно заполнены', {
+      theme: 'auto',
+      type: 'error',
+      dangerouslyHTMLString: true,
+    });
+    return;
+  }
+  if (product_variants.value.find((el) => el.variant?.id == product_variant_id.value)) {
     toast('Дубликат', {
       theme: 'auto',
       type: 'error',
@@ -166,8 +175,12 @@ const addToList = () => {
   });
   product_variant_id.value = null;
   price.value = null;
-  quantity.value = null;
+  quantity.value = 1;
+  variant_search_input.value = ''
+  product_variant_ref.value.focus()
 };
+
+watch(product_variant_id, (newVal) => newVal && price_ref.value.focus())
 
 const deleteListItem = (id) => {
   product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
@@ -200,7 +213,7 @@ const calculateCount = computed(() => {
       <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm ref="refForm" v-model="isFormValid">
             <VRow>
               <VCol cols="4">
                 <VAutocomplete
@@ -294,6 +307,7 @@ const calculateCount = computed(() => {
                       :rules="[]"
                       v-model:search="variant_search_input"
                       :loading="isFetchingVariant"
+                      ref="product_variant_ref"
                     />
                   </VCol>
 
@@ -302,17 +316,26 @@ const calculateCount = computed(() => {
                       :value="transformPrice(price)"
                       @input="handlePriceInput"
                       label="Цена"
-                      @keyup.enter="addToList"
                       :rules="[]"
+                      ref="price_ref"
+                      @keyup.enter="quantity_ref.focus()"
                     />
                   </VCol>
 
                   <VCol cols="3">
-                    <VTextField v-model="quantity" label="Количество" type="number" :rules="[]" />
+                    <VTextField
+                      v-model="quantity"
+                      label="Количество"
+                      type="number"
+                      :rules="[]"
+                      ref="quantity_ref"
+                      @keyup.enter="addToList"
+                    />
                   </VCol>
                   <VCol cols="1" class="d-flex justify-center align-center">
                     <VBtn
                       @click="addToList"
+                      type="button"
                       style="
                         color: white !important;
                         background-color: #4caf50 !important;
@@ -329,8 +352,8 @@ const calculateCount = computed(() => {
               <VBtn
                 :loading="isFetching"
                 :disabled="isFetching"
-                type="button"
                 @click="onSubmit"
+                type="button"
                 class="me-3"
               >
                 Отправить
