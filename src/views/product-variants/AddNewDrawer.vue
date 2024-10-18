@@ -15,12 +15,13 @@ const props = defineProps({
 const emit = defineEmits(["update:isDrawerOpen", "fetchDatas"]);
 
 const isFetching = ref(false);
+const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const product_id = ref();
 const sizes_id = ref();
 const colors_id = ref();
-const sale = ref(0);
+const product_search_input = ref("");
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
@@ -31,7 +32,6 @@ const onSubmit = () => {
           product_id: product_id.value,
           sizes_list: sizes_id.value,
           colors_list: colors_id.value,
-          sale: sale.value,
         });
         emit("fetchDatas");
         toast("Успешно добавлено", {
@@ -83,16 +83,41 @@ const fetchOptions = async (
     console.log(error);
   }
 };
+const fetchProducts = async () => {
+  isFetchingVariant.value = true;
+  try {
+    const response = await axios.get("/products", {
+      params: {
+        paginate: 50,
+        search: product_search_input.value?.slice(0, 5),
+      },
+    });
+
+    if (response.status === 200) {
+      products_list.value = response.data["products"]
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetchingVariant.value = false;
+  }
+};
 
 watch(
   () => props.isDrawerOpen,
   () => {
-    fetchOptions("/products", products_list, "products");
+    fetchProducts();
     fetchOptions("/sizes", sizes_list, "sizes");
     fetchOptions("/colors", colors_list, "colors");
   },
   { once: true }
 );
+
+watch(product_search_input, (newVal) => {
+  if (newVal?.length >= 2 && !product_id.value) {
+    fetchProducts();
+  }
+});
 </script>
 
 <template>
@@ -117,12 +142,16 @@ watch(
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
               <VCol cols="12">
-                <VSelect
+                <VAutocomplete
                   v-model="product_id"
                   label="Выберите товар"
+                  variant="filled"
                   :items="products_list"
                   item-title="name"
                   item-value="id"
+                  :rules="[]"
+                  v-model:search="product_search_input"
+                  :loading="isFetchingVariant"
                   autofocus
                 />
               </VCol>
@@ -149,13 +178,6 @@ watch(
                 />
               </VCol>
 
-              <VCol cols="12">
-                <VTextField
-                  v-model="sale"
-                  label="Скидка в процентах"
-                  type="number"
-                />
-              </VCol>
 
               <!-- 👉 Отправить и Отмена -->
               <VCol cols="12">
