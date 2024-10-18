@@ -81,25 +81,21 @@ const handleDrawerModelValueUpdate = (val) => {
 };
 
 const categories_list = ref([]);
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get('/categories');
-
-    if (response.status === 200) {
-      categories_list.value = response.data.categories;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const suppliers_list = ref([]);
-const fetchSuppliers = async () => {
+const colors_list = ref([]);
+const sizes_list = ref([]);
+
+
+const fetchOptions = async (url, dataState, key, customization = { is: false }) => {
   try {
-    const response = await axios.get('/suppliers');
+    const response = await axios.get(url);
 
     if (response.status === 200) {
-      suppliers_list.value = response.data.suppliers;
+      if (customization.is) {
+        dataState.value = response.data[key].map(customization.method);
+      } else {
+        dataState.value = response.data[key];
+      }
     }
   } catch (error) {
     console.log(error);
@@ -109,8 +105,10 @@ const fetchSuppliers = async () => {
 watch(
   () => props.isDrawerOpen,
   () => {
-    fetchCategories();
-    fetchSuppliers();
+    fetchOptions('/categories', categories_list, 'categories')
+    fetchOptions('/suppliers', suppliers_list, 'suppliers')
+    fetchOptions('/sizes', sizes_list, 'sizes')
+    fetchOptions('/colors', colors_list, 'colors')
   },
   { once: true },
 );
