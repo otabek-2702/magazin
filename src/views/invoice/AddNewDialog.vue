@@ -1,11 +1,11 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, ref, watch } from 'vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
-import { transformPrice } from '@/helpers';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, ref, watch } from "vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
+import { removeSpaces, transformPrice } from "@/helpers";
 
-const emit = defineEmits(['fetchDatas']);
+const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
 const isFetching = ref(false);
@@ -17,38 +17,30 @@ const currency_id = ref();
 const exchange_rate = ref();
 const product_variants_id = ref();
 const quantity = ref(1);
-const price = ref('');
+const price = ref("");
 const rate_symbol = ref();
 const product_variants = ref([]);
-const variant_search_input = ref('');
-const product_variant_ref = ref()
-const price_ref = ref()
-const quantity_ref = ref()
-
-const removeSpaces = (input) => {
-  return input.replace(/\s+/g, '');
-};
+const variant_search_input = ref("");
+const product_variant_ref = ref();
+const price_ref = ref();
+const quantity_ref = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/invoices', {
+        await axios.post("/invoices", {
           batch_id: batches_id.value ?? 0,
           currency_id: currency_id.value,
           exchange_rate: exchange_rate.value,
 
-          items: product_variants.value.map((el) => ({
-            product_variant_id: el.variant.id,
-            price: removeSpaces(el.price),
-            quantity: el.quantity,
-          })),
+          items: product_variants.value,
         });
-        emit('fetchDatas');
-        toast('Успешно добавлено', {
-          theme: 'auto',
-          type: 'success',
+        emit("fetchDatas");
+        toast("Успешно добавлено", {
+          theme: "auto",
+          type: "success",
           dangerouslyHTMLString: true,
         });
         handleDrawerModelValueUpdate(false);
@@ -65,13 +57,23 @@ const handleDrawerModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (!val) {
     nextTick(() => {
+      batches_id.value = null;
+      currency_id.value = null;
+      product_variants_id.value = null;
+      price.value = null;
+      quantity.value = 1;
       refForm.value?.reset();
       refForm.value?.resetValidation();
     });
   }
 };
 
-const fetchOptions = async (url, dataState, key, customization = { is: false }) => {
+const fetchOptions = async (
+  url,
+  dataState,
+  key,
+  customization = { is: false }
+) => {
   try {
     const response = await axios.get(url);
 
@@ -89,18 +91,32 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
 const fetchVariants = async () => {
   isFetchingVariant.value = true;
   try {
-    const response = await axios.get('/product_variants', {
+    const response = await axios.get("/product_variants", {
       params: {
-        paginate: 50,
+        paginate: 100,
         search: variant_search_input.value?.slice(0, 5),
       },
     });
 
     if (response.status === 200) {
-      product_variants_list.value = response.data['products_variants']?.map((el) => ({
-        id: el.id,
-        name: `${el.product.name} | ${el.color.name} | ${el.size.name} `,
-      }));
+      if (product_variants_id.value?.length) {
+        const newDatas = response.data.products_variants?.map((el) => ({
+          product_variant_id: el.id,
+          product_variant_name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
+        }));
+
+        const oldData = product_variants_list.value.filter((e) =>
+          product_variants_id.value.includes(e.product_variant_id)
+        );
+        product_variants_list.value = newDatas.concat(oldData);
+      } else {
+        product_variants_list.value = response.data.products_variants?.map(
+          (el) => ({
+            product_variant_id: el.id,
+            product_variant_name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
+          })
+        );
+      }
     }
   } catch (error) {
     console.log(error);
@@ -115,33 +131,35 @@ const exchanges_list = ref([]);
 
 // auto exchange_rate
 watch(currency_id, (newVal) => {
-  exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
+  exchange_rate.value =
+    exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
 });
 
 watch(
   isDialogVisible,
   () => {
     fetchVariants();
-    fetchOptions('/batches', batches_list, 'batches');
-    fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates', {
+    fetchOptions("/batches", batches_list, "batches");
+    fetchOptions("/exchange_rates", exchanges_list, "exchange_rates", {
       is: true,
       method: (el) => ({ ...el, name: `${el.symbol} ${el.name}` }),
     });
   },
-  { once: true },
+  { once: true }
 );
 
 watch(currency_id, (newVal) => {
   if (newVal) {
     rate_symbol.value =
-      exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ?? '';
+      exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ??
+      "";
   }
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2 && !product_variants_id.value) {
+  if (newVal?.length >= 2) {
     fetchVariants();
-  } 
+  }
 });
 
 // format
@@ -150,55 +168,69 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
-  if (!product_variants_id.value?.length || !price.value || quantity.value<=0) {
-    toast('Поля неправильно заполнены', {
-      theme: 'auto',
-      type: 'error',
+  if (product_variants_id.value?.length && price.value && quantity.value >= 0) {
+    product_variants_id.value?.map((el) => {
+      const productObj = product_variants_list.value.find(
+        (e) => e.product_variant_id == el
+      );
+
+      // product exists
+      const existingProductObj = product_variants.value.find(
+        (e) => e.product_variant_id == el
+      );
+      if (existingProductObj) {
+        product_variants.value = product_variants.value.map((elem) => {
+          if (elem.id == existingProductObj.id) {
+            return {
+              ...productObj,
+              price: removeSpaces(price.value),
+              quantity:
+                Number(quantity.value) + Number(existingProductObj.quantity),
+            };
+          }
+          return elem;
+        });
+        return;
+      }
+
+      product_variants.value.push({
+        ...productObj,
+        price: price.value,
+        quantity: quantity.value,
+      });
+    });
+
+    // reset
+    product_variants_id.value = null;
+    price.value = null;
+    quantity.value = 1;
+    product_variant_ref.value.focus();
+  } else {
+    toast("Заполните все поля формы", {
+      theme: "auto",
+      type: "error",
       dangerouslyHTMLString: true,
     });
-    return;
   }
-  if (product_variants.value.find((el) => el.variant?.id == product_variants_id.value)) {
-    toast('Дубликат', {
-      theme: 'auto',
-      type: 'error',
-      dangerouslyHTMLString: true,
-    });
-    return;
-  }
-
-  product_variants_id.value?.map(el => {
-    const productObj = product_variants_list.value.find((e) => e.id == el);
-    product_variants.value.push({
-      variant: productObj,
-      price: price.value,
-      quantity: quantity.value,
-    });
-  })
-
-  product_variants_id.value = null;
-  price.value = null;
-  quantity.value = 1;
-  variant_search_input.value = ''
-  product_variant_ref.value.focus()
 };
 
-
 const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
+  product_variants.value = product_variants.value.filter(
+    (el) => el.product_variant_id != id
+  );
 };
 
 const calculatePrice = computed(() => {
   return product_variants.value.reduce(
     (accumulator, el) => accumulator + el.quantity * el.price,
-    0,
+    0
   );
 });
 
 const calculateCount = computed(() => {
   return product_variants.value.reduce(
     (accumulator, el) => accumulator + parseFloat(el.quantity),
-    0,
+    0
   );
 });
 </script>
@@ -207,12 +239,18 @@ const calculateCount = computed(() => {
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props">Создать накладную</VBtn>
+      <VBtn @click="isDialogVisible = true" v-bind="props"
+        >Создать накладную</VBtn
+      >
     </template>
 
     <!-- Dialog Content -->
     <VCard title="Накладная">
-      <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="isDialogVisible = false"
+      />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid">
@@ -242,7 +280,7 @@ const calculateCount = computed(() => {
                   :readonly="currency_id == 3"
                   label="Курс"
                   :prefix="rate_symbol"
-                  type="text"
+                  type="number"
                 />
               </VCol>
 
@@ -261,17 +299,25 @@ const calculateCount = computed(() => {
                   </thead>
 
                   <tbody>
-                    <tr v-for="(variant, i) in product_variants" :key="variant.id">
+                    <tr
+                      v-for="(variant, i) in product_variants"
+                      :key="variant.id"
+                    >
                       <td>{{ i + 1 }}</td>
-                      <td>{{ variant.variant.name }}</td>
-                      <td>{{ variant.price }} {{ rate_symbol }}</td>
+                      <td>{{ variant.product_variant_name }}</td>
+                      <td>
+                        {{ transformPrice(variant.price) }} {{ rate_symbol }}
+                      </td>
                       <td>{{ variant.quantity }}</td>
-                      <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                      <td
+                        class="text-center"
+                        :style="{ width: '80px', zIndex: '10' }"
+                      >
                         <VIcon
                           size="30"
                           icon="mdi-minus-circle-outline"
                           style="color: red"
-                          @click="deleteListItem(variant.variant.id)"
+                          @click="deleteListItem(variant.product_variant_id)"
                         ></VIcon>
                       </td>
                     </tr>
@@ -280,15 +326,22 @@ const calculateCount = computed(() => {
                   <tfoot v-show="product_variants.length">
                     <tr>
                       <td colspan="2"></td>
-                      <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
-                      <td class="text-body-1">Общая количество: {{ calculateCount }}</td>
+                      <td class="text-body-1">
+                        Общая цена: {{ transformPrice(calculatePrice)
+                        }}{{ rate_symbol }}
+                      </td>
+                      <td class="text-body-1">
+                        Общая количество: {{ transformPrice(calculateCount) }}
+                      </td>
                       <td></td>
                       <td></td>
                     </tr>
                   </tfoot>
                   <tfoot v-show="!product_variants.length">
                     <tr>
-                      <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                      <td colspan="9" class="text-center text-body-1">
+                        Нет доступных данных
+                      </td>
                     </tr>
                   </tfoot>
                 </VTable>
@@ -304,8 +357,8 @@ const calculateCount = computed(() => {
                       label="Выберите товар"
                       variant="filled"
                       :items="product_variants_list"
-                      item-title="name"
-                      item-value="id"
+                      item-title="product_variant_name"
+                      item-value="product_variant_id"
                       :rules="[]"
                       v-model:search="variant_search_input"
                       :loading="isFetchingVariant"

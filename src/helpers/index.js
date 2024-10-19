@@ -7,3 +7,9 @@ export const transformPrice = (price) => {
         .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     return formattedPrice?.trim() ?? '';
 }
+
+export const removeSpaces = (input) => {
+    let newVal = input.replace(/\s+/g, "")
+    let newValNumeric = Number(newVal)
+    return newValNumeric ? newValNumeric : newVal;
+  };

@@ -3,7 +3,7 @@ import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { transformPrice } from "@/helpers";
+import { removeSpaces, transformPrice } from "@/helpers";
 import Skeleton from "../skeleton/Skeleton.vue";
 
 const props = defineProps({
@@ -136,6 +136,9 @@ const handleDialogModelValueUpdate = (val) => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
       product_variants.value = [];
+      product_variants_id.value = null;
+      price.value = null;
+      quantity.value = 1;
     });
   }
 };
@@ -162,23 +165,34 @@ const fetchOptions = async (
   }
 };
 const fetchVariants = async () => {
-  if (product_variants_id.value) return;
   isFetchingVariant.value = true;
   try {
     const response = await axios.get("/product_variants", {
       params: {
-        paginate: 150,
+        paginate: 100,
         search: variant_search_input.value?.slice(0, 5),
       },
     });
 
     if (response.status === 200) {
-      product_variants_list.value = response.data.products_variants?.map(
-        (el) => ({
+      if (product_variants_id.value?.length) {
+        const newDatas = response.data.products_variants?.map((el) => ({
           product_variant_id: el.id,
           product_variant_name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
-        })
-      );
+        }));
+
+        const oldData = product_variants_list.value.filter((e) =>
+          product_variants_id.value.includes(e.product_variant_id)
+        );
+        product_variants_list.value = newDatas.concat(oldData);
+      } else {
+        product_variants_list.value = response.data.products_variants?.map(
+          (el) => ({
+            product_variant_id: el.id,
+            product_variant_name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
+          })
+        );
+      }
     }
   } catch (error) {
     console.log(error);
@@ -198,7 +212,8 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2 && !product_variants_id.value) {
+  console.log(newVal);
+  if (newVal?.length >= 2) {
     fetchVariants();
   }
 });
@@ -226,12 +241,8 @@ watch(currency_id, (newVal) => {
 });
 
 // format
-const handlePriceInput = (e) => {
-  price.value = transformPrice(e.target.value);
-};
-
 const addToList = () => {
-  if (product_variants_id.value?.length && price.value && quantity.value) {
+  if (product_variants_id.value?.length && price.value && quantity.value >= 0) {
     product_variants_id.value?.map((el) => {
       const productObj = product_variants_list.value.find(
         (e) => e.product_variant_id == el
@@ -246,8 +257,9 @@ const addToList = () => {
           if (elem.id == existingProductObj.id) {
             return {
               ...productObj,
-              price: price.value,
-              quantity: quantity.value + existingProductObj.quantity,
+              price: removeSpaces(price.value),
+              quantity:
+                Number(quantity.value) + Number(existingProductObj.quantity),
             };
           }
           return elem;
@@ -346,7 +358,7 @@ const calculateCount = computed(() => {
                   :clearable="status == 'Черновик'"
                   label="Курс"
                   :prefix="rate_symbol"
-                  type="text"
+                  type="number"
                 />
               </VCol>
 
@@ -444,7 +456,7 @@ const calculateCount = computed(() => {
                   <VCol cols="4" class="d-flex align-center">
                     <VTextField
                       :value="transformPrice(price)"
-                      @input="handlePriceInput"
+                      @input="(e) => (price = e.target.value)"
                       label="Цена"
                       :rules="[]"
                       ref="price_ref"
