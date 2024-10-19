@@ -15,7 +15,7 @@ const refForm = ref();
 const batches_id = ref();
 const currency_id = ref();
 const exchange_rate = ref();
-const product_variant_id = ref();
+const product_variants_id = ref();
 const quantity = ref(1);
 const price = ref('');
 const rate_symbol = ref();
@@ -139,7 +139,7 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2 && !product_variant_id.value) {
+  if (newVal?.length >= 2 && !product_variants_id.value) {
     fetchVariants();
   } 
 });
@@ -150,7 +150,7 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
-  if (!product_variant_id.value || !price.value || quantity.value<=0) {
+  if (!product_variants_id.value?.length || !price.value || quantity.value<=0) {
     toast('Поля неправильно заполнены', {
       theme: 'auto',
       type: 'error',
@@ -158,7 +158,7 @@ const addToList = () => {
     });
     return;
   }
-  if (product_variants.value.find((el) => el.variant?.id == product_variant_id.value)) {
+  if (product_variants.value.find((el) => el.variant?.id == product_variants_id.value)) {
     toast('Дубликат', {
       theme: 'auto',
       type: 'error',
@@ -166,21 +166,23 @@ const addToList = () => {
     });
     return;
   }
-  const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
 
-  product_variants.value.push({
-    variant: productObj,
-    price: price.value,
-    quantity: quantity.value,
-  });
-  product_variant_id.value = null;
+  product_variants_id.value?.map(el => {
+    const productObj = product_variants_list.value.find((e) => e.id == el);
+    product_variants.value.push({
+      variant: productObj,
+      price: price.value,
+      quantity: quantity.value,
+    });
+  })
+
+  product_variants_id.value = null;
   price.value = null;
   quantity.value = 1;
   variant_search_input.value = ''
   product_variant_ref.value.focus()
 };
 
-watch(product_variant_id, (newVal) => newVal && price_ref.value.focus())
 
 const deleteListItem = (id) => {
   product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
@@ -296,9 +298,9 @@ const calculateCount = computed(() => {
 
               <VForm class="w-100 py-5">
                 <VRow>
-                  <VCol cols="4">
+                  <VCol cols="5">
                     <VAutocomplete
-                      v-model="product_variant_id"
+                      v-model="product_variants_id"
                       label="Выберите товар"
                       variant="filled"
                       :items="product_variants_list"
@@ -308,10 +310,11 @@ const calculateCount = computed(() => {
                       v-model:search="variant_search_input"
                       :loading="isFetchingVariant"
                       ref="product_variant_ref"
+                      multiple
                     />
                   </VCol>
 
-                  <VCol cols="4">
+                  <VCol cols="3" class="d-flex align-center">
                     <VTextField
                       :value="transformPrice(price)"
                       @input="handlePriceInput"
@@ -322,7 +325,7 @@ const calculateCount = computed(() => {
                     />
                   </VCol>
 
-                  <VCol cols="3">
+                  <VCol cols="3" class="d-flex align-center">
                     <VTextField
                       v-model="quantity"
                       label="Количество"

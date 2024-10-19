@@ -1,10 +1,10 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, onMounted, ref, watch } from 'vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
-import { transformPrice } from '@/helpers';
-import Skeleton from '../skeleton/Skeleton.vue';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, onMounted, ref, watch } from "vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
+import { transformPrice } from "@/helpers";
+import Skeleton from "../skeleton/Skeleton.vue";
 
 const props = defineProps({
   id: {
@@ -15,10 +15,10 @@ const props = defineProps({
     required: true,
   },
 });
-const emit = defineEmits(['update:isDialogOpen', 'fetchDatas']);
+const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
 
 const isFetchingStart = ref(true);
-const isFetching = ref('');
+const isFetching = ref("");
 const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
@@ -26,12 +26,15 @@ const batches_id = ref();
 const currency_id = ref();
 const exchange_rate = ref();
 const status = ref();
-const product_variant_id = ref();
+const product_variants_id = ref();
 const quantity = ref(1);
-const price = ref('');
+const price = ref("");
 const rate_symbol = ref();
 const product_variants = ref([]);
-const variant_search_input = ref('');
+const variant_search_input = ref("");
+const product_variant_ref = ref();
+const price_ref = ref();
+const quantity_ref = ref();
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -47,98 +50,87 @@ const fetchDataById = async () => {
       exchange_rate.value = invoice.exchange_rate;
 
       status.value = invoice.status;
-      product_variants.value = invoice.items.map((el) => ({
-        ...el,
-        variant: product_variants_list.value.find((e) => e.id == el.product_variant_id),
-      }));
+      product_variants.value = invoice.items;
     }
   } catch (error) {
-    console.error('Ошибка:', error);
+    console.error("Ошибка:", error);
   } finally {
     isFetchingStart.value = false;
   }
 };
 
-const removeSpaces = (input) => {
-  return input.replace(/\s+/g, '');
-};
-
 const onSubmit = async () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      isFetching.value = 'submit';
+      isFetching.value = "submit";
       try {
         await axios.put(`/invoices/${props.id}`, {
           batch_id: batches_id.value ?? 0,
           currency_id: currency_id.value,
           exchange_rate: exchange_rate.value,
 
-          items: product_variants.value.map((el) => ({
-            product_variant_id: el.variant.id,
-            price: removeSpaces(el.price),
-            quantity: el.quantity,
-          })),
+          items: product_variants.value,
         });
-        emit('fetchDatas');
-        toast('Успешно', {
-          theme: 'auto',
-          type: 'success',
+        emit("fetchDatas");
+        toast("Успешно", {
+          theme: "auto",
+          type: "success",
           dangerouslyHTMLString: true,
         });
         handleDialogModelValueUpdate(false);
       } catch (error) {
         console.error(error);
       } finally {
-        isFetching.value = '';
+        isFetching.value = "";
       }
     }
   });
 };
 
 const onConfirmSubmit = async () => {
-  isFetching.value = 'confirm';
+  isFetching.value = "confirm";
   try {
     const reponse = await axios.post(`/invoices/confirm/${props.id}`);
     if (reponse.status === 200) {
-      toast('Успешно', {
-        theme: 'auto',
-        type: 'success',
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
         dangerouslyHTMLString: true,
       });
-      emit('fetchDatas');
+      emit("fetchDatas");
 
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
     console.log(error);
   } finally {
-    isFetching.value = '';
+    isFetching.value = "";
   }
 };
 
 const onRejectSubmit = async () => {
-  isFetching.value = 'reject';
+  isFetching.value = "reject";
   try {
     const reponse = await axios.post(`/invoices/reject/${props.id}`);
     if (reponse.status === 200) {
-      toast('Успешно', {
-        theme: 'auto',
-        type: 'success',
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
         dangerouslyHTMLString: true,
       });
-      emit('fetchDatas');
+      emit("fetchDatas");
 
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
     console.log(error);
   } finally {
-    isFetching.value = '';
+    isFetching.value = "";
   }
 };
 
 const handleDialogModelValueUpdate = (val) => {
-  emit('update:isDialogOpen', false);
+  emit("update:isDialogOpen", false);
   if (!val) {
     nextTick(() => {
       refForm.value?.reset();
@@ -148,7 +140,12 @@ const handleDialogModelValueUpdate = (val) => {
   }
 };
 
-const fetchOptions = async (url, dataState, key, customization = { is: false }) => {
+const fetchOptions = async (
+  url,
+  dataState,
+  key,
+  customization = { is: false }
+) => {
   try {
     const response = await axios.get(url);
 
@@ -165,21 +162,23 @@ const fetchOptions = async (url, dataState, key, customization = { is: false }) 
   }
 };
 const fetchVariants = async () => {
-  if (product_variant_id.value) return;
+  if (product_variants_id.value) return;
   isFetchingVariant.value = true;
   try {
-    const response = await axios.get('/product_variants', {
+    const response = await axios.get("/product_variants", {
       params: {
-        paginate: 50,
+        paginate: 150,
         search: variant_search_input.value?.slice(0, 5),
       },
     });
 
     if (response.status === 200) {
-      product_variant_options.value = response.data.products_variants?.map((el) => ({
-        id: el.id,
-        name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
-      }));
+      product_variants_list.value = response.data.products_variants?.map(
+        (el) => ({
+          product_variant_id: el.id,
+          product_variant_name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name} `,
+        })
+      );
     }
   } catch (error) {
     console.log(error);
@@ -187,7 +186,6 @@ const fetchVariants = async () => {
     isFetchingVariant.value = false;
   }
 };
-const product_variant_options = ref([]);
 const product_variants_list = ref([]);
 const batches_list = ref([]);
 const exchanges_list = ref([]);
@@ -195,40 +193,35 @@ const exchanges_list = ref([]);
 // auto exchange_rate
 watch(currency_id, (newVal) => {
   if (!exchange_rate)
-    exchange_rate.value = exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
+    exchange_rate.value =
+      exchanges_list.value.find((e) => e.id == newVal)?.rate ?? null;
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2 && !product_variant_id.value) {
+  if (newVal?.length >= 2 && !product_variants_id.value) {
     fetchVariants();
   }
 });
 
 onMounted(() => {
   fetchVariants();
-  fetchOptions('/batches', batches_list, 'batches');
-  fetchOptions('/exchange_rates', exchanges_list, 'exchange_rates');
+  fetchOptions("/batches", batches_list, "batches");
+  fetchOptions("/exchange_rates", exchanges_list, "exchange_rates");
 });
 watch(
   () => props.isDialogOpen,
-  async (newVal) => {
+  (newVal) => {
     if (newVal && props.id) {
-      await fetchOptions('/product_variants', product_variants_list, 'products_variants', {
-        method: (el) => ({
-          ...el,
-          name: `${el.product?.name} | ${el.color?.name} | ${el.size?.name}`,
-        }),
-        is: true,
-      });
-      await fetchDataById();
+      fetchDataById();
     }
-  },
+  }
 );
 
 watch(currency_id, (newVal) => {
   if (newVal) {
     rate_symbol.value =
-      exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ?? '';
+      exchanges_list.value?.find((el) => el.id == currency_id.value)?.symbol ??
+      "";
   }
 });
 
@@ -238,53 +231,72 @@ const handlePriceInput = (e) => {
 };
 
 const addToList = () => {
-  if (product_variant_id.value && price.value && quantity.value) {
-    if (product_variants.value.find((el) => el.variant.id == product_variant_id.value)) {
-      toast('Дубликат', {
-        theme: 'auto',
-        type: 'error',
-        dangerouslyHTMLString: true,
-      });
-      setTimeout(() => {
-        product_variant_id.value = null;
-        price.value = null;
-        quantity.value = null;
-      }, 300);
-      return;
-    }
-    const productObj = product_variants_list.value.find((e) => e.id == product_variant_id.value);
+  if (product_variants_id.value?.length && price.value && quantity.value) {
+    product_variants_id.value?.map((el) => {
+      const productObj = product_variants_list.value.find(
+        (e) => e.product_variant_id == el
+      );
 
-    product_variants.value.push({
-      variant: productObj,
-      price: price.value,
-      quantity: quantity.value,
+      // product exists
+      const existingProductObj = product_variants.value.find(
+        (e) => e.product_variant_id == el
+      );
+      if (existingProductObj) {
+        product_variants.value = product_variants.value.map((elem) => {
+          if (elem.id == existingProductObj.id) {
+            return {
+              ...productObj,
+              price: price.value,
+              quantity: quantity.value + existingProductObj.quantity,
+            };
+          }
+          return elem;
+        });
+        return;
+      }
+
+      product_variants.value.push({
+        ...productObj,
+        price: price.value,
+        quantity: quantity.value,
+      });
     });
-    product_variant_id.value = null;
-    76;
+
+    // reset
+    product_variants_id.value = null;
     price.value = null;
-    quantity.value = null;
+    quantity.value = 1;
+    product_variant_ref.value.focus();
   } else {
-    toast('Заполните все поля формы', {
-      theme: 'auto',
-      type: 'error',
+    toast("Заполните все поля формы", {
+      theme: "auto",
+      type: "error",
       dangerouslyHTMLString: true,
     });
   }
 };
 
 const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
+  product_variants.value = product_variants.value.filter(
+    (el) => el.product_variant_id != id
+  );
 };
 
 const calculatePrice = computed(() => {
   return transformPrice(
-    product_variants.value.reduce((accumulator, el) => accumulator + el.quantity * el.price, 0),
+    product_variants.value.reduce(
+      (accumulator, el) => accumulator + el.quantity * el.price,
+      0
+    )
   );
 });
 
 const calculateCount = computed(() => {
   return transformPrice(
-    product_variants.value.reduce((accumulator, el) => accumulator + parseFloat(el.quantity), 0),
+    product_variants.value.reduce(
+      (accumulator, el) => accumulator + parseFloat(el.quantity),
+      0
+    )
   );
 });
 </script>
@@ -296,7 +308,11 @@ const calculateCount = computed(() => {
     @update:model-value="handleDialogModelValueUpdate"
   >
     <VCard title="Накладная">
-      <DialogCloseBtn variant="text" size="small" @click="handleDialogModelValueUpdate(false)" />
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="handleDialogModelValueUpdate(false)"
+      />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid">
@@ -349,12 +365,17 @@ const calculateCount = computed(() => {
                   </thead>
 
                   <tbody>
-                    <tr v-for="(variant, i) in product_variants" :key="variant.id">
+                    <tr
+                      v-for="(variant, i) in product_variants"
+                      :key="variant.id"
+                    >
                       <td>{{ i + 1 }}</td>
                       <td>
-                        {{ variant.variant.name }}
+                        {{ variant.product_variant_name }}
                       </td>
-                      <td>{{ transformPrice(variant.price) }} {{ rate_symbol }}</td>
+                      <td>
+                        {{ transformPrice(variant.price) }} {{ rate_symbol }}
+                      </td>
                       <td>{{ variant.quantity }}</td>
                       <td
                         class="text-center"
@@ -365,7 +386,7 @@ const calculateCount = computed(() => {
                           size="30"
                           icon="mdi-minus-circle-outline"
                           style="color: red"
-                          @click="deleteListItem(variant.variant.id)"
+                          @click="deleteListItem(variant.product_variant_id)"
                         ></VIcon>
                       </td>
                     </tr>
@@ -374,18 +395,27 @@ const calculateCount = computed(() => {
                   <tfoot v-show="product_variants.length">
                     <tr>
                       <td colspan="2"></td>
-                      <td class="text-body-1">Общая цена: {{ calculatePrice }}{{ rate_symbol }}</td>
-                      <td class="text-body-1">Общее количество: {{ calculateCount }}</td>
+                      <td class="text-body-1">
+                        Общая цена: {{ calculatePrice }}{{ rate_symbol }}
+                      </td>
+                      <td class="text-body-1">
+                        Общее количество: {{ calculateCount }}
+                      </td>
                       <td></td>
                       <td v-if="status == 'Черновик'"></td>
                     </tr>
                   </tfoot>
 
-                  <Skeleton :count="5" v-show="isFetchingStart && !product_variants.length" />
+                  <Skeleton
+                    :count="5"
+                    v-show="isFetchingStart && !product_variants.length"
+                  />
 
                   <tfoot v-show="!isFetchingStart && !product_variants.length">
                     <tr>
-                      <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                      <td colspan="9" class="text-center text-body-1">
+                        Нет доступных данных
+                      </td>
                     </tr>
                   </tfoot>
                 </VTable>
@@ -397,33 +427,38 @@ const calculateCount = computed(() => {
                 <VRow>
                   <VCol cols="4">
                     <VAutocomplete
-                      v-model="product_variant_id"
+                      v-model="product_variants_id"
                       label="Выберите товар"
                       variant="filled"
-                      :items="product_variant_options"
-                      item-title="name"
-                      item-value="id"
+                      :items="product_variants_list"
+                      ref="product_variant_ref"
+                      item-title="product_variant_name"
+                      item-value="product_variant_id"
                       :rules="[]"
                       v-model:search="variant_search_input"
                       :loading="isFetchingVariant"
+                      multiple
                     />
                   </VCol>
 
-                  <VCol cols="4">
+                  <VCol cols="4" class="d-flex align-center">
                     <VTextField
                       :value="transformPrice(price)"
                       @input="handlePriceInput"
                       label="Цена"
                       :rules="[]"
+                      ref="price_ref"
+                      @keyup.enter="quantity_ref.focus()"
                     />
                   </VCol>
 
-                  <VCol cols="3">
+                  <VCol cols="3" class="d-flex align-center">
                     <VTextField
                       v-model="quantity"
                       label="Количество"
                       type="number"
                       :rules="[]"
+                      ref="quantity_ref"
                       @keyup.enter="addToList"
                     />
                   </VCol>
@@ -461,6 +496,7 @@ const calculateCount = computed(() => {
                 color="success"
                 v-if="status == 'Черновик'"
                 class="me-3"
+                type="button"
               >
                 Подтвердить
                 <VIcon end icon="bx-check-circle" />
@@ -471,7 +507,7 @@ const calculateCount = computed(() => {
                 @click="onRejectSubmit"
                 color="secondary"
                 v-if="status == 'Черновик'"
-                class="me-3"
+                type="button"
               >
                 Отменить <VIcon end icon="bx-minus-circle" />
               </VBtn>

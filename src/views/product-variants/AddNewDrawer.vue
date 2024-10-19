@@ -52,10 +52,8 @@ const onSubmit = () => {
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isDrawerOpen", val);
   if (!val) {
-    nextTick(() => {
-      refForm.value?.reset();
-      refForm.value?.resetValidation();
-    });
+    refForm.value?.reset();
+    refForm.value?.resetValidation();
   }
 };
 
