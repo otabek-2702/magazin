@@ -47,15 +47,13 @@ const onSubmit = () => {
 const handleDrawerModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (!val) {
-    nextTick(() => {
-      to_branch_id.value = null
-      product_variant_sku.value = null
-      product_variant_data.value = null
-      quantity.value = null
-      product_variants.value = null
-      refForm.value?.reset();
-      refForm.value?.resetValidation();
-    });
+    to_branch_id.value = null;
+    product_variant_sku.value = null;
+    product_variant_data.value = null;
+    quantity.value = null;
+    product_variants.value = [];
+    refForm.value?.reset();
+    refForm.value?.resetValidation();
   }
 };
 
@@ -76,13 +74,13 @@ const findProductVariant = async (raw_sku) => {
     const response = await axios.get(`/product_variants?search=${sku}`);
 
     if (response.status === 200 && response.data.products_variants) {
-      const { id, product, color, size, amount_remainder,sku } =
+      const { id, product, color, size, amount_remainder, sku } =
         response.data.products_variants[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
         amount_remainder,
-        sku
+        sku,
       };
     }
   } catch (error) {
@@ -106,24 +104,33 @@ const findProductVariant = async (raw_sku) => {
 const addToList = () => {
   if (product_variant_data.value) {
     // find if object exists
+    if (product_variant_data.value?.amount_remainder <= 0) {
+      toast("Количество товара должно быть больше нуля.", {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+      });
+      sku_ref.value.focus();
+      return;
+    }
     const existingObj = product_variants.value.find(
       (el) =>
         el.product_variant_id == product_variant_data.value.product_variant_id
     );
-    let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0) ;
-    const maxQuantity = () => {
-      quantity.value = product_variant_data.value?.amount_remainder;
-      totalQuantity = product_variant_data.value?.amount_remainder
+    let totalQuantity =
+      Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
+
+    if (
+      quantity.value > product_variant_data.value?.amount_remainder ||
+      totalQuantity > product_variant_data.value?.amount_remainder
+    ) {
       toast("Доступное количество на складе не может быть превышено.", {
         theme: "auto",
         type: "warning",
         dangerouslyHTMLString: true,
       });
-    };
-
-    if ((quantity.value > product_variant_data.value?.amount_remainder) || totalQuantity> product_variant_data.value?.amount_remainder) {
-      maxQuantity();
-      console.log('overheight')
+      quantity_ref.value.focus();
+      return;
     }
 
     if (existingObj) {
@@ -143,7 +150,6 @@ const addToList = () => {
       });
     }
   } else {
-    console.log(product_variant_data.value);
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
@@ -165,31 +171,42 @@ const showEditInput = (id) => {
 };
 
 const hideEditInput = async (variant) => {
-  if (variant.quantity > variant.amount_remainder) {
-    variant.quantity = variant.amount_remainder;
-    toast("Доступное количество на складе не может быть превышено.", {
+  if (variant.quantity <= 0) {
+    toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
       dangerouslyHTMLString: true,
     });
+    return;
+  } else if (variant.quantity > variant.amount_remainder) {
+    toast(
+      `Доступное количество на складе не может превышать максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
+      {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+      }
+    );
+    return;
   }
+  variant.quantity = Number(variant.quantity)
   editingId.value = null;
 };
 
 // Delete
 const deleteListItem = (id) => {
   product_variants.value = product_variants.value.filter(
-    (el) => el.product_varaint_id != id
+    (el) => el.product_variant_id != id
   );
 };
 
 const calculateCount = computed(() => {
+  if (!product_variants.value) return 0;
   return product_variants.value.reduce(
-    (accumulator, el) => accumulator + parseFloat(el.quantity),
+    (accumulator, el) => accumulator + Number(el.quantity )?? 0,
     0
   );
 });
-
 </script>
 
 <template>
@@ -208,166 +225,181 @@ const calculateCount = computed(() => {
         size="small"
         @click="isDialogVisible = false"
       />
-        <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
-            <VRow>
-              <VCol cols="4">
-                <VAutocomplete
-                  v-model="to_branch_id"
-                  label="Выберите филиал"
-                  :items="branches_list"
-                  item-title="name"
-                  item-value="id"
-                  autofocus
-                />
-              </VCol>
+      <VCardText>
+        <VForm ref="refForm" v-model="isFormValid">
+          <VRow>
+            <VCol cols="4">
+              <VAutocomplete
+                v-model="to_branch_id"
+                label="Выберите филиал"
+                :items="branches_list"
+                item-title="name"
+                item-value="id"
+                autofocus
+              />
+            </VCol>
 
-              <VDivider />
+            <VDivider />
 
-              <VCol cols="12">
-                <VTable class="text-no-wrap">
-                  <thead>
-                    <tr>
-                      <th style="width: 48px">ID</th>
-                      <th>ТОВАР</th>
-                      <th>КОЛИЧЕСТВО</th>
-                      <th>ДЕЙСТВИЯ</th>
-                    </tr>
-                  </thead>
+            <VCol cols="12">
+              <VTable class="text-no-wrap">
+                <thead>
+                  <tr>
+                    <th style="width: 48px">ID</th>
+                    <th>ТОВАР</th>
+                    <th>КОЛИЧЕСТВО</th>
+                    <th>ДЕЙСТВИЯ</th>
+                  </tr>
+                </thead>
 
-                  <tbody>
-                    <tr
-                      v-for="(variant, i) in product_variants"
-                      :key="variant.product_variant_id"
-                    >
-                      <td>{{ i + 1 }}</td>
-                      <td>
-                        {{ variant.product_variant_name }}
-                      </td>
-                      <td>
-                        {{ variant.quantity }}
-                      </td>
-                      <td
-                        class="text-center"
-                        :style="{ width: '80px', zIndex: '10' }"
-                      >
-                        <VIcon
-                          v-if="editingId === variant.product_varaint_id"
-                          @click.stop="
-                            hideEditInput(variant)
-                          "
-                          size="30"
-                          icon="bx-check"
-                          style="color: rgb(var(--v-theme-success))"
-                          class="mx-2"
-                        />
-                        <VIcon
-                          v-else
-                          @click.stop="
-                            showEditInput(variant.product_variant_id)
-                          "
-                          size="30"
-                          icon="bx-edit-alt"
-                          style="color: rgb(var(--v-global-theme-primary))"
-                          class="mx-2"
-                        />
-                        <VIcon
-                          size="30"
-                          icon="mdi-minus-circle-outline"
-                          style="color: red"
-                          @click="deleteListItem(variant.variant.product_varaint_id)"
-                        ></VIcon>
-                      </td>
-                    </tr>
-                  </tbody>
-
-                  <tfoot v-show="product_variants.length">
-                    <tr>
-                      <td colspan="2"></td>
-                      <td class="text-body-1">
-                        Общая количество: {{ calculateCount }}
-                      </td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                  <tfoot v-show="!product_variants.length">
-                    <tr>
-                      <td colspan="9" class="text-center text-body-1">
-                        Нет доступных данных
-                      </td>
-                    </tr>
-                  </tfoot>
-                </VTable>
-              </VCol>
-
-              <VDivider />
-
-              <VCol cols="12">
-                <VForm>
-                  <VRow>
-                    <VCol cols="3" class="d-flex align-center">
+                <tbody>
+                  <tr
+                    v-for="(variant, i) in product_variants"
+                    :key="variant.product_variant_id"
+                  >
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      {{ variant.product_variant_name }}
+                    </td>
+                    <td>
                       <VTextField
-                        v-model="product_variant_sku"
-                        ref="sku_ref"
-                        @input="
-                          product_variant_sku =
-                            product_variant_sku.toUpperCase()
-                        "
-                        @keyup.enter="findProductVariant(product_variant_sku)"
-                        label="Штрих код товара"
-                        :items="product_variants_list"
-                        item-title="name"
-                        item-value="id"
-                        :rules="[]"
-                      />
-                    </VCol>
-
-                    <VCol cols="5">
-                      <h4 class="pt-1">
-                        Товар: {{ product_variant_data?.product_variant_name }}
-                      </h4>
-                      <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                      <p class="pt-2 mb-0">
-                        На складе:
-                        <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
-                      </p>
-                    </VCol>
-
-                    <VCol cols="3" class="d-flex align-center">
-                      <VTextField
-                        v-model="quantity"
-                        ref="quantity_ref"
-                        @keyup.enter="addToList"
-                        label="Количество"
+                        v-model="variant.quantity"
+                        :readonly="editingId !== variant.product_variant_id"
+                        :class="{
+                          'text-input':
+                            editingId !== variant.product_variant_id,
+                        }"
+                        @blur="hideEditInput(variant)"
+                        @keyup.enter="hideEditInput(variant)"
+                        class="custom-input"
+                        density="compact"
                         type="number"
                         :rules="[]"
-                        @focus="autoSelectInputValue"
                       />
-                    </VCol>
-                    <VCol cols="1" class="d-flex justify-center align-center">
-                      <VBtn
-                        @click="addToList"
-                        style="
-                          color: white !important;
-                          background-color: #4caf50 !important;
-                          border-radius: 5px !important;
+                    </td>
+                    <td
+                      class="text-center"
+                      :style="{ width: '80px', zIndex: '10' }"
+                    >
+                      <VIcon
+                        v-if="editingId == variant.product_variant_id"
+                        @click.stop="hideEditInput(variant)"
+                        size="30"
+                        icon="bx-check"
+                        style="color: rgb(var(--v-theme-success))"
+                        class="mx-2"
+                      />
+                      <VIcon
+                        v-else
+                        @click.stop="showEditInput(variant.product_variant_id)"
+                        size="30"
+                        icon="bx-edit-alt"
+                        style="color: rgb(var(--v-global-theme-primary))"
+                        class="mx-2"
+                      />
+                      <VIcon
+                        size="30"
+                        icon="mdi-minus-circle-outline"
+                        style="color: red"
+                        @click="
+                          deleteListItem(variant.variant.product_variant_id)
                         "
-                      >
-                        <VIcon size="35" icon="bx-plus"></VIcon>
-                      </VBtn>
-                    </VCol>
-                  </VRow>
-                </VForm>
-              </VCol>
-            </VRow>
-            <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="submit">
-                Отправить
-              </VBtn>
-            </VCardText>
-          </VForm>
-        </VCardText>
+                      ></VIcon>
+                    </td>
+                  </tr>
+                </tbody>
+
+                <tfoot v-show="product_variants.length">
+                  <tr>
+                    <td colspan="2"></td>
+                    <td class="text-body-1">
+                      Общая количество: {{ calculateCount }}
+                    </td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+                <tfoot v-show="!product_variants.length">
+                  <tr>
+                    <td colspan="9" class="text-center text-body-1">
+                      Нет доступных данных
+                    </td>
+                  </tr>
+                </tfoot>
+              </VTable>
+            </VCol>
+
+            <VDivider />
+
+            <VCol cols="12">
+              <VForm>
+                <VRow>
+                  <VCol cols="3" class="d-flex align-center">
+                    <VTextField
+                      v-model="product_variant_sku"
+                      ref="sku_ref"
+                      @input="
+                        product_variant_sku = product_variant_sku.toUpperCase()
+                      "
+                      @keyup.enter="findProductVariant(product_variant_sku)"
+                      label="Штрих код товара"
+                      :items="product_variants_list"
+                      item-title="name"
+                      item-value="id"
+                      :rules="[]"
+                    />
+                  </VCol>
+
+                  <VCol cols="5">
+                    <h4 class="pt-1">
+                      Товар: {{ product_variant_data?.product_variant_name }}
+                    </h4>
+                    <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
+                    <p class="pt-2 mb-0">
+                      На складе:
+                      <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
+                    </p>
+                  </VCol>
+
+                  <VCol cols="3" class="d-flex align-center">
+                    <VTextField
+                      v-model="quantity"
+                      ref="quantity_ref"
+                      @keyup.enter="addToList"
+                      label="Количество"
+                      type="number"
+                      :rules="[]"
+                      @focus="autoSelectInputValue"
+                    />
+                  </VCol>
+                  <VCol cols="1" class="d-flex justify-center align-center">
+                    <VBtn
+                      @click="addToList"
+                      style="
+                        color: white !important;
+                        background-color: #4caf50 !important;
+                        border-radius: 5px !important;
+                      "
+                    >
+                      <VIcon size="35" icon="bx-plus"></VIcon>
+                    </VBtn>
+                  </VCol>
+                </VRow>
+              </VForm>
+            </VCol>
+          </VRow>
+          <VCardText class="d-flex justify-end gap-2 pt-2">
+            <VBtn
+              :loading="isFetching"
+              :disabled="isFetching"
+              type="button"
+              @click="onSubmit"
+            >
+              Отправить
+            </VBtn>
+          </VCardText>
+        </VForm>
+      </VCardText>
     </VCard>
   </VDialog>
 </template>
@@ -392,6 +424,6 @@ const calculateCount = computed(() => {
 
 .custom-input {
   margin: 1px;
-  width: 50%;
+  width: 100%;
 }
 </style>

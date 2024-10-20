@@ -13,7 +13,7 @@ import { createApp } from 'vue'
 import { abilitiesPlugin, Can } from "@casl/vue"
 import ability from "@/plugins/casl/ability"
 import print from 'vue3-print-nb'
-
+  
 loadFonts()
 
 

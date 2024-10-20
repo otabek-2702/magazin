@@ -3,6 +3,7 @@ import { useTheme } from 'vuetify';
 import ScrollToTop from '@core/components/ScrollToTop.vue';
 import { useThemeConfig } from '@core/composable/useThemeConfig';
 import { hexToRgb } from '@layouts/utils';
+import { ToastifyContainer } from 'vue3-toastify';
 
 const {
   syncInitialLoaderTheme,
@@ -63,8 +64,9 @@ function handleScannedCode(code) {
   <VLocaleProvider :rtl="isAppRtl">
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
-      <RouterView />
-      <ScrollToTop />
+      <ToastifyContainer />
+        <RouterView />
+        <ScrollToTop />
     </VApp>
   </VLocaleProvider>
 </template>

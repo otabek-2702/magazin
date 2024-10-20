@@ -171,7 +171,7 @@ const resolveInvoiceStatus = (status) => {
                 <td>{{ invoice.full_qty }}</td>
               </tr>
             </tbody>
-            <Skeleton :count="2" v-show="isFetching && !invoices.length" />
+            <Skeleton :count="4" v-show="isFetching && !invoices.length" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>

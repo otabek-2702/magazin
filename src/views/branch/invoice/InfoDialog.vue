@@ -126,14 +126,13 @@ const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
   if (!val) {
     nextTick(() => {
-      product_variants.value = [];
-      status.value = "";
       to_branch_id.value = null;
-      product_variant_sku.value = null;
-      product_variant_data.value = null;
-      quantity.value = null;
-      refForm.value?.reset();
-      refForm.value?.resetValidation();
+    product_variant_sku.value = null;
+    product_variant_data.value = null;
+    quantity.value = null;
+    product_variants.value = [];
+    refForm.value?.reset();
+    refForm.value?.resetValidation();
     });
   }
 };
@@ -169,7 +168,6 @@ const findProductVariant = async (raw_sku) => {
         amount_remainder,
       };
     }
-    console.log(response.data, product_variant_data.value)
   } catch (error) {
     console.log(error);
   }
@@ -191,24 +189,36 @@ const findProductVariant = async (raw_sku) => {
 const addToList = () => {
   if (product_variant_data.value) {
     // find if object exists
-    const existingObj = product_variants.value.find(
-      (el) =>
-        el.product_variant_id == product_variant_data.value.product_variant_id
-    );
-    let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0) ;
-    const maxQuantity = () => {
-      quantity.value = product_variant_data.value?.amount_remainder;
-      totalQuantity = product_variant_data.value?.amount_remainder
-      toast("Доступное количество на складе не может быть превышено.", {
+    if (product_variant_data.value.amount_remainder <= 0) {
+      toast("Количество товара должно быть больше нуля.", {
         theme: "auto",
         type: "warning",
         dangerouslyHTMLString: true,
       });
-    };
+      sku_ref.value.focus();
+      return;
+    }
+    const existingObj = product_variants.value.find(
+      (el) =>
+        el.product_variant_id == product_variant_data.value.product_variant_id
+    );
+    let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
 
-    if ((quantity.value > product_variant_data.value?.amount_remainder) || totalQuantity> product_variant_data.value?.amount_remainder) {
-      maxQuantity();
-      console.log('overheight')
+    if (
+      quantity.value > product_variant_data.value?.amount_remainder ||
+      totalQuantity > product_variant_data.value?.amount_remainder
+    ) {
+      toast("Доступное количество на складе не может быть превышено.", {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+        onClose: (event) => {
+          // Stop the event from propagating to the modal
+          event.stopPropagation();
+        },  
+      });
+      quantity_ref.value.focus();
+      return;
     }
 
     if (existingObj) {
@@ -228,7 +238,6 @@ const addToList = () => {
       });
     }
   } else {
-    console.log(product_variant_data.value);
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
@@ -250,16 +259,28 @@ const showEditInput = (id) => {
 };
 
 const hideEditInput = async (variant) => {
-  if (variant.quantity > variant.amount_remainder) {
-    variant.quantity = variant.amount_remainder;
-    toast("Доступное количество на складе не может быть превышено.", {
-      theme: "auto",
-      type: "warning",
-      dangerouslyHTMLString: true,
-    });
+  if (variant.quantity <= 0) {
+      toast("Количество товара должно быть больше нуля.", {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+      });
+      return;
+    }else  if (variant.quantity > variant.amount_remainder) {
+    toast(
+      `Доступное количество на складе не может превышать максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
+      {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+      }
+    );
+    return;
   }
+  variant.quantity = Number(variant.quantity)
   editingId.value = null;
 };
+
 
 // Delete
 const deleteListItem = (id) => {
@@ -269,9 +290,10 @@ const deleteListItem = (id) => {
 };
 
 const calculateCount = computed(() => {
+  if(!product_variants.value) return 0
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) => accumulator + parseFloat(el.quantity),
+      (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
       0
     )
   );
@@ -341,6 +363,7 @@ const calculateCount = computed(() => {
                         class="custom-input"
                         density="compact"
                         type="number"
+                        :rules="[]"
                       />
                     </td>
                     <td
