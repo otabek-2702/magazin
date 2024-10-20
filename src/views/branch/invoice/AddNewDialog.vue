@@ -1,5 +1,4 @@
 <script setup>
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { nextTick, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
@@ -77,12 +76,13 @@ const findProductVariant = async (raw_sku) => {
     const response = await axios.get(`/product_variants?search=${sku}`);
 
     if (response.status === 200 && response.data.products_variants) {
-      const { id, product, color, size, amount_remainder } =
+      const { id, product, color, size, amount_remainder,sku } =
         response.data.products_variants[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
         amount_remainder,
+        sku
       };
     }
   } catch (error) {
@@ -107,15 +107,31 @@ const addToList = () => {
   if (product_variant_data.value) {
     // find if object exists
     const existingObj = product_variants.value.find(
-      (el) => el.product_variant_id == product_variant_data.value.product_variant_id
+      (el) =>
+        el.product_variant_id == product_variant_data.value.product_variant_id
     );
+    let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0) ;
+    const maxQuantity = () => {
+      quantity.value = product_variant_data.value?.amount_remainder;
+      totalQuantity = product_variant_data.value?.amount_remainder
+      toast("Доступное количество на складе не может быть превышено.", {
+        theme: "auto",
+        type: "warning",
+        dangerouslyHTMLString: true,
+      });
+    };
+
+    if ((quantity.value > product_variant_data.value?.amount_remainder) || totalQuantity> product_variant_data.value?.amount_remainder) {
+      maxQuantity();
+      console.log('overheight')
+    }
 
     if (existingObj) {
       product_variants.value = product_variants.value?.map((el) => {
         if (el.product_variant_id == existingObj.product_variant_id) {
           return {
             ...product_variant_data.value,
-            quantity: Number(quantity.value) + Number(existingObj.quantity),
+            quantity: totalQuantity,
           };
         }
         return el;
@@ -140,6 +156,7 @@ const addToList = () => {
   quantity.value = null;
   sku_ref.value.focus();
 };
+
 // Edit
 const editingId = ref(null);
 
@@ -147,8 +164,14 @@ const showEditInput = (id) => {
   editingId.value = id;
 };
 
-const hideEditInput = async (id) => {
-  if (editingId.value === id) {
+const hideEditInput = async (variant) => {
+  if (variant.quantity > variant.amount_remainder) {
+    variant.quantity = variant.amount_remainder;
+    toast("Доступное количество на складе не может быть превышено.", {
+      theme: "auto",
+      type: "warning",
+      dangerouslyHTMLString: true,
+    });
   }
   editingId.value = null;
 };
@@ -185,7 +208,6 @@ const calculateCount = computed(() => {
         size="small"
         @click="isDialogVisible = false"
       />
-      <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
@@ -232,7 +254,7 @@ const calculateCount = computed(() => {
                         <VIcon
                           v-if="editingId === variant.product_varaint_id"
                           @click.stop="
-                            hideEditInput(variant.product_variant_id)
+                            hideEditInput(variant)
                           "
                           size="30"
                           icon="bx-check"
@@ -284,7 +306,7 @@ const calculateCount = computed(() => {
               <VCol cols="12">
                 <VForm>
                   <VRow>
-                    <VCol cols="3">
+                    <VCol cols="3" class="d-flex align-center">
                       <VTextField
                         v-model="product_variant_sku"
                         ref="sku_ref"
@@ -303,15 +325,16 @@ const calculateCount = computed(() => {
 
                     <VCol cols="5">
                       <h4 class="pt-1">
-                        Товар: {{ product_variant_data?.name }}
+                        Товар: {{ product_variant_data?.product_variant_name }}
                       </h4>
+                      <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
                       <p class="pt-2 mb-0">
                         На складе:
                         <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
                       </p>
                     </VCol>
 
-                    <VCol cols="3">
+                    <VCol cols="3" class="d-flex align-center">
                       <VTextField
                         v-model="quantity"
                         ref="quantity_ref"
@@ -345,7 +368,6 @@ const calculateCount = computed(() => {
             </VCardText>
           </VForm>
         </VCardText>
-      </PerfectScrollbar>
     </VCard>
   </VDialog>
 </template>

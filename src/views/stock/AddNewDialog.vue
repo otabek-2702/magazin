@@ -1,5 +1,4 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { nextTick, ref } from 'vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
