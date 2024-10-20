@@ -4,6 +4,7 @@ import { nextTick, ref, watchEffect } from "vue";
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
+import { fetchOptions } from "@/helpers";
 
 const props = defineProps({
   isDrawerOpen: {
@@ -89,26 +90,6 @@ const suppliers_list = ref([]);
 const colors_list = ref([]);
 const sizes_list = ref([]);
 
-const fetchOptions = async (
-  url,
-  dataState,
-  key,
-  customization = { is: false }
-) => {
-  try {
-    const response = await axios.get(url);
-
-    if (response.status === 200) {
-      if (customization.is) {
-        dataState.value = response.data[key].map(customization.method);
-      } else {
-        dataState.value = response.data[key];
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 watch(
   () => props.isDrawerOpen,

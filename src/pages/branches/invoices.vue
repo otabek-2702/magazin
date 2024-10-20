@@ -143,6 +143,8 @@ const resolveInvoiceStatus = (status) => {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>СТАТУС</th>
+                <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
+                <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
               </tr>
             </thead>
 
@@ -165,6 +167,8 @@ const resolveInvoiceStatus = (status) => {
                     {{ invoice.status }}
                   </VChip>
                 </td>
+                <td>{{ invoice.to_branch.name }}</td>
+                <td>{{ invoice.full_qty }}</td>
               </tr>
             </tbody>
             <Skeleton :count="2" v-show="isFetching && !invoices.length" />

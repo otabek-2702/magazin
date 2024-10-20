@@ -3,7 +3,7 @@ import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { removeSpaces, transformPrice } from "@/helpers";
+import { fetchOptions, removeSpaces, transformPrice } from "@/helpers";
 import Skeleton from "../skeleton/Skeleton.vue";
 
 const props = defineProps({
@@ -143,27 +143,7 @@ const handleDialogModelValueUpdate = (val) => {
   }
 };
 
-const fetchOptions = async (
-  url,
-  dataState,
-  key,
-  customization = { is: false }
-) => {
-  try {
-    const response = await axios.get(url);
 
-    if (response.status === 200) {
-      if (customization.is) {
-        dataState.value = response.data[key].map(customization.method);
-        console.log(dataState.value);
-      } else {
-        dataState.value = response.data[key];
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
 const fetchVariants = async () => {
   isFetchingVariant.value = true;
   try {
@@ -319,13 +299,13 @@ const calculateCount = computed(() => {
     :model-value="props.isDialogOpen"
     @update:model-value="handleDialogModelValueUpdate"
   >
-    <VCard title="Накладная">
+  <VCard :title="`Накладная #${props.id}`">
+
       <DialogCloseBtn
         variant="text"
         size="small"
         @click="handleDialogModelValueUpdate(false)"
       />
-      <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid">
             <VRow>
@@ -526,7 +506,6 @@ const calculateCount = computed(() => {
             </VCardText>
           </VForm>
         </VCardText>
-      </PerfectScrollbar>
     </VCard>
   </VDialog>
 </template>

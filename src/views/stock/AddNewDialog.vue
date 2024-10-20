@@ -3,6 +3,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { nextTick, ref } from 'vue';
 import axios from '@axios';
 import { toast } from 'vue3-toastify';
+import { fetchOptions } from '@/helpers';
 
 const emit = defineEmits(['fetchDatas']);
 
@@ -72,21 +73,6 @@ const handleDrawerModelValueUpdate = (val) => {
   }
 };
 
-const fetchOptions = async (url, dataState, key, customization = { is: false }) => {
-  try {
-    const response = await axios.get(url);
-
-    if (response.status === 200) {
-      if (customization.is) {
-        dataState.value = response.data[key].map(customization.method);
-      } else {
-        dataState.value = response.data[key];
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
 const products_list = ref([]);
 const sizes_list = ref([]);
 const colors_list = ref([]);
@@ -135,7 +121,6 @@ const handlePriceInput = (e) => {
     <!-- Dialog Content -->
     <VCard title="Добавить">
       <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
-      <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
@@ -224,7 +209,6 @@ const handlePriceInput = (e) => {
             </VCardText>
           </VForm>
         </VCardText>
-      </PerfectScrollbar>
     </VCard>
   </VDialog>
 </template>

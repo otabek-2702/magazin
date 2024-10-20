@@ -29,15 +29,15 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/warehouses?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    products.value = data['stock'];
-    lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    products.value = data;
+    // lastFetchedPage.value = currentPage.value;
+    // currentPage.value = data['meta']['pagination']['current_page'];
+    // totalDatasCount.value = data['meta']['pagination']['total'];
+    // totalPage.value = data['meta']['pagination']['total_pages'];
+    // rowPerPage.value = data['meta']['pagination']['per_page'];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
@@ -160,29 +160,29 @@ const openBarcodeDialog = (id) => {
             </thead>
 
             <tbody>
-              <tr v-for="stock in products" :key="stock.id">
-                <td>{{ stock.id }}</td>
-                <td>
-                  {{ stock?.variant.product?.name }}
-                  <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
+              <tr v-for="product in products" :key="product.id">
+                <td>{{ product.id }}</td>
+                <!-- <td>
+                  {{ product?.variant.product?.name }}
+                  <b>( {{ product?.variant.color?.name }} | {{ product?.variant.size?.name }} )</b>
                 </td>
-                <td>{{ stock.variant?.product?.brand }}</td>
-                <td>{{ stock.variant?.product?.category }}</td>
-                <td>{{ stock.quantity }}</td>
-                <td>{{ stock.variant?.product?.gender }}</td>
+                <td>{{ product.variant?.product?.brand }}</td>
+                <td>{{ product.variant?.product?.category }}</td>
+                <td>{{ product.quantity }}</td>
+                <td>{{ product.variant?.product?.gender }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                   <VIcon
                     @click="
                       (event) => {
                         event.stopPropagation();
-                        openBarcodeDialog(stock.id);
+                        openBarcodeDialog(product.id);
                       }
                     "
                     size="30"
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
-                </td>
+                </td> -->
               </tr>
             </tbody>
             <Skeleton :count="7" v-show="isFetching && !products.length" />

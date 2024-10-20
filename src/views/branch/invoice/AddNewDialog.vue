@@ -1,21 +1,21 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, ref, watch } from 'vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
-import { transformPrice } from '@/helpers';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, ref, watch } from "vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
+import { autoSelectInputValue, fetchOptions } from "@/helpers";
 
-const emit = defineEmits(['fetchDatas']);
+const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const to_branch_id = ref();
-const sku_input = ref();
+const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
-const quantity_input = ref();
+const quantity_ref = ref();
 const quantity = ref();
 const product_variants = ref([]);
 
@@ -24,18 +24,15 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post('/stock_movement_invoices', {
+        await axios.post("/stock_movement_invoices", {
           to_branch_id: to_branch_id.value ?? 0,
 
-          items: product_variants.value.map((el) => ({
-            product_variant_id: el.variant.id,
-            quantity: el.quantity,
-          })),
+          items: product_variants.value,
         });
-        emit('fetchDatas');
-        toast('Успешно добавлено', {
-          theme: 'auto',
-          type: 'success',
+        emit("fetchDatas");
+        toast("Успешно добавлено", {
+          theme: "auto",
+          type: "success",
           dangerouslyHTMLString: true,
         });
         handleDrawerModelValueUpdate(false);
@@ -52,89 +49,97 @@ const handleDrawerModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (!val) {
     nextTick(() => {
+      to_branch_id.value = null
+      product_variant_sku.value = null
+      product_variant_data.value = null
+      quantity.value = null
+      product_variants.value = null
       refForm.value?.reset();
       refForm.value?.resetValidation();
     });
   }
 };
 
-const fetchOptions = async (url, dataState, key, customization = { is: false }) => {
-  try {
-    const response = await axios.get(url);
-
-    if (response.status === 200) {
-      if (customization.is) {
-        dataState.value = response.data[key].map(customization.method);
-      } else {
-        dataState.value = response.data[key];
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
 const product_variants_list = ref([]);
 const branches_list = ref([]);
 
 watch(
   isDialogVisible,
   () => {
-    fetchOptions('/product_variants', product_variants_list, 'products_variants', {
-      method: (el) => ({ ...el, name: `${el.product.name} | ${el.color.name} | ${el.size.name}` }),
-      is: true,
-    });
-    fetchOptions('/branches', branches_list, 'branches');
+    fetchOptions("/branches", branches_list, "branches");
   },
-  { once: true },
+  { once: true }
 );
-const findProductVariant = (sku) => {
-  product_variant_data.value = product_variants_list.value.find((e) => e.sku == sku);
+// find Product
+const findProductVariant = async (raw_sku) => {
+  const sku = raw_sku.replace(/ылг/g, "sku");
+  try {
+    const response = await axios.get(`/product_variants?search=${sku}`);
+
+    if (response.status === 200 && response.data.products_variants) {
+      const { id, product, color, size, amount_remainder } =
+        response.data.products_variants[0];
+      product_variant_data.value = {
+        product_variant_id: id,
+        product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
+        amount_remainder,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
   if (!product_variant_data.value) {
-    toast('Товар не найден', {
-      theme: 'auto',
-      type: 'error',
+    toast("Товар не найден", {
+      theme: "auto",
+      type: "error",
       dangerouslyHTMLString: true,
     });
     return;
   }
-  quantity_input.value.focus();
+  quantity_ref.value.focus();
   quantity.value = product_variant_data.value.amount_remainder ?? 0;
   product_variant_sku.value = null;
 };
 
 // Add
 const addToList = () => {
-  if (!product_variant_data.value) {
-    toast('Товар не найден', {
-      theme: 'auto',
-      type: 'error',
+  if (product_variant_data.value) {
+    // find if object exists
+    const existingObj = product_variants.value.find(
+      (el) => el.product_variant_id == product_variant_data.value.product_variant_id
+    );
+
+    if (existingObj) {
+      product_variants.value = product_variants.value?.map((el) => {
+        if (el.product_variant_id == existingObj.product_variant_id) {
+          return {
+            ...product_variant_data.value,
+            quantity: Number(quantity.value) + Number(existingObj.quantity),
+          };
+        }
+        return el;
+      });
+    } else {
+      product_variants.value.push({
+        ...product_variant_data.value,
+        quantity: quantity.value,
+      });
+    }
+  } else {
+    console.log(product_variant_data.value);
+    toast("Товар не найден", {
+      theme: "auto",
+      type: "error",
       dangerouslyHTMLString: true,
     });
-    product_variant_data.value = null;
-    quantity.value = null;
-    sku_input.value.focus();
-    return;
-  } else if (product_variants.value.find((el) => el.variant.id == product_variant_data.value.id)) {
-    toast('Дубликат', {
-      theme: 'auto',
-      type: 'error',
-      dangerouslyHTMLString: true,
-    });
-    product_variant_data.value = null;
-    quantity.value = null;
-    sku_input.value.focus();
-    return;
   }
 
-  product_variants.value.push({
-    variant: product_variant_data.value,
-    quantity: quantity.value,
-  });
+  // reset
   product_variant_data.value = null;
   quantity.value = null;
-  sku_input.value.focus();
+  sku_ref.value.focus();
 };
-
 // Edit
 const editingId = ref(null);
 
@@ -142,35 +147,44 @@ const showEditInput = (id) => {
   editingId.value = id;
 };
 
-const hideEditInput = async (exchange) => {
-  if (editingId.value === exchange.id) {
+const hideEditInput = async (id) => {
+  if (editingId.value === id) {
   }
   editingId.value = null;
 };
 
 // Delete
 const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter((el) => el.variant.id != id);
+  product_variants.value = product_variants.value.filter(
+    (el) => el.product_varaint_id != id
+  );
 };
 
 const calculateCount = computed(() => {
   return product_variants.value.reduce(
     (accumulator, el) => accumulator + parseFloat(el.quantity),
-    0,
+    0
   );
 });
+
 </script>
 
 <template>
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props">Накладная для филиала</VBtn>
+      <VBtn @click="isDialogVisible = true" v-bind="props"
+        >Накладная для филиала</VBtn
+      >
     </template>
 
     <!-- Dialog Content -->
     <VCard title="Накладная">
-      <DialogCloseBtn variant="text" size="small" @click="isDialogVisible = false" />
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="isDialogVisible = false"
+      />
       <PerfectScrollbar :options="{ wheelPropagation: false }">
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
@@ -200,35 +214,46 @@ const calculateCount = computed(() => {
                   </thead>
 
                   <tbody>
-                    <tr v-for="(variant, i) in product_variants" :key="variant.id">
+                    <tr
+                      v-for="(variant, i) in product_variants"
+                      :key="variant.product_variant_id"
+                    >
                       <td>{{ i + 1 }}</td>
                       <td>
-                        {{ variant.variant.name }}
+                        {{ variant.product_variant_name }}
                       </td>
                       <td>
+                        {{ variant.quantity }}
+                      </td>
+                      <td
+                        class="text-center"
+                        :style="{ width: '80px', zIndex: '10' }"
+                      >
                         <VIcon
-                v-if="editingId === variant.id"
-                @click.stop="hideEditInput(exchange)"
-                size="30"
-                icon="bx-check"
-                style="color: rgb(var(--v-theme-success))"
-                class="mx-2"
-              />
-              <VIcon
-                v-else
-                @click.stop="showEditInput(exchange.id)"
-                size="30"
-                icon="bx-edit-alt"
-                style="color: rgb(var(--v-global-theme-primary))"
-                class="mx-2"
-              />
-                        {{ variant.quantity }}</td>
-                      <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                          v-if="editingId === variant.product_varaint_id"
+                          @click.stop="
+                            hideEditInput(variant.product_variant_id)
+                          "
+                          size="30"
+                          icon="bx-check"
+                          style="color: rgb(var(--v-theme-success))"
+                          class="mx-2"
+                        />
+                        <VIcon
+                          v-else
+                          @click.stop="
+                            showEditInput(variant.product_variant_id)
+                          "
+                          size="30"
+                          icon="bx-edit-alt"
+                          style="color: rgb(var(--v-global-theme-primary))"
+                          class="mx-2"
+                        />
                         <VIcon
                           size="30"
                           icon="mdi-minus-circle-outline"
                           style="color: red"
-                          @click="deleteListItem(variant.variant.id)"
+                          @click="deleteListItem(variant.variant.product_varaint_id)"
                         ></VIcon>
                       </td>
                     </tr>
@@ -237,14 +262,18 @@ const calculateCount = computed(() => {
                   <tfoot v-show="product_variants.length">
                     <tr>
                       <td colspan="2"></td>
-                      <td class="text-body-1">Общая количество: {{ calculateCount }}</td>
+                      <td class="text-body-1">
+                        Общая количество: {{ calculateCount }}
+                      </td>
                       <td></td>
                       <td></td>
                     </tr>
                   </tfoot>
                   <tfoot v-show="!product_variants.length">
                     <tr>
-                      <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                      <td colspan="9" class="text-center text-body-1">
+                        Нет доступных данных
+                      </td>
                     </tr>
                   </tfoot>
                 </VTable>
@@ -258,7 +287,11 @@ const calculateCount = computed(() => {
                     <VCol cols="3">
                       <VTextField
                         v-model="product_variant_sku"
-                        ref="sku_input"
+                        ref="sku_ref"
+                        @input="
+                          product_variant_sku =
+                            product_variant_sku.toUpperCase()
+                        "
                         @keyup.enter="findProductVariant(product_variant_sku)"
                         label="Штрих код товара"
                         :items="product_variants_list"
@@ -269,20 +302,24 @@ const calculateCount = computed(() => {
                     </VCol>
 
                     <VCol cols="5">
-                      <h4 class="pt-1">Товар: {{ product_variant_data?.name }}</h4>
+                      <h4 class="pt-1">
+                        Товар: {{ product_variant_data?.name }}
+                      </h4>
                       <p class="pt-2 mb-0">
-                        На складе: <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
+                        На складе:
+                        <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
                       </p>
                     </VCol>
 
                     <VCol cols="3">
                       <VTextField
                         v-model="quantity"
-                        ref="quantity_input"
+                        ref="quantity_ref"
                         @keyup.enter="addToList"
                         label="Количество"
                         type="number"
                         :rules="[]"
+                        @focus="autoSelectInputValue"
                       />
                     </VCol>
                     <VCol cols="1" class="d-flex justify-center align-center">
@@ -302,7 +339,9 @@ const calculateCount = computed(() => {
               </VCol>
             </VRow>
             <VCardText class="d-flex justify-end gap-2 pt-2">
-              <VBtn :loading="isFetching" :disabled="isFetching" type="submit"> Отправить </VBtn>
+              <VBtn :loading="isFetching" :disabled="isFetching" type="submit">
+                Отправить
+              </VBtn>
             </VCardText>
           </VForm>
         </VCardText>

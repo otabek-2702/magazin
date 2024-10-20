@@ -76,12 +76,12 @@ export default [
         subject: 'Branches',
         action: 'show'
       },
-      // {
-      //   title: 'Склад филиала',
-      //   to: { name: 'BranchesWareHouse' },
-      //   subject: 'BranchesWareHouse',
-      //   action: 'show'
-      // },
+      {
+        title: 'Склад филиала',
+        to: { name: 'BranchesWareHouse' },
+        subject: 'BranchesWareHouse',
+        action: 'show'
+      },
       {
         title: 'Накладные филиала',
         to: { name: 'BranchesInvoices' },
