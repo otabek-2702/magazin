@@ -74,7 +74,7 @@ const fetchVariants = async () => {
     const response = await axios.get("/product_variants", {
       params: {
         paginate: 100,
-        search: variant_search_input.value?.slice(0, 5),
+        search: variant_search_input.value,
       },
     });
 
@@ -137,9 +137,9 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  if (newVal?.length >= 2) {
+  if (newVal?.length >= 2 || newVal?.length == 0) {
     fetchVariants();
-  }
+  } 
 });
 
 // format

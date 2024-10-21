@@ -144,6 +144,15 @@ const router = createRouter({
                 subject: 'BranchesInvoices',
               }
             },
+            {
+              path: 'invoices',
+              name: 'BranchesInvoices',
+              component: () => import("@/pages/branches/invoices.vue"),
+              meta: {
+                action: 'show',
+                subject: 'BranchesInvoices',
+              }
+            },
           ]
         },
         // invoice

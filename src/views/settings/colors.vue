@@ -69,8 +69,8 @@ const paginationData = computed(() => {
 
 // Add
 const onAddSubmit = async () => {
-  isFetching.value = true;
   try {
+    isFetching.value = true;
     await axios.post('/colors', {
       name: newElemName.value,
     });

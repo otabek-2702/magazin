@@ -155,7 +155,7 @@ const resolveInvoiceStatus = (status) => {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody v-if="!isFetching">
               <tr v-for="invoice in invoices" :key="invoice.id" @click="handleInfoDialogOpen(invoice.id)" style="cursor: pointer">
                 <td>{{ invoice.id }}</td>
 
@@ -176,7 +176,7 @@ const resolveInvoiceStatus = (status) => {
                 
               </tr>
             </tbody>
-            <Skeleton :count="5" v-show="isFetching && !invoices.length" />
+            <Skeleton :count="5" v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>

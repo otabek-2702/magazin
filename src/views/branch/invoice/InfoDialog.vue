@@ -76,7 +76,7 @@ const onSubmit = async () => {
   });
 };
 
-const onConfirmSubmit = async () => {
+const onConfirm = async () => {
   isFetching.value = "confirm";
   try {
     const reponse = await axios.post(
@@ -99,7 +99,7 @@ const onConfirmSubmit = async () => {
   }
 };
 
-const onRejectSubmit = async () => {
+const onReject = async () => {
   isFetching.value = "reject";
   try {
     const reponse = await axios.post(
@@ -121,6 +121,15 @@ const onRejectSubmit = async () => {
     isFetching.value = "";
   }
 };
+
+const onConfirmSubmit = async () => {
+  await onSubmit()
+  await onConfirm()
+} 
+const onRejectSubmit = async () => {
+  await onSubmit()
+  await onReject()
+} 
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
@@ -155,17 +164,18 @@ onMounted(() => {
 
 // find Product
 const findProductVariant = async (raw_sku) => {
-  const sku = raw_sku.toString().replace(/ылг/g, "sku");
+  const sku = raw_sku.replace(/ылг/g, "sku");
   try {
-    const response = await axios.get(`/product_variants?search=${sku}`);
+    const response = await axios.get(`/stock?search=${sku}`);
 
-    if (response.status === 200 && response.data.products_variants) {
-      const { id, product, color, size, amount_remainder } =
-        response.data.products_variants[0];
+    if (response.status === 200 && response.data.stock) {
+      const { quantity, variant : {id, product, color, size, sku} } =
+        response.data.stock[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
-        amount_remainder,
+        quantity,
+        sku,
       };
     }
   } catch (error) {
@@ -181,7 +191,7 @@ const findProductVariant = async (raw_sku) => {
     return;
   }
   quantity_ref.value.focus();
-  quantity.value = product_variant_data.value.amount_remainder ?? 0;
+  quantity.value = product_variant_data.value.quantity ?? 0;
   product_variant_sku.value = null;
 };
 
@@ -189,8 +199,8 @@ const findProductVariant = async (raw_sku) => {
 const addToList = () => {
   if (product_variant_data.value) {
     // find if object exists
-    if (product_variant_data.value.amount_remainder <= 0) {
-      toast("Количество товара должно быть больше нуля.", {
+    if (product_variant_data.value.quantity <= 0) {
+      toast("На складе отсутствует этот товар.", {
         theme: "auto",
         type: "warning",
         dangerouslyHTMLString: true,
@@ -205,17 +215,13 @@ const addToList = () => {
     let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
 
     if (
-      quantity.value > product_variant_data.value?.amount_remainder ||
-      totalQuantity > product_variant_data.value?.amount_remainder
+      quantity.value > product_variant_data.value?.quantity ||
+      totalQuantity > product_variant_data.value?.quantity
     ) {
       toast("Доступное количество на складе не может быть превышено.", {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,
-        onClose: (event) => {
-          // Stop the event from propagating to the modal
-          event.stopPropagation();
-        },  
+        dangerouslyHTMLString: true,  
       });
       quantity_ref.value.focus();
       return;
@@ -266,9 +272,9 @@ const hideEditInput = async (variant) => {
         dangerouslyHTMLString: true,
       });
       return;
-    }else  if (variant.quantity > variant.amount_remainder) {
+    }else  if (variant.quantity > variant.quantity) {
     toast(
-      `Доступное количество на складе не может превышать максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
+      `Доступное количество на складе не может превышать максимально допустимое значение (максимум: ${variant.quantity}).`,
       {
         theme: "auto",
         type: "warning",
@@ -444,10 +450,10 @@ const calculateCount = computed(() => {
                 </VCol>
 
                 <VCol cols="5">
-                  <h4 class="pt-1">Товар: {{ product_variant_data?.name }}</h4>
+                  <h4 class="pt-1">Товар: {{ product_variant_data?.product_variant_name }}</h4>
                   <p class="pt-2 mb-0">
                     На складе:
-                    <b>{{ product_variant_data?.amount_remainder ?? 0 }}</b>
+                    <b>{{ product_variant_data?.quantity ?? 0 }}</b>
                   </p>
                 </VCol>
 

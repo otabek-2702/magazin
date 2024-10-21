@@ -148,7 +148,7 @@ const resolveInvoiceStatus = (status) => {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody v-if="!isFetching">
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
@@ -171,7 +171,7 @@ const resolveInvoiceStatus = (status) => {
                 <td>{{ invoice.full_qty }}</td>
               </tr>
             </tbody>
-            <Skeleton :count="4" v-show="isFetching && !invoices.length" />
+            <Skeleton :count="4" v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>

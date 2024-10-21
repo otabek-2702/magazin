@@ -31,9 +31,9 @@ const closeNavigationDrawer = () => {
 };
 
 const onSubmit = () => {
-  isFetching.value = true;
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
+      isFetching.value = true;
       try {
         const response = await axios.post('/suppliers', {
           name: name.value,

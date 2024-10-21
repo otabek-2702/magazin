@@ -32,8 +32,8 @@ const fetchData = async (force = false) => {
 
 // Add
 const onAddSubmit = async () => {
-  isFetching.value = true;
   try {
+    isFetching.value = true;
     await axios.post('/sizes', {
       name: newElemName.value,
     });
