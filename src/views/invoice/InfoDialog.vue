@@ -233,7 +233,7 @@ const addToList = () => {
       );
       if (existingProductObj) {
         product_variants.value = product_variants.value.map((elem) => {
-          if (elem.id == existingProductObj.id) {
+          if (elem.product_variant_id == existingProductObj.product_variant_id) {
             return {
               ...productObj,
               price: removeSpaces(price.value),
