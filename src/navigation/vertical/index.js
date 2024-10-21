@@ -27,11 +27,28 @@ export default [
     ]
   },
   {
-    title: 'Главный склад',
-    to: { name: 'Stock' },
+    title: 'Управление складом',
     icon: { icon: 'mdi-warehouse' },
-    subject: 'Stock',
-    action: 'show'
+    children : [
+      {
+        title: 'Главный склад',
+        to: { name: 'Stock' },
+        subject: 'Stock',
+        action: 'show',
+      },
+      {
+        title: 'Накладные о приходе',
+        to: { name: 'IncomeInvoices' },
+        subject: 'IncomeInvoices',
+        action: 'show',
+      },
+      {
+        title: 'Накладные о уходе',
+        to: { name: 'DepartureInvoices' },
+        subject: 'DepartureInvoices',
+        action: 'show',
+      },
+    ]
   },
   {
     title: 'Управление товарами',
@@ -82,19 +99,13 @@ export default [
         subject: 'BranchesWareHouse',
         action: 'show'
       },
-      {
-        title: 'Накладные филиала',
-        to: { name: 'BranchesInvoices' },
-        subject: 'BranchesInvoices',
-        action: 'show'
-      },
     ]
   },
   {
-    title: 'Накладной',
-    to: { name: 'Invoices' },
+    title: 'Накладные для витрины',
+    to: { name: 'ShowcaseInvoices' },
     icon: { icon: 'mdi-clipboard-list' },
-    subject: 'Invoices',
+    subject: 'ShowcaseInvoices',
     action: 'show'
   },
   {

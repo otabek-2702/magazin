@@ -1,12 +1,14 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
-import AddNewWayBillToBranchDialog from '@/views/branch/invoice/AddNewDialog.vue';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
+import AddNewWayBillToBranchDialog from "@/views/branch/invoice/AddNewDialog.vue";
+import { fetchOptions } from "@/helpers";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
+const selectedBranch = ref();
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -21,7 +23,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -29,19 +32,19 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/warehouses?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/warehouses?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    products.value = data;
-    // lastFetchedPage.value = currentPage.value;
-    // currentPage.value = data['meta']['pagination']['current_page'];
-    // totalDatasCount.value = data['meta']['pagination']['total'];
-    // totalPage.value = data['meta']['pagination']['total_pages'];
-    // rowPerPage.value = data['meta']['pagination']['per_page'];
+    products.value = data["warehouses"];
+    lastFetchedPage.value = currentPage.value;
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error("Ошибка загрузки товаров:", error);
   } finally {
     isFetching.value = false;
   }
@@ -50,12 +53,12 @@ const fetchData = async (force = false) => {
 // Get main datas end
 
 // 👉 watching selected filters
-// watch([], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
+watch([], () => {
+  // Сбрасываем на первую страницу при изменении фильтров
+  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
+  currentPage.value = 1;
+  fetchData(true);
+});
 
 // search
 const searchElements = () => {
@@ -66,14 +69,17 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
 });
 
+const branches_list = ref([]);
+
 onMounted(() => {
   fetchData();
+  fetchOptions("branches", branches_list, "branches");
 });
 
 const isBarcodeDialogVisible = ref(false);
@@ -94,8 +100,11 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = products.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    products.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -107,6 +116,8 @@ const barcodeDialogId = ref(0);
 const openBarcodeDialog = (id) => {
   barcodeDialogId.value = id;
   isBarcodeDialogVisible.value = true;
+  console.log(branches_list.value)
+
 };
 
 // end BarCode
@@ -148,6 +159,18 @@ const openBarcodeDialog = (id) => {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
+                <!-- <th>ФИЛИАЛ</th> -->
+                <th>
+                  <VSelect
+                    v-model="selectedBranch"
+                    label="ФИЛИАЛ"
+                    :items="branches_list"
+                    item-title="name"
+                    item-value="id"
+                    variant="plain"
+                    :rules="[]"
+                  />
+                </th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>
@@ -159,15 +182,22 @@ const openBarcodeDialog = (id) => {
             <tbody>
               <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
-                <!-- <td>
+                <td>
                   {{ product?.variant.product?.name }}
-                  <b>( {{ product?.variant.color?.name }} | {{ product?.variant.size?.name }} )</b>
+                  <b
+                    >( {{ product?.variant.color?.name }} |
+                    {{ product?.variant.size?.name }} )</b
+                  >
                 </td>
+                <td>{{ product.branch?.name }}</td>
                 <td>{{ product.variant?.product?.brand }}</td>
                 <td>{{ product.variant?.product?.category }}</td>
                 <td>{{ product.quantity }}</td>
                 <td>{{ product.variant?.product?.gender }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td
+                  class="text-center"
+                  :style="{ width: '80px', zIndex: '10' }"
+                >
                   <VIcon
                     @click="
                       (event) => {
@@ -179,14 +209,16 @@ const openBarcodeDialog = (id) => {
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
-                </td> -->
+                </td>
               </tr>
             </tbody>
-            <Skeleton :count="7" v-show="isFetching && !products.length" />
+            <Skeleton :count="8" v-show="isFetching && !products.length" />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
-                <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="9" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>

@@ -1,206 +1,203 @@
-import { setupLayouts } from 'virtual:generated-layouts'
-import { createRouter, createWebHistory } from 'vue-router'
-import { isUserLoggedIn } from './utils'
-import routes from '~pages'
-import Login from "@/pages/login.vue"
+import { setupLayouts } from "virtual:generated-layouts";
+import { createRouter, createWebHistory } from "vue-router";
+import { isUserLoggedIn } from "./utils";
+import routes from "~pages";
+import Login from "@/pages/login.vue";
 import NotAuthorized from "@/pages/not-authorized.vue";
-import DefaultLayoutWithVerticalNav from '@/layouts/default.vue';
+import DefaultLayoutWithVerticalNav from "@/layouts/default.vue";
 import ability from "@/plugins/casl/ability";
 import Forbidden from "@/pages/forbidden.vue";
-
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/login',
-      name: 'Login',
+      path: "/login",
+      name: "Login",
       component: Login,
     },
     {
-      path: '/not-authorized',
-      name: 'NotAuthorized',
+      path: "/not-authorized",
+      name: "NotAuthorized",
       component: NotAuthorized,
     },
     {
-      path: '/forbidden',
-      name: 'forbidden',
+      path: "/forbidden",
+      name: "forbidden",
       component: Forbidden,
     },
 
     {
-      path: '/',
+      path: "/",
       component: DefaultLayoutWithVerticalNav,
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
-          name: 'Index',
-          redirect: { name: 'Statistics' }
+          path: "",
+          name: "Index",
+          redirect: { name: "Statistics" },
         },
         {
-          path: 'statistics',
-          name: 'Statistics',
+          path: "statistics",
+          name: "Statistics",
           component: () => import("@/pages/statistics.vue"),
           meta: {
-            action: 'show',
-            subject: 'Statistics',
-          }
+            action: "show",
+            subject: "Statistics",
+          },
         },
         // system
         {
-          path: 'roles',
-          name: 'Roles',
+          path: "roles",
+          name: "Roles",
           component: () => import("@/pages/roles.vue"),
           meta: {
-            action: 'show',
-            subject: 'Roles',
-          }
+            action: "show",
+            subject: "Roles",
+          },
         },
         {
-          path: 'employees',
-          name: 'Employees',
+          path: "employees",
+          name: "Employees",
           component: () => import("@/pages/employees.vue"),
           meta: {
-            action: 'show',
-            subject: 'Users',
-          }
+            action: "show",
+            subject: "Users",
+          },
         },
         // stock
         {
-          path: 'stock',
-          name: 'Stock',
+          path: "stock",
+          name: "Stock",
           component: () => import("@/pages/stock.vue"),
           meta: {
-            action: 'show',
-            subject: 'Stock',
-          }
+            action: "show",
+            subject: "Stock",
+          },
+        },
+        {
+          path: "invoices",
+          name: "IncomeInvoices",
+          component: () => import("@/pages/invoices.vue"),
+          meta: {
+            action: "show",
+            subject: "IncomeInvoices",
+          },
+        },
+        {
+          path: "invoices",
+          name: "DepartureInvoices",
+          component: () => import("@/pages/branches/invoices.vue"),
+          meta: {
+            action: "show",
+            subject: "DepartureInvoices",
+          },
         },
         // products
         {
-          path: 'products',
-          name: 'Products',
+          path: "products",
+          name: "Products",
           component: () => import("@/pages/products.vue"),
           meta: {
-            action: 'show',
-            subject: 'Products',
-          }
+            action: "show",
+            subject: "Products",
+          },
         },
         {
-          path: 'product-variants',
-          name: 'ProductVariants',
+          path: "product-variants",
+          name: "ProductVariants",
           component: () => import("@/pages/product-variants.vue"),
           meta: {
-            action: 'show',
-            subject: 'ProductVariants',
-          }
+            action: "show",
+            subject: "ProductVariants",
+          },
         },
         {
-          path: 'cateories',
-          name: 'Categories',
+          path: "cateories",
+          name: "Categories",
           component: () => import("@/pages/categories.vue"),
           meta: {
-            action: 'show',
-            subject: 'Categories',
-          }
+            action: "show",
+            subject: "Categories",
+          },
         },
         {
-          path: 'settings',
-          name: 'Settings',
+          path: "settings",
+          name: "Settings",
           component: () => import("@/pages/settings.vue"),
           meta: {
-            action: 'show',
-            subject: 'Settings',
-          }
+            action: "show",
+            subject: "Settings",
+          },
         },
         // branches
         {
-          path: 'branches/',
+          path: "branches/",
           children: [
             {
-              path: '',
-              name: 'Branches',
+              path: "",
+              name: "Branches",
               component: () => import("@/pages/branches/index.vue"),
               meta: {
-                action: 'show',
-                subject: 'Branches',
+                action: "show",
+                subject: "Branches",
               },
             },
             {
-              path: 'ware-house',
-              name: 'BranchesWareHouse',
+              path: "ware-house",
+              name: "BranchesWareHouse",
               component: () => import("@/pages/branches/ware-house.vue"),
               meta: {
-                action: 'show',
-                subject: 'BranchesWareHouse',
-              }
+                action: "show",
+                subject: "BranchesWareHouse",
+              },
             },
-            {
-              path: 'invoices',
-              name: 'BranchesInvoices',
-              component: () => import("@/pages/branches/invoices.vue"),
-              meta: {
-                action: 'show',
-                subject: 'BranchesInvoices',
-              }
-            },
-            {
-              path: 'invoices',
-              name: 'BranchesInvoices',
-              component: () => import("@/pages/branches/invoices.vue"),
-              meta: {
-                action: 'show',
-                subject: 'BranchesInvoices',
-              }
-            },
-          ]
+          ],
         },
-        // invoice
+        // invoices
         {
-          path: 'invoices',
-          name: 'Invoices',
-          component: () => import("@/pages/invoices.vue"),
+          path: 'showcase-invoices',
+          name: 'ShowcaseInvoices',
+          component: () => import("@/pages/branches/showcase-invoices.vue"),
           meta: {
             action: 'show',
-            subject: 'Invoices',
+            subject: 'ShowcaseInvoices',
           }
         },
-        // suppliers        
+        // suppliers
         {
-          path: 'suppliers',
-          name: 'Suppliers',
+          path: "suppliers",
+          name: "Suppliers",
           component: () => import("@/pages/suppliers.vue"),
           meta: {
-            action: 'show',
-            subject: 'Suppliers',
-          }
+            action: "show",
+            subject: "Suppliers",
+          },
         },
         // batches
         {
-          path: 'batches',
-          name: 'Batches',
+          path: "batches",
+          name: "Batches",
           component: () => import("@/pages/batches.vue"),
           meta: {
-            action: 'show',
-            subject: 'Batches',
-          }
+            action: "show",
+            subject: "Batches",
+          },
         },
-
       ],
     },
     ...setupLayouts(routes),
   ],
 });
 
-
 router.beforeEach((to, from, next) => {
   // Проверка, требуется ли аутентификация для этого маршрута
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     const isLoggedIn = isUserLoggedIn();
 
     if (!isLoggedIn) {
       // Если пользователь не аутентифицирован, перенаправляем на страницу входа
-      return next({ name: 'Login' });
+      return next({ name: "Login" });
     }
   }
 
@@ -210,7 +207,7 @@ router.beforeEach((to, from, next) => {
     if (ability.can(to.meta.action, to.meta.subject)) {
       return next(); // Пользователь имеет нужные права
     } else {
-      return next({ name: 'forbidden' }); // Перенаправление на страницу ошибки или входа
+      return next({ name: "forbidden" }); // Перенаправление на страницу ошибки или входа
     }
   }
 
@@ -218,5 +215,4 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-
-export default router
+export default router;
