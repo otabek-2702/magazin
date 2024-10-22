@@ -109,6 +109,19 @@ export default [
     ]
   },
   {
+    title: 'Упр. кассами',
+    icon: { icon: 'mdi-cash-register' },
+    children: [
+      {
+        title: 'Кассы',
+        to: { name: 'CashsRegister' },
+        subject: 'CashsRegister',
+        action: 'show'
+      },
+
+    ]
+  },
+  {
     title: 'Поставщики',
     to: { name: 'Suppliers' },
     icon: { icon: 'mdi-human-dolly' },

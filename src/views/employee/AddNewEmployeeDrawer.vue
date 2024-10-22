@@ -59,10 +59,11 @@ const onSubmit = () => {
         } else {
           console.error('Ошибка:', error);
         }
+      } finally{
+        isFetching.value = false;
       }
     }
   });
-  isFetching.value = false;
 };
 
 const handleDrawerModelValueUpdate = (val) => {

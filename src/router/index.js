@@ -163,7 +163,16 @@ const router = createRouter({
             },
           ],
         },
-        // invoices
+        // cash register
+        {
+          path: "cashs-register",
+          name: "CashsRegister",
+          component: () => import("@/pages/cashs-register/index.vue"),
+          meta: {
+            action: "show",
+            subject: "CashsRegister",
+          },
+        },
         // suppliers
         {
           path: "suppliers",

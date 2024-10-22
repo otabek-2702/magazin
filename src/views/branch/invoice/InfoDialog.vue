@@ -150,6 +150,7 @@ const handleDialogModelValueUpdate = (val) => {
       product_variant_data.value = null;
       quantity.value = null;
       product_variants.value = [];
+      status.value = null;
       refForm.value?.reset();
       refForm.value?.resetValidation();
     });
@@ -176,13 +177,13 @@ onMounted(() => {
 const findProductVariant = async (raw_sku) => {
   const sku = raw_sku.replace(/ылг/g, "sku");
   try {
-    const response = await axios.get(`/stock?search=${sku}`);
+    const response = await axios.get(`/warehouses?search=${sku}`);
 
-    if (response.status === 200 && response.data.stock) {
+    if (response.status === 200 && response.data.warehouses) {
       const {
         quantity,
         variant: { id, product, color, size, sku },
-      } = response.data.stock[0];
+      } = response.data.warehouses[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
