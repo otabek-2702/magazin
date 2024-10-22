@@ -1,10 +1,10 @@
 <script setup>
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/product-variants/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/product-variants/UpdateDrawer.vue';
+import AddNewDrawer from '@/views/product-variant/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/product-variant/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import BarcodeDialog from '@/views/product-variants/BarcodeDialog.vue';
+import BarcodeDialog from '@/views/product-variant/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 

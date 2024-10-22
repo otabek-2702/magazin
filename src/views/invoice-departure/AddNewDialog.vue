@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, ref, watch } from "vue";
+import {  ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions } from "@/helpers";
@@ -410,11 +410,6 @@ const calculateCount = computed(() => {
 .text-input :deep(.v-field__outline) {
   opacity: 0 !important;
 }
-
-/* .text-input :deep(.v-field__input) {
-  padding-inline-start: 0 !important;
-  padding-inline-end: 0 !important;
-} */
 
 .text-input :deep(.v-label) {
   opacity: 0 !important;

@@ -1,4 +1,5 @@
 import axios from "@/plugins/axios";
+import { nextTick } from "vue";
 
 export const transformPrice = (price) => {
   let formattedPrice = price
@@ -11,7 +12,7 @@ export const transformPrice = (price) => {
 };
 
 export const removeSpaces = (input) => {
-  let newVal = input.replace(/\s+/g, "");
+  let newVal = input?.toString().replace(/\s+/g, "");
   let newValNumeric = Number(newVal);
   return newValNumeric ? newValNumeric : newVal;
 };

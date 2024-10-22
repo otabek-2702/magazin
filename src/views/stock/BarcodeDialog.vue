@@ -15,10 +15,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:isDrawerOpen']);
 
-const refForm = ref();
 const isFetchingStart = ref(true);
 const itemData = ref();
-const count = ref(1);
 
 const onFormCancel = () => {
   emit('update:isDrawerOpen', false);

@@ -1,8 +1,8 @@
 <script setup>
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/products/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/products/UpdateDrawer.vue';
+import AddNewDrawer from '@/views/product/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/product/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';

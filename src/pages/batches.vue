@@ -6,7 +6,6 @@ import UpdateDrawer from '@/views/batch/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 // import InfoDialog from '@/views/batch/InfoDialog.vue';
 import { useAppAbility } from '@/plugins/casl/useAppAbility';
-// import BarcodeDialog from '@/views/batch/BarcodeDialog.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
 
@@ -86,7 +85,6 @@ onMounted(() => {
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
 // const isInfoDialogVisible = ref(false);
-// const isBarcodeDialogVisible = ref(false);
 
 // Pages start
 
@@ -110,16 +108,7 @@ const paginationData = computed(() => {
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
 
-// Pages end
 
-// // BarCode
-// const barcodeDialogId = ref(0);
-// const openBarcodeDialog = (id) => {
-//   barcodeDialogId.value = id;
-//   isBarcodeDialogVisible.value = true;
-// };
-
-// // end BarCode
 
 // Edit
 const openEditDrawer = (id) => {
@@ -298,11 +287,7 @@ const transformDate = (date) => {
       :productId="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     /> -->
-    <!-- <BarcodeDialog
-      v-model:isDrawerOpen="isBarcodeDialogVisible"
-      :productId="barcodeDialogId"
-      @fetchDatas="() => fetchData(true)"
-    /> -->
+    
   </section>
 </template>
 

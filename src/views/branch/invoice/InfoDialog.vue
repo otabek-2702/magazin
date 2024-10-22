@@ -2,7 +2,7 @@
 import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { fetchOptions, transformPrice } from "@/helpers";
+import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 
 const props = defineProps({
@@ -32,7 +32,9 @@ const product_variants = ref([]);
 const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
-    const response = await axios.get(`/warehouse_movement_invoices/${props.id}`);
+    const response = await axios.get(
+      `/warehouse_movement_invoices/${props.id}`
+    );
 
     if (response.status === 200) {
       const {
@@ -51,31 +53,32 @@ const fetchDataById = async () => {
 };
 
 const onSubmit = async (reject_or_submit = false) => {
-  refForm.value?.validate().then(async ({ valid }) => {
-    if (valid) {
-      isFetching.value = "submit";
-      try {
-        await axios.put(`/warehouse_movement_invoices/${props.id}`, {
-          branch_id: branch_id.value ?? 0,
+  try {
+    const { valid } = await refForm.value?.validate();
+    if (!valid) return false;
+    isFetching.value = "submit";
 
-          items: product_variants.value,
-        });
-        if (!reject_or_submit) {
-          emit("fetchDatas");
-          toast("Успешно", {
-            theme: "auto",
-            type: "success",
-            dangerouslyHTMLString: true,
-          });
-          handleDialogModelValueUpdate(false);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isFetching.value = "";
-      }
+    await axios.put(`/warehouse_movement_invoices/${props.id}`, {
+      branch_id: branch_id.value ?? 0,
+
+      items: product_variants.value,
+    });
+    if (!reject_or_submit) {
+      emit("fetchDatas");
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      handleDialogModelValueUpdate(false);
     }
-  });
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  } finally {
+    isFetching.value = "";
+  }
 };
 
 const onConfirm = async () => {
@@ -125,12 +128,17 @@ const onReject = async () => {
 };
 
 const onConfirmSubmit = async () => {
-  await onSubmit(true);
-  await onConfirm();
+  let isSubmitted = await onSubmit(true);
+  if (isSubmitted === true) {
+    await onConfirm();
+  }
 };
+
 const onRejectSubmit = async () => {
-  await onSubmit(true);
-  await onReject();
+  let isSubmitted = await onSubmit(true);
+  if (isSubmitted === true) {
+    await onReject();
+  }
 };
 
 const handleDialogModelValueUpdate = (val) => {
@@ -369,7 +377,6 @@ const calculateCount = computed(() => {
                         }"
                         @blur="hideEditInput(variant)"
                         @keyup.enter="hideEditInput(variant)"
-                        :autofocus="editingId == variant.product_variant_id"
                         class="custom-input"
                         density="compact"
                         type="number"
@@ -468,6 +475,7 @@ const calculateCount = computed(() => {
                     v-model="quantity"
                     ref="quantity_ref"
                     @keyup.enter="addToList"
+                    @focus="autoSelectInputValue"
                     label="Количество"
                     type="number"
                     :rules="[]"

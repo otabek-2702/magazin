@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
+import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
 import AddNewWayBillToShowcaseDialog from "@/views/branch/invoice/AddNewDialog.vue";
 import { fetchOptions } from "@/helpers";
 
@@ -202,7 +202,7 @@ const openBarcodeDialog = (id) => {
                     @click="
                       (event) => {
                         event.stopPropagation();
-                        openBarcodeDialog(product.id);
+                        openBarcodeDialog(product.variant?.id);
                       }
                     "
                     size="30"
