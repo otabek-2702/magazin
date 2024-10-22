@@ -2,20 +2,17 @@
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
-import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
-import AddNewWayBillToBranchDialog from '@/views/invoice-departure/AddNewDialog.vue';
-import { transformPrice } from '@/helpers';
+import InfoDialog from '@/views/invoice-departure/InfoDialog.vue';
+import AddNewDialog from '@/views/invoice-departure/AddNewDialog.vue';
 
 const searchQuery = ref('');
 const finalSearch = ref('');
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
-const totalQuantity = ref(0);
-const totalPrice = ref(0);
 const lastFetchedPage = ref(null);
 const totalDatasCount = ref(0);
-const products = ref([]);
+const invoices = ref([]);
 
 // Get main datas start
 const isFetching = ref(false);
@@ -32,35 +29,23 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/stock_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    products.value = data['stock'];
+    invoices.value = data['stock_movement_invoices'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
     totalPage.value = data['meta']['pagination']['total_pages'];
     rowPerPage.value = data['meta']['pagination']['per_page'];
-    totalQuantity.value = data['total_quantity'];
-    totalPrice.value = data['total_price'];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error('Ошибка загрузки :', error);
   } finally {
     isFetching.value = false;
   }
 };
-
-// Get main datas end
-
-// 👉 watching selected filters
-// watch([], () => {
-//   // Сбрасываем на первую страницу при изменении фильтров
-//   filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-//   currentPage.value = 1;
-//   fetchData(true);
-// });
 
 // search
 const searchElements = () => {
@@ -77,11 +62,12 @@ watch(searchQuery, (newVal) => {
   }
 });
 
+
 onMounted(() => {
   fetchData();
 });
 
-const isBarcodeDialogVisible = ref(false);
+const isInfoDialogVisible = ref(false);
 
 // Pages start
 
@@ -99,22 +85,31 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = invoices.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+  const lastIndex = invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
 
 // Pages end
 
-// BarCode
-const barcodeDialogId = ref(0);
-const openBarcodeDialog = (id) => {
-  barcodeDialogId.value = id;
-  isBarcodeDialogVisible.value = true;
+// Show one
+const infoDialogItemId = ref(0);
+
+const handleInfoDialogOpen = (id) => {
+  infoDialogItemId.value = id;
+  isInfoDialogVisible.value = true;
 };
 
-// end BarCode
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    Черновик: { color: 'primary' },
+    Отклонено: { color: 'secondary' },
+    Подтверждено: { color: 'success' },
+  };
+
+  return roleMap[status] || { color: 'primary' };
+};
 </script>
 
 <template>
@@ -123,19 +118,20 @@ const openBarcodeDialog = (id) => {
       <VCol cols="12">
         <VCard title="Фильтры поиска">
           <VCardText class="d-flex flex-wrap">
-            <AddNewWayBillToBranchDialog @fetchDatas="() => fetchData(true)" />
-
             <VSpacer />
 
-            <VCol cols="4" class="app-user-search-filter d-flex align-center">
+            <VCol cols="6" class="app-user-search-filter d-flex align-center">
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
-                placeholder="Поиск товара"
+                placeholder="Поиск "
                 :rules="[]"
                 density="compact"
                 class="me-6"
               />
+              <Can I="add" a="Invoices">
+                <AddNewDialog @fetchDatas="() => fetchData(true)" />
+              </Can>
             </VCol>
           </VCardText>
 
@@ -145,54 +141,40 @@ const openBarcodeDialog = (id) => {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ИМЯ ПРОДУКТА</th>
-                <th>БРЭНД</th>
-                <th>КАТЕГОРИЯ</th>
-                <th>КОЛИЧЕСТВО</th>
-                <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th>СТАТУС</th>
+                <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
+                <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
               </tr>
             </thead>
 
-            <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>К-во: {{ transformPrice(totalQuantity ?? 0) }}</td>
-                <td>Сумма: {{ transformPrice(totalPrice ?? 0) }}</td>
-              </tr>
-              <tr v-for="stock in products" :key="stock.id">
-                <td>{{ stock.id }}</td>
+            <tbody v-if="!isFetching">
+              <tr
+                v-for="invoice in invoices"
+                :key="invoice.id"
+                @click="handleInfoDialogOpen(invoice.id)"
+                style="cursor: pointer"
+              >
+                <td>{{ invoice.id }}</td>
+
                 <td>
-                  {{ stock?.variant.product?.name }}
-                  <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
+                  <VChip
+                    :color="resolveInvoiceStatus(invoice.status).color"
+                    density="compact"
+                    label
+                    class="text-uppercase"
+                  >
+                    {{ invoice.status }}
+                  </VChip>
                 </td>
-                <td>{{ stock.variant?.product?.brand }}</td>
-                <td>{{ stock.variant?.product?.category }}</td>
-                <td>{{ stock.quantity }}</td>
-                <td>{{ stock.variant?.product?.gender }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openBarcodeDialog(stock.id);
-                      }
-                    "
-                    size="30"
-                    icon="mdi-barcode"
-                    style="color: rgb(var(--v-theme-grey-800))"
-                  ></VIcon>
-                </td>
+                <td>{{ invoice.to_branch.name }}</td>
+                <td>{{ invoice.full_qty }}</td>
               </tr>
             </tbody>
-            <Skeleton :count="7" v-show="isFetching && !products.length" />
+            <Skeleton :count="4" v-show="isFetching" />
 
-            <tfoot v-show="!isFetching && !products.length">
+            <tfoot v-show="!isFetching && !invoices.length">
               <tr>
-                <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="15" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
             </tfoot>
           </VTable>
@@ -205,7 +187,7 @@ const openBarcodeDialog = (id) => {
             </div>
 
             <VPagination
-              v-if="products.length"
+              v-if="invoices.length"
               v-model="currentPage"
               size="small"
               :total-visible="1"
@@ -216,9 +198,9 @@ const openBarcodeDialog = (id) => {
       </VCol>
     </VRow>
 
-    <BarcodeDialog
-      v-model:isDrawerOpen="isBarcodeDialogVisible"
-      :productId="barcodeDialogId"
+    <InfoDialog
+      v-model:isDialogOpen="isInfoDialogVisible"
+      :id="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     />
   </section>

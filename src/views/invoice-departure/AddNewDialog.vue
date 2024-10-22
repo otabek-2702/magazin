@@ -23,8 +23,8 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post("/warehouse_movement_invoices", {
-          branch_id: to_branch_id.value ?? 0,
+        await axios.post("/stock_movement_invoices", {
+          to_branch_id: to_branch_id.value ?? 0,
 
           items: product_variants.value,
         });
@@ -74,10 +74,8 @@ const findProductVariant = async (raw_sku) => {
     const response = await axios.get(`/stock?search=${sku}`);
 
     if (response.status === 200 && response.data.stock) {
-      const {
-        quantity,
-        variant: { id, product, color, size, sku },
-      } = response.data.stock[0];
+      const { quantity, variant : {id, product, color, size, sku} } =
+        response.data.stock[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
@@ -216,7 +214,7 @@ const calculateCount = computed(() => {
     <!-- Dialog Activator -->
     <template #activator="{ props }">
       <VBtn @click="isDialogVisible = true" v-bind="props"
-        >Накладная для витрины</VBtn
+        >Накладная для филиала</VBtn
       >
     </template>
 

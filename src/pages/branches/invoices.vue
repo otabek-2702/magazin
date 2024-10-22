@@ -4,7 +4,6 @@ import axios from '@axios';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import InfoDialog from '@/views/branch/invoice/InfoDialog.vue';
 import AddNewDialog from '@/views/branch/invoice/AddNewDialog.vue';
-import { transformPrice } from '@/helpers';
 
 const searchQuery = ref('');
 const finalSearch = ref('');
@@ -30,10 +29,10 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/warehouse_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    invoices.value = data['stock_movement_invoices'];
+    invoices.value = data['warehouse_movement_invoices'];
     lastFetchedPage.value = currentPage.value;
     currentPage.value = data['meta']['pagination']['current_page'];
     totalDatasCount.value = data['meta']['pagination']['total'];
@@ -167,7 +166,7 @@ const resolveInvoiceStatus = (status) => {
                     {{ invoice.status }}
                   </VChip>
                 </td>
-                <td>{{ invoice.to_branch.name }}</td>
+                <td>{{ invoice.branch.name }}</td>
                 <td>{{ invoice.full_qty }}</td>
               </tr>
             </tbody>

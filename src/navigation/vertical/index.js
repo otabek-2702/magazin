@@ -7,7 +7,7 @@ export default [
     action: 'show'
   },
   {
-    title: 'Управление системы',
+    title: 'Упр. системы',
     icon: { icon: 'mdi-application-cog' },
     children: [
       {
@@ -27,7 +27,7 @@ export default [
     ]
   },
   {
-    title: 'Управление складом',
+    title: 'Упр. складом',
     icon: { icon: 'mdi-warehouse' },
     children : [
       {
@@ -38,20 +38,20 @@ export default [
       },
       {
         title: 'Накладные о приходе',
-        to: { name: 'IncomeInvoices' },
-        subject: 'IncomeInvoices',
+        to: { name: 'InvoicesIncome' },
+        subject: 'InvoicesIncome',
         action: 'show',
       },
       {
         title: 'Накладные о уходе',
-        to: { name: 'DepartureInvoices' },
-        subject: 'DepartureInvoices',
+        to: { name: 'InvoicesDeparture' },
+        subject: 'InvoicesDeparture',
         action: 'show',
       },
     ]
   },
   {
-    title: 'Управление товарами',
+    title: 'Упр. товарами',
     icon: { icon: 'mdi-package-variant' },
     children: [
       {
@@ -84,7 +84,7 @@ export default [
     ]
   },
   {
-    title: 'Управление филиалами',
+    title: 'Упр. филиалами',
     icon: { icon: 'mdi-domain' },
     children: [
       {
@@ -99,14 +99,14 @@ export default [
         subject: 'BranchesWareHouse',
         action: 'show'
       },
+      {
+        title: 'Накладные для витрины',
+        to: { name: 'InvoicesWarehouse' },
+        icon: { icon: 'mdi-clipboard-list' },
+        subject: 'InvoicesWarehouse',
+        action: 'show'
+      },
     ]
-  },
-  {
-    title: 'Накладные для витрины',
-    to: { name: 'ShowcaseInvoices' },
-    icon: { icon: 'mdi-clipboard-list' },
-    subject: 'ShowcaseInvoices',
-    action: 'show'
   },
   {
     title: 'Поставщики',

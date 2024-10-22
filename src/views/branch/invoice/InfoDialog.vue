@@ -20,7 +20,7 @@ const isFetchingStart = ref(true);
 const isFetching = ref("");
 const isFormValid = ref(false);
 const refForm = ref();
-const to_branch_id = ref();
+const branch_id = ref();
 const status = ref();
 const sku_ref = ref();
 const product_variant_sku = ref();
@@ -32,16 +32,16 @@ const product_variants = ref([]);
 const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
-    const response = await axios.get(`/stock_movement_invoices/${props.id}`);
+    const response = await axios.get(`/warehouse_movement_invoices/${props.id}`);
 
     if (response.status === 200) {
       const {
-        data: { stock_movement_invoice },
+        data: { warehouse_movement_invoice },
       } = response;
 
-      to_branch_id.value = stock_movement_invoice.to_branch.id;
-      status.value = stock_movement_invoice.status;
-      product_variants.value = stock_movement_invoice.items;
+      branch_id.value = warehouse_movement_invoice.branch.id;
+      status.value = warehouse_movement_invoice.status;
+      product_variants.value = warehouse_movement_invoice.items;
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -50,23 +50,25 @@ const fetchDataById = async () => {
   }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (reject_or_submit = false) => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = "submit";
       try {
-        await axios.put(`/stock_movement_invoices/${props.id}`, {
-          to_branch_id: to_branch_id.value ?? 0,
+        await axios.put(`/warehouse_movement_invoices/${props.id}`, {
+          branch_id: branch_id.value ?? 0,
 
           items: product_variants.value,
         });
-        emit("fetchDatas");
-        toast("Успешно", {
-          theme: "auto",
-          type: "success",
-          dangerouslyHTMLString: true,
-        });
-        handleDialogModelValueUpdate(false);
+        if (!reject_or_submit) {
+          emit("fetchDatas");
+          toast("Успешно", {
+            theme: "auto",
+            type: "success",
+            dangerouslyHTMLString: true,
+          });
+          handleDialogModelValueUpdate(false);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -80,7 +82,7 @@ const onConfirm = async () => {
   isFetching.value = "confirm";
   try {
     const reponse = await axios.post(
-      `/stock_movement_invoices/confirm/${props.id}`
+      `/warehouse_movement_invoices/confirm/${props.id}`
     );
     if (reponse.status === 200) {
       toast("Успешно", {
@@ -103,7 +105,7 @@ const onReject = async () => {
   isFetching.value = "reject";
   try {
     const reponse = await axios.post(
-      `/stock_movement_invoices/reject/${props.id}`
+      `/warehouse_movement_invoices/reject/${props.id}`
     );
     if (reponse.status === 200) {
       toast("Успешно", {
@@ -123,25 +125,25 @@ const onReject = async () => {
 };
 
 const onConfirmSubmit = async () => {
-  await onSubmit()
-  await onConfirm()
-} 
+  await onSubmit(true);
+  await onConfirm();
+};
 const onRejectSubmit = async () => {
-  await onSubmit()
-  await onReject()
-} 
+  await onSubmit(true);
+  await onReject();
+};
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
   if (!val) {
     nextTick(() => {
-      to_branch_id.value = null;
-    product_variant_sku.value = null;
-    product_variant_data.value = null;
-    quantity.value = null;
-    product_variants.value = [];
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
+      branch_id.value = null;
+      product_variant_sku.value = null;
+      product_variant_data.value = null;
+      quantity.value = null;
+      product_variants.value = [];
+      refForm.value?.reset();
+      refForm.value?.resetValidation();
     });
   }
 };
@@ -169,8 +171,10 @@ const findProductVariant = async (raw_sku) => {
     const response = await axios.get(`/stock?search=${sku}`);
 
     if (response.status === 200 && response.data.stock) {
-      const { quantity, variant : {id, product, color, size, sku} } =
-        response.data.stock[0];
+      const {
+        quantity,
+        variant: { id, product, color, size, sku },
+      } = response.data.stock[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
@@ -212,7 +216,8 @@ const addToList = () => {
       (el) =>
         el.product_variant_id == product_variant_data.value.product_variant_id
     );
-    let totalQuantity = Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
+    let totalQuantity =
+      Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
 
     if (
       quantity.value > product_variant_data.value?.quantity ||
@@ -221,7 +226,7 @@ const addToList = () => {
       toast("Доступное количество на складе не может быть превышено.", {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,  
+        dangerouslyHTMLString: true,
       });
       quantity_ref.value.focus();
       return;
@@ -266,13 +271,13 @@ const showEditInput = (id) => {
 
 const hideEditInput = async (variant) => {
   if (variant.quantity <= 0) {
-      toast("Количество товара должно быть больше нуля.", {
-        theme: "auto",
-        type: "warning",
-        dangerouslyHTMLString: true,
-      });
-      return;
-    }else  if (variant.quantity > variant.quantity) {
+    toast("Количество товара должно быть больше нуля.", {
+      theme: "auto",
+      type: "warning",
+      dangerouslyHTMLString: true,
+    });
+    return;
+  } else if (variant.quantity > variant.quantity) {
     toast(
       `Доступное количество на складе не может превышать максимально допустимое значение (максимум: ${variant.quantity}).`,
       {
@@ -283,10 +288,9 @@ const hideEditInput = async (variant) => {
     );
     return;
   }
-  variant.quantity = Number(variant.quantity)
+  variant.quantity = Number(variant.quantity);
   editingId.value = null;
 };
-
 
 // Delete
 const deleteListItem = (id) => {
@@ -296,7 +300,7 @@ const deleteListItem = (id) => {
 };
 
 const calculateCount = computed(() => {
-  if(!product_variants.value) return 0
+  if (!product_variants.value) return 0;
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
@@ -323,7 +327,7 @@ const calculateCount = computed(() => {
           <VRow>
             <VCol cols="4">
               <VAutocomplete
-                v-model="to_branch_id"
+                v-model="branch_id"
                 label="Выберите филиал"
                 :items="branches_list"
                 item-title="name"
@@ -450,7 +454,9 @@ const calculateCount = computed(() => {
                 </VCol>
 
                 <VCol cols="5">
-                  <h4 class="pt-1">Товар: {{ product_variant_data?.product_variant_name }}</h4>
+                  <h4 class="pt-1">
+                    Товар: {{ product_variant_data?.product_variant_name }}
+                  </h4>
                   <p class="pt-2 mb-0">
                     На складе:
                     <b>{{ product_variant_data?.quantity ?? 0 }}</b>

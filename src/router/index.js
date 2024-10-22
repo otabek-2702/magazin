@@ -77,20 +77,20 @@ const router = createRouter({
         },
         {
           path: "invoices",
-          name: "IncomeInvoices",
+          name: "InvoicesIncome",
           component: () => import("@/pages/invoices.vue"),
           meta: {
             action: "show",
-            subject: "IncomeInvoices",
+            subject: "InvoicesIncome",
           },
         },
         {
-          path: "invoices",
-          name: "DepartureInvoices",
-          component: () => import("@/pages/branches/invoices.vue"),
+          path: "invoices-departure",
+          name: "InvoicesDeparture",
+          component: () => import("@/pages/invoices-departure.vue"),
           meta: {
             action: "show",
-            subject: "DepartureInvoices",
+            subject: "InvoicesDeparture",
           },
         },
         // products
@@ -152,18 +152,18 @@ const router = createRouter({
                 subject: "BranchesWareHouse",
               },
             },
+            {
+              path: 'invoices',
+              name: 'InvoicesWarehouse',
+              component: () => import("@/pages/branches/invoices.vue"),
+              meta: {
+                action: 'show',
+                subject: 'InvoicesWarehouse',
+              }
+            },
           ],
         },
         // invoices
-        {
-          path: 'showcase-invoices',
-          name: 'ShowcaseInvoices',
-          component: () => import("@/pages/branches/showcase-invoices.vue"),
-          meta: {
-            action: 'show',
-            subject: 'ShowcaseInvoices',
-          }
-        },
         // suppliers
         {
           path: "suppliers",

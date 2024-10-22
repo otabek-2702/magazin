@@ -1,16 +1,27 @@
 <script setup>
-import { nextTick, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, fetchOptions } from "@/helpers";
+import { fetchOptions, transformPrice } from "@/helpers";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
 
-const emit = defineEmits(["fetchDatas"]);
+const props = defineProps({
+  id: {
+    required: true,
+  },
+  isDialogOpen: {
+    type: Boolean,
+    required: true,
+  },
+});
+const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
 
-const isDialogVisible = ref(false);
-const isFetching = ref(false);
+const isFetchingStart = ref(true);
+const isFetching = ref("");
 const isFormValid = ref(false);
 const refForm = ref();
 const to_branch_id = ref();
+const status = ref();
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
@@ -18,42 +29,122 @@ const quantity_ref = ref();
 const quantity = ref();
 const product_variants = ref([]);
 
-const onSubmit = () => {
+const fetchDataById = async () => {
+  isFetchingStart.value = true;
+  try {
+    const response = await axios.get(`/stock_movement_invoices/${props.id}`);
+
+    if (response.status === 200) {
+      const {
+        data: { stock_movement_invoice },
+      } = response;
+
+      to_branch_id.value = stock_movement_invoice.to_branch.id;
+      status.value = stock_movement_invoice.status;
+      product_variants.value = stock_movement_invoice.items;
+    }
+  } catch (error) {
+    console.error("Ошибка:", error);
+  } finally {
+    isFetchingStart.value = false;
+  }
+};
+
+const onSubmit = async (reject_or_submit = false) => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      isFetching.value = true;
+      isFetching.value = "submit";
       try {
-        await axios.post("/warehouse_movement_invoices", {
-          branch_id: to_branch_id.value ?? 0,
+        await axios.put(`/stock_movement_invoices/${props.id}`, {
+          to_branch_id: to_branch_id.value ?? 0,
 
           items: product_variants.value,
         });
-        emit("fetchDatas");
-        toast("Успешно добавлено", {
-          theme: "auto",
-          type: "success",
-          dangerouslyHTMLString: true,
-        });
-        handleDrawerModelValueUpdate(false);
+        if (!reject_or_submit) {
+          emit("fetchDatas");
+          toast("Успешно", {
+            theme: "auto",
+            type: "success",
+            dangerouslyHTMLString: true,
+          });
+          handleDialogModelValueUpdate(false);
+        }
       } catch (error) {
         console.error(error);
       } finally {
-        isFetching.value = false;
+        isFetching.value = "";
       }
     }
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
-  isDialogVisible.value = val;
+const onConfirm = async () => {
+  isFetching.value = "confirm";
+  try {
+    const reponse = await axios.post(
+      `/stock_movement_invoices/confirm/${props.id}`
+    );
+    if (reponse.status === 200) {
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = "";
+  }
+};
+
+const onReject = async () => {
+  isFetching.value = "reject";
+  try {
+    const reponse = await axios.post(
+      `/stock_movement_invoices/reject/${props.id}`
+    );
+    if (reponse.status === 200) {
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = "";
+  }
+};
+
+const onConfirmSubmit = async () => {
+  await onSubmit(true);
+  await onConfirm();
+};
+const onRejectSubmit = async () => {
+  await onSubmit(true);
+  await onReject();
+};
+
+const handleDialogModelValueUpdate = (val) => {
+  emit("update:isDialogOpen", false);
   if (!val) {
-    to_branch_id.value = null;
-    product_variant_sku.value = null;
-    product_variant_data.value = null;
-    quantity.value = null;
-    product_variants.value = [];
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
+    nextTick(() => {
+      to_branch_id.value = null;
+      product_variant_sku.value = null;
+      product_variant_data.value = null;
+      quantity.value = null;
+      product_variants.value = [];
+      refForm.value?.reset();
+      refForm.value?.resetValidation();
+    });
   }
 };
 
@@ -61,12 +152,18 @@ const product_variants_list = ref([]);
 const branches_list = ref([]);
 
 watch(
-  isDialogVisible,
-  () => {
-    fetchOptions("/branches", branches_list, "branches");
-  },
-  { once: true }
+  () => props.isDialogOpen,
+  (newVal) => {
+    if (newVal && props.id) {
+      fetchDataById();
+    }
+  }
 );
+
+onMounted(() => {
+  fetchOptions("/branches", branches_list, "branches");
+});
+
 // find Product
 const findProductVariant = async (raw_sku) => {
   const sku = raw_sku.replace(/ылг/g, "sku");
@@ -106,7 +203,7 @@ const findProductVariant = async (raw_sku) => {
 const addToList = () => {
   if (product_variant_data.value) {
     // find if object exists
-    if (product_variant_data.value?.quantity <= 0) {
+    if (product_variant_data.value.quantity <= 0) {
       toast("На складе отсутствует этот товар.", {
         theme: "auto",
         type: "warning",
@@ -204,28 +301,26 @@ const deleteListItem = (id) => {
 
 const calculateCount = computed(() => {
   if (!product_variants.value) return 0;
-  return product_variants.value.reduce(
-    (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
-    0
+  return transformPrice(
+    product_variants.value.reduce(
+      (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
+      0
+    )
   );
 });
 </script>
 
 <template>
-  <VDialog fullscreen v-model="isDialogVisible">
-    <!-- Dialog Activator -->
-    <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props"
-        >Накладная для витрины</VBtn
-      >
-    </template>
-
-    <!-- Dialog Content -->
-    <VCard title="Накладная">
+  <VDialog
+    fullscreen
+    :model-value="props.isDialogOpen"
+    @update:model-value="handleDialogModelValueUpdate"
+  >
+    <VCard :title="`Накладная #${props.id}`">
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="isDialogVisible = false"
+        @click="handleDialogModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -237,7 +332,8 @@ const calculateCount = computed(() => {
                 :items="branches_list"
                 item-title="name"
                 item-value="id"
-                autofocus
+                :readonly="status != 'Черновик'"
+                :clearable="status == 'Черновик'"
               />
             </VCol>
 
@@ -250,7 +346,7 @@ const calculateCount = computed(() => {
                     <th style="width: 48px">ID</th>
                     <th>ТОВАР</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th>ДЕЙСТВИЯ</th>
+                    <th v-if="status == 'Черновик'">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -261,7 +357,7 @@ const calculateCount = computed(() => {
                   >
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ variant.product_variant_name }}
+                      {{ variant?.product_variant_name }}
                     </td>
                     <td>
                       <VTextField
@@ -273,6 +369,7 @@ const calculateCount = computed(() => {
                         }"
                         @blur="hideEditInput(variant)"
                         @keyup.enter="hideEditInput(variant)"
+                        :autofocus="editingId == variant.product_variant_id"
                         class="custom-input"
                         density="compact"
                         type="number"
@@ -282,9 +379,10 @@ const calculateCount = computed(() => {
                     <td
                       class="text-center"
                       :style="{ width: '80px', zIndex: '10' }"
+                      v-if="status == 'Черновик'"
                     >
                       <VIcon
-                        v-if="editingId == variant.product_variant_id"
+                        v-if="editingId === variant.product_variant_id"
                         @click.stop="hideEditInput(variant)"
                         size="30"
                         icon="bx-check"
@@ -313,13 +411,19 @@ const calculateCount = computed(() => {
                   <tr>
                     <td colspan="2"></td>
                     <td class="text-body-1">
-                      Общая количество: {{ calculateCount }}
+                      Общее количество: {{ calculateCount }}
                     </td>
                     <td></td>
-                    <td></td>
+                    <td v-if="status == 'Черновик'"></td>
                   </tr>
                 </tfoot>
-                <tfoot v-show="!product_variants.length">
+
+                <Skeleton
+                  :count="4"
+                  v-show="isFetchingStart && !product_variants.length"
+                />
+
+                <tfoot v-show="!isFetchingStart && !product_variants.length">
                   <tr>
                     <td colspan="9" class="text-center text-body-1">
                       Нет доступных данных
@@ -331,71 +435,92 @@ const calculateCount = computed(() => {
 
             <VDivider />
 
-            <VCol cols="12">
-              <VForm>
-                <VRow>
-                  <VCol cols="3" class="d-flex align-center">
-                    <VTextField
-                      v-model="product_variant_sku"
-                      ref="sku_ref"
-                      @input="
-                        product_variant_sku = product_variant_sku.toUpperCase()
-                      "
-                      @keyup.enter="findProductVariant(product_variant_sku)"
-                      label="Штрих код товара"
-                      :items="product_variants_list"
-                      item-title="name"
-                      item-value="id"
-                      :rules="[]"
-                    />
-                  </VCol>
+            <VForm v-if="status == 'Черновик'" class="w-100 py-5">
+              <VRow>
+                <VCol cols="3">
+                  <VTextField
+                    v-model="product_variant_sku"
+                    ref="sku_ref"
+                    @input="
+                      product_variant_sku = product_variant_sku.toUpperCase()
+                    "
+                    @keyup.enter="findProductVariant(product_variant_sku)"
+                    label="Штрих код товара"
+                    :items="product_variants_list"
+                    item-title="name"
+                    item-value="id"
+                    :rules="[]"
+                  />
+                </VCol>
 
-                  <VCol cols="5">
-                    <h4 class="pt-1">
-                      Товар: {{ product_variant_data?.product_variant_name }}
-                    </h4>
-                    <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                    <p class="pt-2 mb-0">
-                      На складе:
-                      <b>{{ product_variant_data?.quantity ?? 0 }}</b>
-                    </p>
-                  </VCol>
+                <VCol cols="5">
+                  <h4 class="pt-1">
+                    Товар: {{ product_variant_data?.product_variant_name }}
+                  </h4>
+                  <p class="pt-2 mb-0">
+                    На складе:
+                    <b>{{ product_variant_data?.quantity ?? 0 }}</b>
+                  </p>
+                </VCol>
 
-                  <VCol cols="3" class="d-flex align-center">
-                    <VTextField
-                      v-model="quantity"
-                      ref="quantity_ref"
-                      @keyup.enter="addToList"
-                      label="Количество"
-                      type="number"
-                      :rules="[]"
-                      @focus="autoSelectInputValue"
-                    />
-                  </VCol>
-                  <VCol cols="1" class="d-flex justify-center align-center">
-                    <VBtn
-                      @click="addToList"
-                      style="
-                        color: white !important;
-                        background-color: #4caf50 !important;
-                        border-radius: 5px !important;
-                      "
-                    >
-                      <VIcon size="35" icon="bx-plus"></VIcon>
-                    </VBtn>
-                  </VCol>
-                </VRow>
-              </VForm>
-            </VCol>
+                <VCol cols="3">
+                  <VTextField
+                    v-model="quantity"
+                    ref="quantity_ref"
+                    @keyup.enter="addToList"
+                    label="Количество"
+                    type="number"
+                    :rules="[]"
+                  />
+                </VCol>
+                <VCol cols="1" class="d-flex justify-center align-center">
+                  <VBtn
+                    @click="addToList"
+                    style="
+                      color: white !important;
+                      background-color: #4caf50 !important;
+                      border-radius: 5px !important;
+                    "
+                  >
+                    <VIcon size="35" icon="bx-plus"></VIcon>
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VRow>
           <VCardText class="d-flex justify-end gap-2 pt-2">
             <VBtn
-              :loading="isFetching"
-              :disabled="isFetching"
+              v-if="status == 'Черновик'"
+              :loading="isFetching == 'submit'"
+              :disabled="isFetching == 'submit'"
               type="button"
               @click="onSubmit"
+              class="me-3"
             >
-              Отправить
+              Сохранить изменения
+            </VBtn>
+            <VBtn
+              :loading="isFetching == 'confirm'"
+              :disabled="isFetching == 'confirm'"
+              type="button"
+              @click="onConfirmSubmit"
+              color="success"
+              v-if="status == 'Черновик'"
+              class="me-3"
+            >
+              Подтвердить
+              <VIcon end icon="bx-check-circle" />
+            </VBtn>
+            <VBtn
+              :loading="isFetching == 'reject'"
+              :disabled="isFetching == 'reject'"
+              type="button"
+              @click="onRejectSubmit"
+              color="secondary"
+              v-if="status == 'Черновик'"
+            >
+              Отменить
+              <VIcon end icon="bx-minus-circle" />
             </VBtn>
           </VCardText>
         </VForm>
@@ -405,6 +530,10 @@ const calculateCount = computed(() => {
 </template>
 
 <style scoped>
+.bg-green {
+  background-color: green;
+}
+
 .text-input {
   background-color: transparent !important;
 }
@@ -424,6 +553,5 @@ const calculateCount = computed(() => {
 
 .custom-input {
   margin: 1px;
-  width: 100%;
 }
 </style>

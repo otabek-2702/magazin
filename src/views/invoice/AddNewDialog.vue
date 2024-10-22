@@ -42,7 +42,7 @@ const onSubmit = () => {
           type: "success",
           dangerouslyHTMLString: true,
         });
-        handleDrawerModelValueUpdate(false);
+        handleDialogModelValueUpdate(false);
       } catch (error) {
         console.error(error);
       } finally {
@@ -52,7 +52,7 @@ const onSubmit = () => {
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
+const handleDialogModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (!val) {
     nextTick(() => {
@@ -175,7 +175,7 @@ const addToList = () => {
 
       product_variants.value.push({
         ...productObj,
-        price: price.value,
+        price: removeSpaces(price.value),
         quantity: quantity.value,
       });
     });

@@ -58,7 +58,7 @@ const fetchDataById = async () => {
   }
 };
 
-const onSubmit = async () => {
+const onSubmit = async (reject_or_submit = false) => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = "submit";
@@ -70,13 +70,15 @@ const onSubmit = async () => {
 
           items: product_variants.value,
         });
-        emit("fetchDatas");
-        toast("Успешно", {
-          theme: "auto",
-          type: "success",
-          dangerouslyHTMLString: true,
-        });
-        handleDialogModelValueUpdate(false);
+        if (!reject_or_submit) {
+          emit("fetchDatas");
+          toast("Успешно", {
+            theme: "auto",
+            type: "success",
+            dangerouslyHTMLString: true,
+          });
+          handleDialogModelValueUpdate(false);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -86,7 +88,7 @@ const onSubmit = async () => {
   });
 };
 
-const onConfirmSubmit = async () => {
+const onConfirm = async () => {
   isFetching.value = "confirm";
   try {
     const reponse = await axios.post(`/invoices/confirm/${props.id}`);
@@ -107,7 +109,7 @@ const onConfirmSubmit = async () => {
   }
 };
 
-const onRejectSubmit = async () => {
+const onReject = async () => {
   isFetching.value = "reject";
   try {
     const reponse = await axios.post(`/invoices/reject/${props.id}`);
@@ -126,6 +128,15 @@ const onRejectSubmit = async () => {
   } finally {
     isFetching.value = "";
   }
+};
+
+const onConfirmSubmit = async () => {
+  await onSubmit(true);
+  await onConfirm();
+};
+const onRejectSubmit = async () => {
+  await onSubmit(true);
+  await onReject();
 };
 
 const handleDialogModelValueUpdate = (val) => {

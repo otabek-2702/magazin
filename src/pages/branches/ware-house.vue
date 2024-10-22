@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
-import AddNewWayBillToBranchDialog from "@/views/branch/invoice/AddNewDialog.vue";
+import AddNewWayBillToShowcaseDialog from "@/views/branch/invoice/AddNewDialog.vue";
 import { fetchOptions } from "@/helpers";
 
 const searchQuery = ref("");
@@ -136,7 +136,7 @@ const openBarcodeDialog = (id) => {
             :isDeleting="isDeleting"
           /> -->
           <VCardText class="d-flex flex-wrap">
-            <!-- <AddNewWayBillToBranchDialog @fetchDatas="() => fetchData(true)" /> -->
+            <AddNewWayBillToShowcaseDialog @fetchDatas="() => fetchData(true)" />
 
             <VSpacer />
 
