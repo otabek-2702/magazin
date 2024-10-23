@@ -224,8 +224,7 @@ const deleteItem = async function (id) {
             <VPagination
               v-if="employees.length"
               v-model="currentPage"
-              size="small"
-              :total-visible="1"
+              :total-visible="7"
               :length="totalPage"
             />
           </VCardText>

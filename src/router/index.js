@@ -161,6 +161,15 @@ const router = createRouter({
                 subject: 'InvoicesWarehouse',
               }
             },
+            {
+              path: 'showcase',
+              name: 'Showcase',
+              component: () => import("@/pages/branches/showcase.vue"),
+              meta: {
+                action: 'show',
+                subject: 'Showcase',
+              }
+            },
           ],
         },
         // cash register

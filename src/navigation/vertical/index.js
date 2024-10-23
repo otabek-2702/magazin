@@ -102,8 +102,13 @@ export default [
       {
         title: 'Накладные для витрины',
         to: { name: 'InvoicesWarehouse' },
-        icon: { icon: 'mdi-clipboard-list' },
         subject: 'InvoicesWarehouse',
+        action: 'show'
+      },
+      {
+        title: 'Витрина',
+        to: { name: 'Showcase' },
+        subject: 'Showcase',
         action: 'show'
       },
     ]
