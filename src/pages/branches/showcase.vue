@@ -1,125 +1,64 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
 import { fetchOptions } from "@/helpers";
+import { useFetch } from "@/hooks/useFetch";
 
-const searchQuery = ref("");
-const finalSearch = ref("");
+// Initialize branches state
 const selectedBranch = ref();
-const rowPerPage = ref(30);
-const currentPage = ref(1);
-const totalPage = ref(1);
-const lastFetchedPage = ref(null);
-const totalDatasCount = ref(0);
-const products = ref([]);
-
-// Get main datas start
-const isFetching = ref(false);
-const filtersChanged = ref(false);
-
-const fetchData = async (force = false) => {
-  if (
-    !force &&
-    (isFetching.value ||
-      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
-  ) {
-    return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
-  }
-
-  try {
-    isFetching.value = true;
-    const { data } = await axios.get(
-      `/showcases?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
-    );
-
-    products.value = data["showcase"];
-    lastFetchedPage.value = currentPage.value;
-    currentPage.value = data["meta"]["pagination"]["current_page"];
-    totalDatasCount.value = data["meta"]["pagination"]["total"];
-    totalPage.value = data["meta"]["pagination"]["total_pages"];
-    rowPerPage.value = data["meta"]["pagination"]["per_page"];
-
-    filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
-  } catch (error) {
-    console.error("Ошибка загрузки товаров:", error);
-  } finally {
-    isFetching.value = false;
-  }
-};
-
-// Get main datas end
-
-// 👉 watching selected filters
-watch([], () => {
-  // Сбрасываем на первую страницу при изменении фильтров
-  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-  currentPage.value = 1;
-  fetchData(true);
-});
-
-// search
-const searchElements = () => {
-  finalSearch.value = searchQuery.value;
-  currentPage.value = 1;
-  fetchData(true);
-};
-
-watch(searchQuery, (newVal) => {
-  if (!newVal) {
-    finalSearch.value = "";
-    currentPage.value = 1;
-    fetchData(true);
-  }
-});
-
 const branches_list = ref([]);
 
+// Initialize barcode dialog state
+const isBarcodeDialogVisible = ref(false);
+const barcodeDialogId = ref(0);
+
+// Initialize useFetch hook with your configuration
+const {
+  state,
+  items: products,
+  currentPage,
+  totalPages: totalPage,
+  paginationData,
+  fetchData,
+  handleSearch,
+  searchQuery,
+  isFetching,
+} = useFetch({
+  baseUrl: "showcases",
+  resourceKey: "showcase",
+  immediate: true,
+  initialPage: 1,
+  perPage: 30,
+  debounceMs: 300,
+});
+
+// Watch for branch selection changes to update filters
+watch(selectedBranch, (newValue) => {
+  if (newValue !== undefined) {
+    fetchData(
+      {
+        additionalParams: {
+          branch_id: newValue,
+        },
+      },
+      true
+    );
+  }
+});
+
+// Barcode dialog handler
+const openBarcodeDialog = (id) => {
+  barcodeDialogId.value = id;
+  isBarcodeDialogVisible.value = true;
+};
+
+// Initialize component
 onMounted(() => {
   fetchData();
   fetchOptions("branches", branches_list, "branches");
 });
-
-const isBarcodeDialogVisible = ref(false);
-
-// Pages start
-
-// 👉 watching current page
-watch(currentPage, () => {
-  if (!isFetching.value) {
-    fetchData();
-  }
-});
-
-// 👉 Watching current page
-watchEffect(() => {
-  if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
-});
-
-// 👉 Computing pagination data
-const paginationData = computed(() => {
-  const firstIndex = products.value.length
-    ? (currentPage.value - 1) * rowPerPage.value + 1
-    : 0;
-  const lastIndex =
-    products.value.length + (currentPage.value - 1) * rowPerPage.value;
-
-  return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
-});
-
-// Pages end
-
-// BarCode
-const barcodeDialogId = ref(0);
-const openBarcodeDialog = (id) => {
-  barcodeDialogId.value = id;
-  isBarcodeDialogVisible.value = true;
-  console.log(branches_list.value)
-
-};
-
-// end BarCode
 </script>
 
 <template>
@@ -127,21 +66,13 @@ const openBarcodeDialog = (id) => {
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <!-- <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          /> -->
           <VCardText class="d-flex flex-wrap">
-
             <VSpacer />
 
             <VCol cols="4" class="app-user-search-filter d-flex align-center">
               <VTextField
                 v-model="searchQuery"
-                @keyup.enter="searchElements"
+                @keyup.enter="handleSearch"
                 placeholder="Поиск товара"
                 :rules="[]"
                 density="compact"
@@ -157,7 +88,7 @@ const openBarcodeDialog = (id) => {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
-                <!-- <th>
+                <th>
                   <VSelect
                     v-model="selectedBranch"
                     label="ФИЛИАЛ"
@@ -167,7 +98,7 @@ const openBarcodeDialog = (id) => {
                     variant="plain"
                     :rules="[]"
                   />
-                </th> -->
+                </th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>
@@ -186,7 +117,7 @@ const openBarcodeDialog = (id) => {
                     {{ product?.variant.size?.name }} )</b
                   >
                 </td>
-                <!-- <td>{{ product.branch?.name }}</td> -->
+                <td>{{ product.branch?.name }}</td>
                 <td>{{ product.variant?.product?.brand }}</td>
                 <td>{{ product.variant?.product?.category }}</td>
                 <td>{{ product.quantity }}</td>
@@ -209,7 +140,10 @@ const openBarcodeDialog = (id) => {
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="8" v-show="isFetching && !products.length" />
+            <Skeleton
+              :count="8"
+              v-show="isFetching && !products.length"
+            />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
@@ -241,7 +175,7 @@ const openBarcodeDialog = (id) => {
     <BarcodeDialog
       v-model:isDrawerOpen="isBarcodeDialogVisible"
       :productId="barcodeDialogId"
-      @fetchDatas="() => fetchData(true)"
+      @fetchDatas="() => fetchData({}, true)"
     />
   </section>
 </template>

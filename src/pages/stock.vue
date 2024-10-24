@@ -1,13 +1,13 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import BarcodeDialog from '@/views/stock/BarcodeDialog.vue';
-import AddNewWayBillToBranchDialog from '@/views/invoice-departure/AddNewDialog.vue';
-import { transformPrice } from '@/helpers';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
+import AddNewWayBillToBranchDialog from "@/views/invoice-departure/AddNewDialog.vue";
+import { transformPrice } from "@/helpers";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -24,7 +24,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -32,21 +33,21 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/stock?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    products.value = data['stock'];
+    products.value = data["stock"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
-    totalQuantity.value = data['total_quantity'];
-    totalPrice.value = data['total_price'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
+    totalQuantity.value = data["total_quantity"];
+    totalPrice.value = data["total_price"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error("Ошибка загрузки товаров:", error);
   } finally {
     isFetching.value = false;
   }
@@ -71,7 +72,7 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
@@ -99,8 +100,11 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = products.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    products.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -167,13 +171,19 @@ const openBarcodeDialog = (id) => {
                 <td>{{ stock.id }}</td>
                 <td>
                   {{ stock?.variant.product?.name }}
-                  <b>( {{ stock?.variant.color?.name }} | {{ stock?.variant.size?.name }} )</b>
+                  <b
+                    >( {{ stock?.variant.color?.name }} |
+                    {{ stock?.variant.size?.name }} )</b
+                  >
                 </td>
                 <td>{{ stock.variant?.product?.brand }}</td>
                 <td>{{ stock.variant?.product?.category }}</td>
                 <td>{{ stock.quantity }}</td>
                 <td>{{ stock.variant?.product?.gender }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td
+                  class="text-center"
+                  :style="{ width: '80px', zIndex: '10' }"
+                >
                   <VIcon
                     @click="
                       (event) => {
@@ -192,7 +202,9 @@ const openBarcodeDialog = (id) => {
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
-                <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="9" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -207,7 +219,7 @@ const openBarcodeDialog = (id) => {
             <VPagination
               v-if="products.length"
               v-model="currentPage"
-:total-visible="7"
+              :total-visible="7"
               :length="totalPage"
             />
           </VCardText>

@@ -118,7 +118,7 @@ export default [
     icon: { icon: 'mdi-cash-register' },
     children: [
       {
-        title: 'Кассы',
+        title: 'Касса',
         to: { name: 'CashsRegister' },
         subject: 'CashsRegister',
         action: 'show'

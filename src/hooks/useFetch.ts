@@ -1,8 +1,10 @@
-// composables/usePagination.ts
-import { ref, computed, watch } from "vue";
-import axios from "axios";
-import { debounce } from "lodash-es"; // If you're using lodash
+// composables/useFetch.ts
+import { ref, computed, watch, onUnmounted } from "vue";
+import { AxiosResponse } from "axios";
+import axios from "@/plugins/axios";
+import { debounce } from "@/utils/debounce";
 
+// Types and Interfaces
 interface PaginationMeta {
   current_page: number;
   total: number;
@@ -11,110 +13,211 @@ interface PaginationMeta {
 }
 
 interface FetchOptions {
-  baseUrl: string;
-  searchQuery?: string;
   additionalParams?: Record<string, any>;
+  onSuccess?: (data: any) => void;
+  onError?: (error: Error) => void;
 }
 
-export function usePagination() {
-  // State refs
-  const items = ref([]);
-  const currentPage = ref(1);
-  const totalPages = ref(1);
-  const rowsPerPage = ref(10);
-  const totalItems = ref(0);
-  const searchQuery = ref("");
-  const finalSearch = ref("");
-  const isFetching = ref(false);
-  const lastFetchedPage = ref(null);
+interface UseFetchConfig {
+  baseUrl: string;
+  resourceKey?: string;
+  immediate?: boolean;
+  initialPage?: number;
+  perPage?: number;
+  debounceMs?: number;
+}
 
-  // Computed for pagination display
-  const paginationData = computed(() => {
-    const firstIndex = items.value.length
-      ? (currentPage.value - 1) * rowsPerPage.value + 1
-      : 0;
-    const lastIndex =
-      items.value.length + (currentPage.value - 1) * rowsPerPage.value;
+interface FetchState<T> {
+  items: T[];
+  currentPage: number;
+  totalPages: number;
+  rowsPerPage: number;
+  totalItems: number;
+  error: string | null;
+  isError: boolean;
+  isFetching: boolean;
+  searchQuery: string;
+}
 
-    return `${firstIndex}-${lastIndex} of ${totalItems.value}`;
+export function useFetch<T = any>(config: UseFetchConfig) {
+  // State
+  const state = ref<FetchState<T>>({
+    items: [],
+    currentPage: config.initialPage || 1,
+    totalPages: 1,
+    rowsPerPage: config.perPage || 10,
+    totalItems: 0,
+    error: null,
+    isError: false,
+    isFetching: false,
+    searchQuery: "",
   });
 
-  const fetchData = async (force = false) => {
+  // Internal state
+  const finalSearch = ref("");
+  const lastFetchedPage = ref<number | null>(null);
+
+  // Computed Properties
+  const paginationData = computed(() => {
+    const firstIndex = state.value.items.length
+      ? (state.value.currentPage - 1) * state.value.rowsPerPage + 1
+      : 0;
+    const lastIndex = Math.min(
+      firstIndex + state.value.rowsPerPage - 1,
+      state.value.totalItems
+    );
+    return `${firstIndex}-${lastIndex} of ${state.value.totalItems}`;
+  });
+
+  // Core fetch function
+  const fetchData = async (options: FetchOptions = {}, force = false) => {
     if (
       !force &&
-      (isFetching.value || currentPage.value === lastFetchedPage.value)
+      (state.value.isFetching ||
+        state.value.currentPage === lastFetchedPage.value)
     ) {
       return;
     }
 
-    try {
-      isFetching.value = true;
-      const { data } = await axios.get(
-        `/batches?paginate=${rowsPerPage.value}&page=${currentPage.value}&search=${finalSearch.value}`
-      );
+    // Create new cancel token
 
-      items.value = data.batches;
-      lastFetchedPage.value = currentPage.value;
-      currentPage.value = data.meta.pagination.current_page;
-      totalItems.value = data.meta.pagination.total;
-      totalPages.value = data.meta.pagination.total_pages;
-      rowsPerPage.value = data.meta.pagination.per_page;
+    try {
+      state.value.isFetching = true;
+      state.value.error = null;
+      state.value.isError = false;
+
+      const params = {
+        page: state.value.currentPage,
+        paginate: state.value.rowsPerPage,
+        search: finalSearch.value,
+        ...options.additionalParams,
+      };
+
+      const { data }: AxiosResponse = await axios.get(`/${config.baseUrl}`, {
+        params,
+      });
+
+      // Update items based on resourceKey or default structure
+      state.value.items = data.data || data[config.resourceKey || ""] || [];
+      lastFetchedPage.value = state.value.currentPage;
+
+      // Update pagination meta
+      const meta = data.meta?.pagination as PaginationMeta;
+      if (meta) {
+        state.value.currentPage = meta.current_page;
+        state.value.totalItems = meta.total;
+        state.value.totalPages = meta.total_pages;
+        state.value.rowsPerPage = meta.per_page;
+      }
+
+      options.onSuccess?.(data);
     } catch (error) {
-      console.error("Failed to fetch data:", error);
-      items.value = [];
+        state.value.error =
+          error instanceof Error ? error.message : "An error occurred";
+        state.value.isError = true;
+        state.value.items = [];
+        options.onError?.(error as Error);
     } finally {
-      isFetching.value = false;
+        state.value.isFetching = false;
     }
   };
 
-  // Debounced fetch with 300ms delay
-  const debouncedFetch = debounce(fetchData, 300);
+  // Debounced version of fetchData
+  const debouncedFetchData = debounce(fetchData, config.debounceMs || 300);
 
   // Search handler
-  const handleSearch = () => {
-    finalSearch.value = searchQuery.value;
-    currentPage.value = 1;
-    fetchData(true);
+  const handleSearch = (options: FetchOptions = {}) => {
+    finalSearch.value = state.value.searchQuery;
+    state.value.currentPage = 1;
+    fetchData(options, true);
   };
 
-  // Watch search query
-  watch(searchQuery, (newVal) => {
-    if (!newVal) {
-      finalSearch.value = "";
-      currentPage.value = 1;
-      fetchData(true);
-    }
-  });
+  // Reset function
+  const resetFetch = () => {
+    state.value = {
+      items: [],
+      currentPage: config.initialPage || 1,
+      totalPages: 1,
+      rowsPerPage: config.perPage || 10,
+      totalItems: 0,
+      error: null,
+      isError: false,
+      isFetching: false,
+      searchQuery: "",
+    };
+    finalSearch.value = "";
+    lastFetchedPage.value = null;
+  };
 
-  // Watch current page
-  watch(currentPage, () => {
-    if (!isFetching.value) {
-      debouncedFetch();
-    }
-  });
+  // Update per page
+  const updatePerPage = (newPerPage: number) => {
+    state.value.rowsPerPage = newPerPage;
+    state.value.currentPage = 1;
+    fetchData({}, true);
+  };
 
-  // Watch total pages to ensure current page is valid
-  watch(totalPages, (newTotalPages) => {
-    if (currentPage.value > newTotalPages && newTotalPages > 0) {
-      currentPage.value = newTotalPages;
+  // Watchers
+  watch(
+    () => state.value.searchQuery,
+    (newVal) => {
+      if (!newVal) {
+        finalSearch.value = "";
+        state.value.currentPage = 1;
+        fetchData({}, true);
+      }
     }
-  });
+  );
+
+  watch(
+    () => state.value.currentPage,
+    () => {
+      if (!state.value.isFetching) {
+        debouncedFetchData({});
+      }
+    }
+  );
+
+  watch(
+    () => state.value.totalPages,
+    (newTotalPages) => {
+      if (state.value.currentPage > newTotalPages) {
+        state.value.currentPage = Math.max(1, newTotalPages);
+      }
+    }
+  );
+
+  // Initial fetch if immediate is true
+  if (config.immediate) {
+    fetchData({}, true);
+  }
+
 
   return {
-    // State
-    items,
-    currentPage,
-    totalPages,
-    rowsPerPage,
-    totalItems,
-    isFetching,
-    searchQuery,
+    // State (wrapped in computed to make them readonly from outside)
+    items: computed(() => state.value.items),
+    currentPage: computed(() => state.value.currentPage),
+    totalPages: computed(() => state.value.totalPages),
+    rowsPerPage: computed(() => state.value.rowsPerPage),
+    totalItems: computed(() => state.value.totalItems),
+    isFetching: computed(() => state.value.isFetching),
+    isError: computed(() => state.value.isError),
+    error: computed(() => state.value.error),
+    searchQuery: computed({
+      get: () => state.value.searchQuery,
+      set: (value) => (state.value.searchQuery = value),
+    }),
 
     // Computed
     paginationData,
 
     // Methods
     fetchData,
+    debouncedFetchData,
     handleSearch,
+    resetFetch,
+    updatePerPage,
+
+    // For template binding
+    state,
   };
 }
