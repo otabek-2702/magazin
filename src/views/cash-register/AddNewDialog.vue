@@ -4,11 +4,13 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import CheckDialog from "./CheckDialog.vue";
+import { sendCutCommand } from "@/helpers/printer";
 
 const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
 const isFetching = ref(false);
+const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const selectedCashR = ref();
@@ -90,8 +92,10 @@ watch(selectedCashR, (newVal) => {
 
 // find Product
 const findProductVariant = async (raw_sku) => {
-  const sku = raw_sku.replace(/ылг/g, "sku");
   try {
+    isFetchingVariant.value = true;
+    const sku = raw_sku.replace(/ылг/g, "sku");
+
     const response = await axios.get(`/showcases?search=${sku}`);
 
     if (response.status === 200 && response.data.showcase) {
@@ -109,8 +113,9 @@ const findProductVariant = async (raw_sku) => {
     }
   } catch (error) {
     console.log(error);
+  } finally {
+    isFetchingVariant.value = false;
   }
-
   if (!product_variant_data.value) {
     toast("Товар не найден", {
       theme: "auto",
@@ -251,13 +256,32 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
+
+// print cutter
+const cutCheck = () => {
+  // Send cut command to printer
+  const cutCommand = "\x1B\x69"; // ESC i
+  // If using a different printer, you might need a different command:
+  // const cutCommand = '\x1D\x56\x41\x00'; // GS V A 0
+
+  // You can try to send the cut command through your print system
+  // This might require a printer-specific implementation
+  try {
+    if (window.navigator.serial) {
+      // Web Serial API implementation if available
+      sendCutCommand(cutCommand);
+    }
+  } catch (error) {
+    console.error("Error sending cut command:", error);
+  }
+};
 </script>
 
 <template>
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props"
+      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
         >Продажа товаров</VBtn
       >
     </template>
@@ -267,7 +291,7 @@ const calculateTotalPrice = computed(() => {
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="isDialogVisible = false"
+        @click="handleDrawerModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -417,7 +441,7 @@ const calculateTotalPrice = computed(() => {
                     />
                   </VCol>
 
-                  <VCol cols="5">
+                  <VCol cols="4">
                     <h4 class="pt-1">
                       Товар: {{ product_variant_data?.product_variant_name }}
                     </h4>
@@ -427,6 +451,16 @@ const calculateTotalPrice = computed(() => {
                       <b>{{ product_variant_data?.quantity ?? 0 }} шт</b>
                     </p>
                   </VCol>
+                  <VCol
+                    cols="1"
+                    class="d-flex justify-content-center align-center"
+                  >
+                    <VProgressCircular
+                      v-if="isFetchingVariant"
+                      color="primary"
+                      indeterminate
+                    ></VProgressCircular>
+                  </VCol>
                   <VCol cols="1" class="d-flex align-center">
                     <h3 class="pt-1">
                       Стоимость:
@@ -434,7 +468,7 @@ const calculateTotalPrice = computed(() => {
                     </h3>
                   </VCol>
 
-                  <VCol cols="2" class="d-flex align-center">
+                  <VCol cols="3" class="d-flex align-center gap-4">
                     <VTextField
                       v-model="quantity"
                       ref="quantity_ref"
@@ -444,8 +478,6 @@ const calculateTotalPrice = computed(() => {
                       :rules="[]"
                       @focus="autoSelectInputValue"
                     />
-                  </VCol>
-                  <VCol cols="1" class="d-flex justify-center align-center">
                     <VBtn
                       @click="addToList"
                       style="
@@ -473,7 +505,10 @@ const calculateTotalPrice = computed(() => {
             <VBtn
               :disabled="!product_variants.length"
               color="info"
-              v-print="'#receipt-content'"
+              v-print="{
+                id: 'receipt-content',
+                callback: cutCheck,
+              }"
             >
               <VIcon size="20" icon="mdi-printer" class="me-2" />
               Печать чека

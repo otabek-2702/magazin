@@ -32,10 +32,10 @@ const formatDate = (date) => {
 </script>
 
 <template>
-  <div id="receipt-content" class="receipt-container">
+  <div id="receipt-content">
     <div class="receipt">
       <div class="header">
-        <h1>SOLUS</h1>
+        <h1>ВАШ МАГАЗИН</h1>
         <p>{{ cashRegister }}</p>
         <p>{{ formatDate(new Date()) }}</p>
       </div>
@@ -67,116 +67,110 @@ const formatDate = (date) => {
         <p>Спасибо за покупку!</p>
         <p>Ждем вас снова!</p>
       </div>
+
+      <!-- Cut command for XPrinter -->
+      <div class="cut-command">
+        &#x1B;&#x69; <!-- ESC i command for partial cut -->
+      </div>
+
+      <!-- Add extra space for cutting -->
+      <div class="cut-space"></div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.receipt-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
-}
-
-.receipt {
-  width: 80mm;
-  padding: 3mm;
-  font-family: 'Courier New', monospace;
-  text-align: center;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 5mm;
-}
-
-.header h1 {
-  font-size: 30pt;
+<style>
+@page {
+  size: 80mm auto;
   margin: 0;
-  padding: 0;
-}
-
-.header p {
-  font-size: 10pt;
-  margin: 2mm 0;
-}
-
-.items {
-  text-align: left;
-  margin: 5mm 0;
-  border-top: 1px dashed #000;
-  border-bottom: 1px dashed #000;
-  padding: 2mm 0;
-}
-
-.item {
-  margin: 2mm 0;
-}
-
-.item-name {
-  font-size: 10pt;
-  margin-bottom: 1mm;
-}
-
-.item-details {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10pt;
-}
-
-.summary {
-  margin: 5mm 0;
-  text-align: right;
-}
-
-.total-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12pt;
-  margin: 2mm 0;
-}
-
-.footer {
-  text-align: center;
-  margin-top: 5mm;
-  font-size: 10pt;
-}
-
-.footer p {
-  margin: 1mm 0;
 }
 
 @media print {
-  @page {
-    size: 80mm auto;
+  .receipt {
+    width: 80mm;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    padding: 3mm;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 5mm;
+  }
+
+  .header h1 {
+    font-size: 14pt;
     margin: 0;
+    padding: 0;
   }
 
-  .receipt-container {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    opacity: 1;
+  .header p {
+    font-size: 10pt;
+    margin: 2mm 0;
   }
 
-  body * {
-    visibility: hidden;
+  .items {
+    text-align: left;
+    margin: 5mm 0;
+    border-top: 1px dashed #000;
+    border-bottom: 1px dashed #000;
+    padding: 2mm 0;
   }
 
-  #receipt-content,
-  #receipt-content * {
-    visibility: visible;
+  .item {
+    margin: 2mm 0;
   }
 
-  #receipt-content {
-    position: absolute;
-    left: 0;
-    top: 0;
+  .item-name {
+    font-size: 10pt;
+    margin-bottom: 1mm;
+    white-space: normal;
+    word-wrap: break-word;
   }
+
+  .item-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+  }
+
+  .summary {
+    margin: 5mm 0;
+    text-align: right;
+  }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12pt;
+    margin: 2mm 0;
+    font-weight: bold;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 5mm;
+    font-size: 10pt;
+    padding-bottom: 5mm;
+  }
+
+  .footer p {
+    margin: 1mm 0;
+  }
+
+  /* Space for cutting */
+  .cut-space {
+    height: 20mm; /* Space after content for clean cut */
+  }
+
+  /* Hide cut command in preview */
+  .cut-command {
+    display: none;
+  }
+}
+
+/* Hide receipt in normal view */
+#receipt-content {
+  display: none;
 }
 </style>
