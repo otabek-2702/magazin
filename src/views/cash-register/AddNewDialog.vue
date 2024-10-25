@@ -4,7 +4,7 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import CheckDialog from "./CheckDialog.vue";
-import { sendCutCommand } from "@/helpers/printer";
+import qz from "qz-tray";
 
 const emit = defineEmits(["fetchDatas"]);
 
@@ -54,6 +54,7 @@ const handleDrawerModelValueUpdate = (val) => {
     product_variant_data.value = null;
     quantity.value = 1;
     product_variants.value = [];
+    nextTick(() => sku_ref.value?.focus());
     refForm.value?.reset();
     refForm.value?.resetValidation();
   }
@@ -65,7 +66,7 @@ const branches_list = ref([]);
 watch(
   isDialogVisible,
   () => {
-    fetchOptions("/branches", branches_list, "branches");
+    // fetchOptions("/branches", branches_list, "branches");
   },
   { once: true }
 );
@@ -74,7 +75,7 @@ watch(
 const activeCashRLabel = computed(() => {
   return selectedCashR.value === 1
     ? "Касса №1"
-    : selectedCashR.value === 1
+    : selectedCashR.value === 2
     ? "Касса №2"
     : "";
 });
@@ -94,8 +95,7 @@ watch(selectedCashR, (newVal) => {
 const findProductVariant = async (raw_sku) => {
   try {
     isFetchingVariant.value = true;
-    const sku = raw_sku.replace(/ылг/g, "sku");
-
+    const sku = raw_sku.toString().replace(/ЫЛГ/g, "SKU");
     const response = await axios.get(`/showcases?search=${sku}`);
 
     if (response.status === 200 && response.data.showcase) {
@@ -106,7 +106,7 @@ const findProductVariant = async (raw_sku) => {
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
-        quantity: Number(quantity),
+        amount_remainder: Number(quantity),
         sku,
         sell_price: Number(product.sell_price),
       };
@@ -116,16 +116,19 @@ const findProductVariant = async (raw_sku) => {
   } finally {
     isFetchingVariant.value = false;
   }
+
   if (!product_variant_data.value) {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
       dangerouslyHTMLString: true,
     });
+    setTimeout(() => {
+      product_variant_sku.value = null;
+    }, 300);
     return;
   }
-  quantity_ref.value.focus();
-  quantity.value = 1;
+  addToList();
   product_variant_sku.value = null;
 };
 
@@ -136,67 +139,43 @@ watch(isDialogVisible, () => {
 
 // Add
 const addToList = () => {
-  if (product_variant_data.value) {
-    // find if object exists
-    if (product_variant_data.value?.quantity <= 0) {
-      toast("На витрине отсутствует этот товар.", {
-        theme: "auto",
-        type: "warning",
-        dangerouslyHTMLString: true,
-      });
-      sku_ref.value.focus();
-      return;
-    }
-    const existingObj = product_variants.value.find(
-      (el) =>
-        el.product_variant_id == product_variant_data.value.product_variant_id
-    );
-    let totalQuantity =
-      Number(quantity.value ?? 0) + Number(existingObj?.quantity ?? 0);
-
-    if (
-      quantity.value > product_variant_data.value?.quantity ||
-      totalQuantity > product_variant_data.value?.quantity
-    ) {
-      toast(
-        "Доступное количество товаров на витрине не может быть превышено.",
-        {
-          theme: "auto",
-          type: "warning",
-          dangerouslyHTMLString: true,
-        }
-      );
-      quantity_ref.value.focus();
-      return;
-    }
-
-    if (existingObj) {
-      product_variants.value = product_variants.value?.map((el) => {
-        if (el.product_variant_id == existingObj.product_variant_id) {
-          return {
-            ...product_variant_data.value,
-            quantity: Number(totalQuantity),
-          };
-        }
-        return el;
-      });
-    } else {
-      product_variants.value.push({
-        ...product_variant_data.value,
-        quantity: Number(quantity.value),
-      });
-    }
-  } else {
-    toast("Товар не найден", {
+  // find if object exists
+  if (product_variant_data.value?.amount_remainder <= 0) {
+    toast("На витрине отсутствует этот товар.", {
       theme: "auto",
-      type: "error",
+      type: "warning",
       dangerouslyHTMLString: true,
+    });
+    sku_ref.value.focus();
+    setTimeout(() => {
+      product_variant_sku.value = null;
+    }, 300);
+    return;
+  }
+  const existingObj = product_variants.value.find(
+    (el) =>
+      el.product_variant_id == product_variant_data.value.product_variant_id
+  );
+
+  if (existingObj) {
+    product_variants.value = product_variants.value?.map((el) => {
+      if (el.product_variant_id == existingObj.product_variant_id) {
+        return {
+          ...product_variant_data.value,
+          quantity: existingObj.quantity + 1,
+        };
+      }
+      return el;
+    });
+  } else {
+    product_variants.value.push({
+      ...product_variant_data.value,
+      quantity: 1,
     });
   }
 
   // reset
   product_variant_data.value = null;
-  quantity.value = 1;
   sku_ref.value.focus();
 };
 
@@ -208,16 +187,16 @@ const showEditInput = (id) => {
 };
 
 const hideEditInput = async (variant) => {
-  if (variant.quantity <= 0) {
+  if (variant?.quantity <= 0) {
     toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
       dangerouslyHTMLString: true,
     });
     return;
-  } else if (variant.quantity > variant.quantity) {
+  } else if (variant.quantity > variant.amount_remainder) {
     toast(
-      `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.quantity}).`,
+      `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
       {
         theme: "auto",
         type: "warning",
@@ -257,31 +236,15 @@ const calculateTotalPrice = computed(() => {
   );
 });
 
-// print cutter
-const cutCheck = () => {
-  // Send cut command to printer
-  const cutCommand = "\x1B\x69"; // ESC i
-  // If using a different printer, you might need a different command:
-  // const cutCommand = '\x1D\x56\x41\x00'; // GS V A 0
+// print
 
-  // You can try to send the cut command through your print system
-  // This might require a printer-specific implementation
-  try {
-    if (window.navigator.serial) {
-      // Web Serial API implementation if available
-      sendCutCommand(cutCommand);
-    }
-  } catch (error) {
-    console.error("Error sending cut command:", error);
-  }
-};
 </script>
 
 <template>
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
+      <VBtn @click="isDialogVisible = true" v-bind="props"
         >Продажа товаров</VBtn
       >
     </template>
@@ -291,7 +254,7 @@ const cutCheck = () => {
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="handleDrawerModelValueUpdate(false)"
+        @click="isDialogVisible = false"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -422,75 +385,50 @@ const cutCheck = () => {
             <VDivider />
 
             <VCol cols="12">
-              <VForm>
-                <VRow>
-                  <VCol cols="3" class="d-flex align-center">
-                    <VTextField
-                      v-model="product_variant_sku"
-                      ref="sku_ref"
-                      @input="
-                        product_variant_sku = product_variant_sku.toUpperCase()
-                      "
-                      @keyup.enter="findProductVariant(product_variant_sku)"
-                      label="Штрих код товара"
-                      :items="product_variants_list"
-                      item-title="name"
-                      item-value="id"
-                      :rules="[]"
-                      autofocus
-                    />
-                  </VCol>
+              <VRow>
+                <VCol cols="3" class="d-flex align-center">
+                  <VTextField
+                    v-model="product_variant_sku"
+                    ref="sku_ref"
+                    @input="
+                      product_variant_sku = product_variant_sku.toUpperCase()
+                    "
+                    @keyup.enter="findProductVariant(product_variant_sku)"
+                    label="Штрих код товара"
+                    :items="product_variants_list"
+                    item-title="name"
+                    item-value="id"
+                    :rules="[]"
+                    autofocus
+                  />
+                </VCol>
 
-                  <VCol cols="4">
-                    <h4 class="pt-1">
-                      Товар: {{ product_variant_data?.product_variant_name }}
-                    </h4>
-                    <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                    <p class="pt-2 mb-0">
-                      Имеется в наличии:
-                      <b>{{ product_variant_data?.quantity ?? 0 }} шт</b>
-                    </p>
-                  </VCol>
-                  <VCol
-                    cols="1"
-                    class="d-flex justify-content-center align-center"
-                  >
-                    <VProgressCircular
-                      v-if="isFetchingVariant"
-                      color="primary"
-                      indeterminate
-                    ></VProgressCircular>
-                  </VCol>
-                  <VCol cols="1" class="d-flex align-center">
-                    <h3 class="pt-1">
-                      Стоимость:
-                      {{ transformPrice(product_variant_data?.sell_price) }}
-                    </h3>
-                  </VCol>
+                <VCol cols="6">
+                  <h4 class="pt-1">
+                    Товар: {{ product_variant_data?.product_variant_name }}
+                  </h4>
+                  <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
+                  <p class="pt-2 mb-0">
+                    Имеется в наличии:
+                    <b>{{ product_variant_data?.quantity ?? 0 }} шт</b>
+                  </p>
+                </VCol>
 
-                  <VCol cols="3" class="d-flex align-center gap-4">
-                    <VTextField
-                      v-model="quantity"
-                      ref="quantity_ref"
-                      @keyup.enter="addToList"
-                      label="Количество"
-                      type="number"
-                      :rules="[]"
-                      @focus="autoSelectInputValue"
-                    />
-                    <VBtn
-                      @click="addToList"
-                      style="
-                        color: white !important;
-                        background-color: #4caf50 !important;
-                        border-radius: 5px !important;
-                      "
-                    >
-                      <VIcon size="35" icon="bx-plus"></VIcon>
-                    </VBtn>
-                  </VCol>
-                </VRow>
-              </VForm>
+                <VCol cols="2" class="d-flex align-center">
+                  <h3 class="pt-1">
+                    Стоимость:<br />
+                    {{ transformPrice(product_variant_data?.sell_price) }} SO'M
+                  </h3>
+                </VCol>
+
+                <VCol cols="1" class="d-flex align-center justify-center">
+                  <VProgressCircular
+                    color="primary"
+                    v-if="isFetchingVariant"
+                    indeterminate
+                  ></VProgressCircular>
+                </VCol>
+              </VRow>
             </VCol>
           </VRow>
           <VCardText class="d-flex justify-end gap-2 pt-2">
@@ -507,7 +445,7 @@ const cutCheck = () => {
               color="info"
               v-print="{
                 id: 'receipt-content',
-                callback: cutCheck,
+                // closeCallback: testCall,
               }"
             >
               <VIcon size="20" icon="mdi-printer" class="me-2" />
