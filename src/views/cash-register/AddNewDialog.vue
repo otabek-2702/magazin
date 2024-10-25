@@ -3,6 +3,7 @@ import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
+import CheckDialog from "./CheckDialog.vue";
 
 const emit = defineEmits(["fetchDatas"]);
 
@@ -240,11 +241,12 @@ const calculateCount = computed(() => {
 });
 const calculateTotalPrice = computed(() => {
   if (!product_variants.value) return 0;
-  let quantity = el => Number(el.quantity) == 0 ? 1 : Number(el.quantity);
+  let quantity = (el) => (Number(el.quantity) == 0 ? 1 : Number(el.quantity));
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) => accumulator + Number(el.sell_price) * quantity(el) ?? 0,
+      (accumulator, el) =>
+        accumulator + Number(el.sell_price) * quantity(el) ?? 0,
       0
     )
   );
@@ -369,8 +371,8 @@ const calculateTotalPrice = computed(() => {
                   </tr>
                 </tbody>
 
-                <tfoot v-show="product_variants.length" >
-                  <tr >
+                <tfoot v-show="product_variants.length">
+                  <tr>
                     <td colspan="3"></td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
@@ -468,10 +470,25 @@ const calculateTotalPrice = computed(() => {
             >
               Отправить
             </VBtn>
+            <VBtn
+              :disabled="!product_variants.length"
+              color="info"
+              v-print="'#receipt-content'"
+            >
+              <VIcon size="20" icon="mdi-printer" class="me-2" />
+              Печать чека
+            </VBtn>
           </VCardText>
         </VForm>
       </VCardText>
     </VCard>
+    <CheckDialog
+      v-if="product_variants.length"
+      :items="product_variants"
+      :total-price="calculateTotalPrice"
+      :total-count="calculateCount"
+      :cash-register="activeCashRLabel"
+    />
   </VDialog>
 </template>
 
