@@ -19,8 +19,8 @@ const {
   searchQuery,
   isFetching,
 } = useFetch({
-  baseUrl: "warehouse_movement_invoices",
-  resourceKey: "warehouse_movement_invoices",
+  baseUrl: "payment_invoices",
+  resourceKey: "payment_invoices",
   immediate: true,
   initialPage: 1,
   perPage: 30,

@@ -68,9 +68,6 @@ const formatDate = (date) => {
         <p>Ждем вас снова!</p>
       </div>
 
-      <div class="cut-command">
-        &#x1B;&#x69; <!-- ESC i command for partial cut -->
-      </div>
     </div>
   </div>
 </template>
@@ -87,69 +84,86 @@ const formatDate = (date) => {
 }
 
 .receipt {
-  width: 80mm;
-  padding: 3mm;
-  font-family: 'Courier New', monospace;
+  width: 76mm; /* Increased width but still leaving small margin for safety */
+  max-width: 76mm;
+  min-height: 100%;
+  padding: 2mm;
+  font-family: 'Arial', sans-serif;
   font-weight: 700;
   text-align: center;
+  color: #000 !important;
+  background: #fff;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 5mm;
+  margin-bottom: 4mm;
 }
 
 .header h1 {
-  font-size: 35pt;
+  font-size: 32pt; /* Increased font size */
   font-weight: 900;
   margin: 0;
   padding: 0;
+  color: #000 !important;
 }
 
 .header p {
-  font-size: 14px;
+  font-size: 13px;
   margin: 2mm 0;
 }
 
 .items {
   text-align: left;
-  margin: 5mm 0;
+  margin: 4mm 0;
   border-top: 1px dashed #000;
   border-bottom: 1px dashed #000;
   padding: 2mm 0;
+  width: 100%;
 }
 
 .item {
   margin: 2mm 0;
+  page-break-inside: avoid;
 }
 
 .item-name {
-  font-size: 12pt;
+  font-size: 10pt;
   margin-bottom: 1mm;
+  word-wrap: break-word;
 }
 
 .item-details {
   display: flex;
   justify-content: space-between;
-  font-size: 12pt;
+  font-size: 11pt;
+  gap: 2mm;
 }
 
 .summary {
-  margin: 5mm 0;
+  margin: 4mm 0;
   text-align: right;
+  page-break-inside: avoid;
 }
 
 .total-line {
   display: flex;
   justify-content: space-between;
-  font-size: 16pt;
+  font-size: 15pt;
   margin: 2mm 0;
+}
+
+.total-line:first-child {
+  font-size: 12pt;
 }
 
 .footer {
   text-align: center;
-  margin-top: 5mm;
+  margin-top: 4mm;
   font-size: 12pt;
+  page-break-inside: avoid;
 }
 
 .footer p {
@@ -158,16 +172,26 @@ const formatDate = (date) => {
 
 @media print {
   @page {
-    size: 80mm auto;
-    margin: 0;
+    size: 76mm auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html, body {
+    width: 76mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .receipt-container {
     position: static;
-    width: auto;
+    width: 76mm !important;
     height: auto;
     overflow: visible;
     opacity: 1;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   body * {
@@ -183,6 +207,27 @@ const formatDate = (date) => {
     position: absolute;
     left: 0;
     top: 0;
+    width: 76mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
+
+@media print and (-webkit-min-device-pixel-ratio: 0) {
+  .receipt {
+    width: 76mm !important;
+  }
+  
+  #receipt-content {
+    transform-origin: left top;
+    transform: scale(1);
+  }
+}
+
 </style>

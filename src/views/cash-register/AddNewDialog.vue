@@ -4,7 +4,6 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import CheckDialog from "./CheckDialog.vue";
-import qz from "qz-tray";
 
 const emit = defineEmits(["fetchDatas"]);
 
