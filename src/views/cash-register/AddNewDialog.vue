@@ -1,92 +1,83 @@
 <script setup>
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import CheckDialog from "./CheckDialog.vue";
+import ConfirmDialog from "./ConfirmDialog.vue";
 
 const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
+const isConfirmDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const selectedCashR = ref();
+const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
-const quantity_ref = ref();
-const quantity = ref(1);
 const product_variants = ref([]);
 
 const onSubmit = () => {
-  // refForm.value?.validate().then(async ({ valid }) => {
-  //   if (valid) {
-  //     isFetching.value = true;
-  //     try {
-  //       await axios.post("/warehouse_movement_invoices", {
-  //         branch_id: to_branch_id.value ?? 0,
-  //         items: product_variants.value,
-  //       });
-  //       emit("fetchDatas");
-  //       toast("Успешно добавлено", {
-  //         theme: "auto",
-  //         type: "success",
-  //         dangerouslyHTMLString: true,
-  //       });
-  //       handleDrawerModelValueUpdate(false);
-  //     } catch (error) {
-  //       console.error(error);
-  //     } finally {
-  //       isFetching.value = false;
-  //     }
-  //   }
-  // });
+  refForm.value?.validate().then(async ({ valid }) => {
+    if (valid) {
+      isFetching.value = true;
+      try {
+        await axios.post("/payment_invoices", {
+          cashbox_id: cashbox_id.value,
+          items: product_variants.value,
+        });
+        emit("fetchDatas");
+        isConfirmDialogVisible.value = true
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isFetching.value = false;
+      }
+    }
+  });
 };
 
 const handleDrawerModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (val === false) {
-    to_branch_id.value = null;
     product_variant_sku.value = null;
     product_variant_data.value = null;
-    quantity.value = 1;
     product_variants.value = [];
-    nextTick(() => sku_ref.value?.focus());
     refForm.value?.reset();
     refForm.value?.resetValidation();
+    nextTick(() => {
+      sku_ref.value?.focus();
+      const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
+      if (storageCashboxId) {
+        cashbox_id.value = storageCashboxId;
+      }
+    });
   }
 };
 
-const product_variants_list = ref([]);
-const branches_list = ref([]);
+const cashboxes_list = ref([]);
 
-watch(
-  isDialogVisible,
-  () => {
-    // fetchOptions("/branches", branches_list, "branches");
-  },
-  { once: true }
-);
+onMounted(() => {
+  fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
+});
 
 // Cash register
 const activeCashRLabel = computed(() => {
-  return selectedCashR.value === 1
-    ? "Касса №1"
-    : selectedCashR.value === 2
-    ? "Касса №2"
-    : "";
+  return (
+    cashboxes_list.value.find((el) => el.id == cashbox_id.value)?.name ?? ""
+  );
 });
-onMounted(() => {
-  const storageCashR = Number(localStorage.getItem("selectedCashRegister"));
-  if (storageCashR) {
-    selectedCashR.value = storageCashR;
-  }
-});
-watch(selectedCashR, (newVal) => {
+watch(cashbox_id, (newVal) => {
   if (newVal) {
-    localStorage.setItem("selectedCashRegister", Number(newVal));
+    localStorage.setItem("cashbox_id", Number(newVal));
+    return;
+  }
+  const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
+  if (storageCashboxId) {
+    cashbox_id.value = storageCashboxId;
   }
 });
 
@@ -157,11 +148,24 @@ const addToList = () => {
   );
 
   if (existingObj) {
+    let totalQuantity = existingObj.quantity + 1;
+    if (totalQuantity > existingObj.amount_remainder) {
+      toast(
+        `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
+        {
+          theme: "auto",
+          type: "warning",
+          dangerouslyHTMLString: true,
+        }
+      );
+      product_variant_sku.value = null;
+      return;
+    }
     product_variants.value = product_variants.value?.map((el) => {
       if (el.product_variant_id == existingObj.product_variant_id) {
         return {
-          ...product_variant_data.value,
-          quantity: existingObj.quantity + 1,
+          ...el,
+          quantity: totalQuantity,
         };
       }
       return el;
@@ -234,16 +238,13 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
-
-// print
-
 </script>
 
 <template>
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props"
+      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
         >Продажа товаров</VBtn
       >
     </template>
@@ -253,21 +254,20 @@ const calculateTotalPrice = computed(() => {
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="isDialogVisible = false"
+        @click="handleDrawerModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
           <VRow>
             <VCol cols="3">
               <VSelect
-                v-model="selectedCashR"
+                v-model="cashbox_id"
                 label="Выберите кассу"
                 clearable
                 clear-icon="bx-x"
-                :items="[
-                  { title: 'Kassa №1', value: 1 },
-                  { title: 'Kassa №2', value: 2 },
-                ]"
+                :items="cashboxes_list"
+                item-title="name"
+                item-value="id"
               />
             </VCol>
 
@@ -289,7 +289,7 @@ const calculateTotalPrice = computed(() => {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th>ДЕЙСТВИЯ</th>
+                    <th v-if="!status || status == 'Не опачено'">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -321,6 +321,7 @@ const calculateTotalPrice = computed(() => {
                         }"
                         @blur="hideEditInput(variant)"
                         @keyup.enter="hideEditInput(variant)"
+                        @focus="autoSelectInputValue"
                         class="custom-input"
                         density="compact"
                         type="number"
@@ -330,6 +331,7 @@ const calculateTotalPrice = computed(() => {
                     <td
                       class="text-center"
                       :style="{ width: '80px', zIndex: '10' }"
+                      v-if="!status || status == 'Не опачено'"
                     >
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
@@ -394,7 +396,6 @@ const calculateTotalPrice = computed(() => {
                     "
                     @keyup.enter="findProductVariant(product_variant_sku)"
                     label="Штрих код товара"
-                    :items="product_variants_list"
                     item-title="name"
                     item-value="id"
                     :rules="[]"
@@ -409,7 +410,7 @@ const calculateTotalPrice = computed(() => {
                   <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
                   <p class="pt-2 mb-0">
                     Имеется в наличии:
-                    <b>{{ product_variant_data?.quantity ?? 0 }} шт</b>
+                    <b>{{ product_variant_data?.amount_remainder ?? 0 }} шт</b>
                   </p>
                 </VCol>
 
@@ -439,17 +440,6 @@ const calculateTotalPrice = computed(() => {
             >
               Отправить
             </VBtn>
-            <VBtn
-              :disabled="!product_variants.length"
-              color="info"
-              v-print="{
-                id: 'receipt-content',
-                // closeCallback: testCall,
-              }"
-            >
-              <VIcon size="20" icon="mdi-printer" class="me-2" />
-              Печать чека
-            </VBtn>
           </VCardText>
         </VForm>
       </VCardText>
@@ -460,6 +450,12 @@ const calculateTotalPrice = computed(() => {
       :total-price="calculateTotalPrice"
       :total-count="calculateCount"
       :cash-register="activeCashRLabel"
+    />
+
+    <ConfirmDialog
+      v-model:isDialogOpen="isConfirmDialogVisible"
+      :total-price="calculateTotalPrice"
+      @fetchDatas="() => fetchData(true)"
     />
   </VDialog>
 </template>

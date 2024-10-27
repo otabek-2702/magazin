@@ -183,7 +183,7 @@ const transformDate = (date) => {
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
                 :rules="[]"
-                placeholder="Поиск товара"
+                placeholder="Поиск"
                 density="compact"
                 class="me-6"
               />

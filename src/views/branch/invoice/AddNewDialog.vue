@@ -366,10 +366,10 @@ const calculateCount = computed(() => {
                       v-model="quantity"
                       ref="quantity_ref"
                       @keyup.enter="addToList"
+                      @focus="autoSelectInputValue"
                       label="Количество"
                       type="number"
                       :rules="[]"
-                      @focus="autoSelectInputValue"
                     />
                   </VCol>
                   <VCol cols="1" class="d-flex justify-center align-center">

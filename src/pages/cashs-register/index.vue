@@ -4,6 +4,7 @@ import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { fetchOptions } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
+import InfoDialog from "@/views/cash-register/InfoDialog.vue";
 
 // Initialize branches state
 const branches_list = ref([]);
@@ -33,19 +34,36 @@ onMounted(() => {
   fetchOptions("branches", branches_list, "branches");
 });
 
+// Show one
+const infoDialogItemId = ref(0);
+const isInfoDialogVisible = ref(false);
+
+const handleInfoDialogOpen = (id) => {
+  infoDialogItemId.value = id;
+  isInfoDialogVisible.value = true;
+};
+
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    "Не опачено": { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
+  };
+
+  return roleMap[status] || { color: "primary" };
+};
 </script>
 
 <template>
   <section>
     <VCard id="invoice-list">
       <VCardText class="d-flex align-center flex-wrap gap-4">
-          <VSpacer />
-  
-          <div class="d-flex align-center flex-wrap gap-6">
-  
-            <AddNewDialog />
-          </div>
-        </VCardText>
+        <VSpacer />
+
+        <div class="d-flex align-center flex-wrap gap-6">
+          <AddNewDialog @fetchDatas="() => fetchData(true)" />
+        </div>
+      </VCardText>
 
       <VDivider />
 
@@ -55,17 +73,39 @@ onMounted(() => {
         <thead>
           <tr>
             <th style="width: 48px">ID</th>
+            <th>СТАТУС</th>
+            <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
           </tr>
         </thead>
 
         <!-- 👉 Table Body -->
         <tbody>
-          <tr v-for="invoice in invoices" :key="invoice.id">
+          <tr
+            v-for="invoice in invoices"
+            :key="invoice.id"
+            @click="handleInfoDialogOpen(invoice.id)"
+            style="cursor: pointer"
+          >
             <td>{{ invoice.id }}</td>
+            <td>
+              <VChip
+                :color="resolveInvoiceStatus(invoice.status).color"
+                density="compact"
+                label
+                class="text-uppercase"
+              >
+                {{
+                  invoice.status == "Не опачено"
+                    ? "Не оплачено"
+                    : invoice.status
+                }}
+              </VChip>
+            </td>
+            <td>{{ invoice.full_qty }}</td>
           </tr>
         </tbody>
 
-        <Skeleton :count="8" v-show="isFetching && !invoices?.length" />
+        <Skeleton :count="3" v-show="isFetching && !invoices?.length" />
 
         <tfoot v-show="!isFetching && !invoices?.length">
           <tr>
@@ -75,7 +115,6 @@ onMounted(() => {
           </tr>
         </tfoot>
       </VTable>
-      <!-- !SECTION -->
 
       <VDivider />
 
@@ -94,8 +133,12 @@ onMounted(() => {
           :length="totalPage"
         />
       </VCardText>
-      <!-- !SECTION -->
     </VCard>
+    <InfoDialog
+      v-model:isDialogOpen="isInfoDialogVisible"
+      :id="infoDialogItemId"
+      @fetchDatas="() => fetchData(true)"
+    />
   </section>
 </template>
 

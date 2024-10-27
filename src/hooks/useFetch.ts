@@ -70,7 +70,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   });
 
   // Core fetch function
-  const fetchData = async (options: FetchOptions = {}, force = false) => {
+  const fetchData = async (force = false,options: FetchOptions = {}) => {
     if (
       !force &&
       (state.value.isFetching ||
@@ -78,8 +78,6 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     ) {
       return;
     }
-
-    // Create new cancel token
 
     try {
       state.value.isFetching = true;
@@ -129,7 +127,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   const handleSearch = (options: FetchOptions = {}) => {
     finalSearch.value = state.value.searchQuery;
     state.value.currentPage = 1;
-    fetchData(options, true);
+    fetchData(true,options );
   };
 
   // Reset function
@@ -153,7 +151,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   const updatePerPage = (newPerPage: number) => {
     state.value.rowsPerPage = newPerPage;
     state.value.currentPage = 1;
-    fetchData({}, true);
+    fetchData(true);
   };
 
   // Watchers
@@ -163,7 +161,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       if (!newVal) {
         finalSearch.value = "";
         state.value.currentPage = 1;
-        fetchData({}, true);
+        fetchData(true);
       }
     }
   );
@@ -172,7 +170,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     () => state.value.currentPage,
     () => {
       if (!state.value.isFetching) {
-        debouncedFetchData({});
+        debouncedFetchData();
       }
     }
   );
@@ -188,7 +186,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
 
   // Initial fetch if immediate is true
   if (config.immediate) {
-    fetchData({}, true);
+    fetchData(true);
   }
 
 

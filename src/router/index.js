@@ -153,34 +153,49 @@ const router = createRouter({
               },
             },
             {
-              path: 'invoices',
-              name: 'InvoicesWarehouse',
+              path: "invoices",
+              name: "InvoicesWarehouse",
               component: () => import("@/pages/branches/invoices.vue"),
               meta: {
-                action: 'show',
-                subject: 'InvoicesWarehouse',
-              }
+                action: "show",
+                subject: "InvoicesWarehouse",
+              },
             },
             {
-              path: 'showcase',
-              name: 'Showcase',
+              path: "showcase",
+              name: "Showcase",
               component: () => import("@/pages/branches/showcase.vue"),
               meta: {
-                action: 'show',
-                subject: 'Showcase',
-              }
+                action: "show",
+                subject: "Showcase",
+              },
             },
           ],
         },
         // cash register
         {
           path: "cashs-register",
-          name: "CashsRegister",
-          component: () => import("@/pages/cashs-register/index.vue"),
-          meta: {
-            action: "show",
-            subject: "CashsRegister",
-          },
+
+          children: [
+            {
+              path: "",
+              name: "CashsRegister",
+              component: () => import("@/pages/cashs-register/index.vue"),
+              meta: {
+                action: "show",
+                subject: "CashsRegister",
+              },
+            },
+            {
+              path: "cash-boxes",
+              name: "CashBoxes",
+              component: () => import("@/pages/cashs-register/cash-boxes.vue"),
+              meta: {
+                action: "show",
+                subject: "CashBoxes",
+              },
+            },
+          ],
         },
         // suppliers
         {

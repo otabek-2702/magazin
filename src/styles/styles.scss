@@ -5,11 +5,11 @@ td:last-child:empty {
 }
 
 // Styles for printing
-@media print {
-  @page {
-    size: 30mm 57mm landscape !important; /* Adjust to paper size */
-  }
-}
+// @media print {
+//   @page {
+//     size: 30mm 57mm landscape !important; /* Adjust to paper size */
+//   }
+// }
 
 .overflow-hide {
   max-width: 46vw !important;

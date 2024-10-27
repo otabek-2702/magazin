@@ -118,6 +118,12 @@ export default [
     icon: { icon: 'mdi-cash-register' },
     children: [
       {
+        title: 'Список касс',
+        to: { name: 'CashBoxes' },
+        subject: 'CashBoxes',
+        action: 'show'
+      },
+      {
         title: 'Касса',
         to: { name: 'CashsRegister' },
         subject: 'CashsRegister',
