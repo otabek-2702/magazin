@@ -41,7 +41,7 @@ const fetchDataById = async () => {
       const {
         data: { payment_invoice },
       } = response;
-      console.log(payment_invoice.status)
+      console.log(payment_invoice.status);
 
       check_id.value = payment_invoice.id;
       status.value = payment_invoice.status;
@@ -55,9 +55,8 @@ const fetchDataById = async () => {
   }
 };
 
-
 const onConfirm = async () => {
-  isConfirmDialogVisible.value = true
+  isConfirmDialogVisible.value = true;
 };
 
 const onReject = async () => {
@@ -80,8 +79,6 @@ const onReject = async () => {
     isFetching.value = "";
   }
 };
-
-
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
@@ -293,7 +290,6 @@ const calculateTotalPrice = computed(() => {
   );
 });
 const infoDialogItemId = ref(0);
-
 </script>
 
 <template>
@@ -478,9 +474,7 @@ const infoDialogItemId = ref(0);
               </VRow>
             </VCol> -->
           </VRow>
-          <VCardText
-            class="d-flex justify-end gap-4 pt-5"
-          >
+          <VCardText class="d-flex justify-end gap-4 pt-5">
             <VBtn
               :loading="isFetching == 'submit'"
               :disabled="isFetching == 'submit'"
@@ -495,6 +489,7 @@ const infoDialogItemId = ref(0);
               type="button"
               @click="onReject"
               color="secondary"
+              v-if="status == 'Не опачено'"
             >
               Отменить
               <VIcon end icon="bx-minus-circle" />
@@ -515,11 +510,13 @@ const infoDialogItemId = ref(0);
     <ConfirmDialog
       v-model:isDialogOpen="isConfirmDialogVisible"
       :total-price="calculateTotalPrice"
-      :id="props.id"      
-      @fetchDatas="() => {
-        emit('fetchDatas')
-        handleDialogModelValueUpdate(false)
-        }"
+      :id="props.id"
+      @fetchDatas="
+        () => {
+          emit('fetchDatas');
+          handleDialogModelValueUpdate(false);
+        }
+      "
     />
   </VDialog>
 </template>
