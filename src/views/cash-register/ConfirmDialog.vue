@@ -12,6 +12,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  id: {
+    required: true,
+    type: String
+  }
 });
 
 const emit = defineEmits(["update:isDialogOpen"]);

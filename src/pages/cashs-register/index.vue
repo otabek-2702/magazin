@@ -40,6 +40,7 @@ const infoDialogItemId = ref(0);
 const isInfoDialogVisible = ref(false);
 
 const handleInfoDialogOpen = (id) => {
+  console.log(id)
   infoDialogItemId.value = id;
   isInfoDialogVisible.value = true;
 };

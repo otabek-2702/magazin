@@ -292,6 +292,8 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
+const infoDialogItemId = ref(0);
+
 </script>
 
 <template>
@@ -514,6 +516,8 @@ const calculateTotalPrice = computed(() => {
     <ConfirmDialog
       v-model:isDialogOpen="isConfirmDialogVisible"
       :total-price="calculateTotalPrice"
+      :id="props.id"
+
       @fetchDatas="() => fetchData(true)"
     />
   </VDialog>

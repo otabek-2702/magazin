@@ -33,6 +33,7 @@ const onSubmit = () => {
         check_id.value = response?.data?.payment_invoice?.id;
         emit("fetchDatas");
         isConfirmDialogVisible.value = true;
+        infoDialogItemId.value = response.data.id
       } catch (error) {
         console.error(error);
       } finally {
@@ -242,6 +243,9 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
+
+const infoDialogItemId = ref(0);
+
 </script>
 
 <template>
@@ -441,6 +445,8 @@ const calculateTotalPrice = computed(() => {
     <ConfirmDialog
       v-model:isDialogOpen="isConfirmDialogVisible"
       :total-price="calculateTotalPrice"
+      :id="infoDialogItemId"
+
       @fetchDatas="() => fetchData(true)"
     />
   </VDialog>
