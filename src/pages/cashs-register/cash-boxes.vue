@@ -4,6 +4,7 @@ import AddNewDrawer from '@/views/cash-register/cash-box/AddNewDrawer.vue';
 import UpdateDrawer from '@/views/cash-register/cash-box/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import { useFetch } from '@/hooks/useFetch';
+import { transformPrice } from '@/helpers';
 // import InfoDialog from '@/views/cash-register/cash-box/InfoDialog.vue';
 
 
@@ -78,6 +79,7 @@ const openEditDrawer = (id) => {
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ</th>
                 <th>ОПИСАНИЕ</th>
+                <th>ОСТАТОК</th>
                 <th>ДЕЙСТВИЯ</th>
               </tr>
             </thead>
@@ -91,6 +93,7 @@ const openEditDrawer = (id) => {
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
                 <td class="overflow-hide">{{ cash_box.description }}</td>
+                <td >{{ transformPrice(cash_box.remains) }}</td>
                 <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
                   <Can I="update" a="CashBoxes">
                     <VIcon
@@ -109,7 +112,7 @@ const openEditDrawer = (id) => {
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="4" v-show="isFetching && !cash_boxes.length" />
+            <Skeleton :count="5" v-show="isFetching && !cash_boxes.length" />
 
             <tfoot v-show="!isFetching && !cash_boxes.length">
               <tr>

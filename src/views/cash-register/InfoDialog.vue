@@ -480,7 +480,6 @@ const infoDialogItemId = ref(0);
           </VRow>
           <VCardText
             class="d-flex justify-end gap-4 pt-5"
-            v-if="status == 'Не опачено'"
           >
             <VBtn
               :loading="isFetching == 'submit'"
