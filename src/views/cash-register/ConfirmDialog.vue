@@ -2,6 +2,7 @@
 import { removeSpaces, transformPrice } from "@/helpers";
 import axios from "@/plugins/axios";
 import { computed } from "vue";
+import { toast } from "vue3-toastify";
 
 const props = defineProps({
   isDialogOpen: {
@@ -14,17 +15,17 @@ const props = defineProps({
   },
   id: {
     required: true,
-    type: String
-  }
+    type: String,
+  },
 });
 
-const emit = defineEmits(["update:isDialogOpen"]);
+const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
 
 const onFormCancel = () => {
   emit("update:isDialogOpen", false);
 };
 
-const isFetching = ref(false)
+const isFetching = ref(false);
 const input_price = ref();
 const payment_type = ref();
 
@@ -41,6 +42,7 @@ const onConfirm = async () => {
     const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
       payment_type: payment_type.value,
     });
+    console.log(reponse.status);
     if (reponse.status === 200) {
       toast("Успешно", {
         theme: "auto",
@@ -60,19 +62,25 @@ const onConfirm = async () => {
 
 const calculate = computed(() => {
   const trimmedPrice = removeSpaces(props.totalPrice);
-    const givenPrice = removeSpaces(input_price.value)
+  const givenPrice = removeSpaces(input_price.value);
 
   return {
     sdacha:
-      givenPrice > trimmedPrice
-        ? transformPrice(givenPrice - trimmedPrice)
-        : 0,
+      givenPrice > trimmedPrice ? transformPrice(givenPrice - trimmedPrice) : 0,
     doljen:
-      givenPrice < trimmedPrice
-        ? transformPrice(trimmedPrice - givenPrice)
-        : 0,
+      givenPrice < trimmedPrice ? transformPrice(trimmedPrice - givenPrice) : 0,
   };
 });
+
+const handleDialogModelValueUpdate = () => {
+  emit("update:isDialogOpen", false);
+  if (!val) {
+    nextTick(() => {
+      input_price.value = null;
+      payment_type.value = null;
+    });
+  }
+};
 </script>
 
 <template>
@@ -128,7 +136,13 @@ const calculate = computed(() => {
               <VIcon size="20" icon="mdi-printer" class="me-2" />
               Печать чека
             </VBtn>
-            <VBtn color="success" @click="onConfirm" type="submit" :disabled="isFetching" :loader="isFetching">
+            <VBtn
+              color="success"
+              @click="onConfirm"
+              type="submit"
+              :disabled="isFetching"
+              :loading="isFetching"
+            >
               Подтвердить
             </VBtn>
           </VCol>

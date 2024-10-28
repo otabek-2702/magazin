@@ -447,7 +447,10 @@ const infoDialogItemId = ref(0);
       :total-price="calculateTotalPrice"
       :id="infoDialogItemId"
 
-      @fetchDatas="() => fetchData(true)"
+      @fetchDatas="() => {
+        emit('fetchDatas')
+        handleDrawerModelValueUpdate(false)
+        }"
     />
   </VDialog>
 </template>

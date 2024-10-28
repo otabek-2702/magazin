@@ -37,11 +37,11 @@ const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
     const response = await axios.get(`/payment_invoices/${props.id}`);
-
     if (response.status === 200) {
       const {
         data: { payment_invoice },
       } = response;
+      console.log(payment_invoice.status)
 
       check_id.value = payment_invoice.id;
       status.value = payment_invoice.status;
@@ -516,9 +516,11 @@ const infoDialogItemId = ref(0);
     <ConfirmDialog
       v-model:isDialogOpen="isConfirmDialogVisible"
       :total-price="calculateTotalPrice"
-      :id="props.id"
-
-      @fetchDatas="() => fetchData(true)"
+      :id="props.id"      
+      @fetchDatas="() => {
+        emit('fetchDatas')
+        handleDialogModelValueUpdate(false)
+        }"
     />
   </VDialog>
 </template>
