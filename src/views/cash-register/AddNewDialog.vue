@@ -404,23 +404,6 @@ const calculateTotalPrice = computed(() => {
                   />
                 </VCol>
 
-                <VCol cols="6">
-                  <h4 class="pt-1">
-                    Товар: {{ product_variant_data?.product_variant_name }}
-                  </h4>
-                  <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                  <p class="pt-2 mb-0">
-                    Имеется в наличии:
-                    <b>{{ product_variant_data?.amount_remainder ?? 0 }} шт</b>
-                  </p>
-                </VCol>
-
-                <VCol cols="2" class="d-flex align-center">
-                  <h3 class="pt-1">
-                    Стоимость:<br />
-                    {{ transformPrice(product_variant_data?.sell_price) }} SO'M
-                  </h3>
-                </VCol>
 
                 <VCol cols="1" class="d-flex align-center justify-center">
                   <VProgressCircular

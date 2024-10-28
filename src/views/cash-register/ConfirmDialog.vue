@@ -54,6 +54,7 @@ const calculate = computed(() => {
               :value="transformPrice(input_price)"
               label="Введите сумму"
               :rules="[]"
+              autofocus
             />
           </VCol>
           
