@@ -30,9 +30,9 @@ const onSubmit = () => {
           cashbox_id: cashbox_id.value,
           items: product_variants.value,
         });
-        check_id.value = response?.data?.payment_invoice?.id
+        check_id.value = response?.data?.payment_invoice?.id;
         emit("fetchDatas");
-        isConfirmDialogVisible.value = true
+        isConfirmDialogVisible.value = true;
       } catch (error) {
         console.error(error);
       } finally {
@@ -223,10 +223,12 @@ const deleteListItem = (id) => {
 
 const calculateCount = computed(() => {
   if (!product_variants.value) return 0;
-  return Number(product_variants.value.reduce(
-    (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
-    0
-  ))
+  return Number(
+    product_variants.value.reduce(
+      (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
+      0
+    )
+  );
 });
 const calculateTotalPrice = computed(() => {
   if (!product_variants.value) return 0;
@@ -368,7 +370,7 @@ const calculateTotalPrice = computed(() => {
                       <b>{{ calculateTotalPrice }} </b> SO'M
                     </td>
                     <td class="text-body-1">
-                      Общая количество: {{ calculateCount }}
+                      Общая количество: {{ Number(calculateCount) }}
                     </td>
                     <td></td>
                     <td></td>
@@ -404,7 +406,6 @@ const calculateTotalPrice = computed(() => {
                   />
                 </VCol>
 
-
                 <VCol cols="1" class="d-flex align-center justify-center">
                   <VProgressCircular
                     color="primary"
@@ -422,7 +423,7 @@ const calculateTotalPrice = computed(() => {
               type="button"
               @click="onSubmit"
             >
-              Отправить
+              Оплатить
             </VBtn>
           </VCardText>
         </VForm>
@@ -432,7 +433,7 @@ const calculateTotalPrice = computed(() => {
       v-if="product_variants.length"
       :items="product_variants"
       :total-price="calculateTotalPrice"
-      :total-count="calculateCount"
+      :total-count="Number(calculateCount)"
       :cash-register="activeCashRLabel"
       :checkId="check_id"
     />

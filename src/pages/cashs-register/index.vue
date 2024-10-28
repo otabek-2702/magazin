@@ -11,6 +11,7 @@ const branches_list = ref([]);
 
 // Initialize useFetch hook with your configuration
 const {
+  state,
   items: invoices,
   currentPage,
   totalPages: totalPage,
@@ -68,7 +69,7 @@ const resolveInvoiceStatus = (status) => {
       <VDivider />
 
       <!-- SECTION Table -->
-      <VTable class="text-no-wrap">
+      <VTable >
         <!-- 👉 Table head -->
         <thead>
           <tr>
@@ -79,7 +80,7 @@ const resolveInvoiceStatus = (status) => {
         </thead>
 
         <!-- 👉 Table Body -->
-        <tbody>
+        <tbody v-if="invoices?.length && !isFetching">
           <tr
             v-for="invoice in invoices"
             :key="invoice.id"
@@ -105,7 +106,8 @@ const resolveInvoiceStatus = (status) => {
           </tr>
         </tbody>
 
-        <Skeleton :count="3" v-show="isFetching && !invoices?.length" />
+        <Skeleton :count="3" v-if="isFetching" />
+
 
         <tfoot v-show="!isFetching && !invoices?.length">
           <tr>
@@ -116,7 +118,6 @@ const resolveInvoiceStatus = (status) => {
         </tfoot>
       </VTable>
 
-      <VDivider />
 
       <!-- SECTION Pagination -->
       <VDivider />
@@ -128,7 +129,7 @@ const resolveInvoiceStatus = (status) => {
 
         <VPagination
           v-if="invoices.length"
-          v-model="currentPage"
+          v-model="state.currentPage"
           :total-visible="7"
           :length="totalPage"
         />

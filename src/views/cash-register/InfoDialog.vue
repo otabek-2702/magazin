@@ -43,7 +43,7 @@ const fetchDataById = async () => {
         data: { payment_invoice },
       } = response;
 
-      check_id.value = payment_invoice.id
+      check_id.value = payment_invoice.id;
       status.value = payment_invoice.status;
       product_variants.value = payment_invoice.items;
       check_id.value = payment_invoice.id;
@@ -55,54 +55,9 @@ const fetchDataById = async () => {
   }
 };
 
-const onSubmit = async (reject_or_submit = false) => {
-  try {
-    const { valid } = await refForm.value?.validate();
-    if (!valid) return false;
-    isFetching.value = "submit";
-
-    await axios.put(`/payment_invoices/${props.id}`, {
-      cashbox_id: cashbox_id.value,
-      items: product_variants.value,
-    });
-    if (!reject_or_submit) {
-      emit("fetchDatas");
-      toast("Успешно", {
-        theme: "auto",
-        type: "success",
-        dangerouslyHTMLString: true,
-      });
-
-      isConfirmDialogVisible.value = true;
-    }
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  } finally {
-    isFetching.value = "";
-  }
-};
 
 const onConfirm = async () => {
-  isFetching.value = "confirm";
-  try {
-    const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`);
-    if (reponse.status === 200) {
-      toast("Успешно", {
-        theme: "auto",
-        type: "success",
-        dangerouslyHTMLString: true,
-      });
-      emit("fetchDatas");
-
-      handleDialogModelValueUpdate(false);
-    }
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isFetching.value = "";
-  }
+  isConfirmDialogVisible.value = true
 };
 
 const onReject = async () => {
@@ -126,19 +81,7 @@ const onReject = async () => {
   }
 };
 
-const onConfirmSubmit = async () => {
-  let isSubmitted = await onSubmit(true);
-  if (isSubmitted === true) {
-    await onConfirm();
-  }
-};
 
-const onRejectSubmit = async () => {
-  let isSubmitted = await onSubmit(true);
-  if (isSubmitted === true) {
-    await onReject();
-  }
-};
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
@@ -146,7 +89,6 @@ const handleDialogModelValueUpdate = (val) => {
     nextTick(() => {
       product_variant_sku.value = null;
       product_variant_data.value = null;
-      quantity.value = null;
       product_variants.value = [];
       status.value = null;
       refForm.value?.reset();
@@ -393,7 +335,7 @@ const calculateTotalPrice = computed(() => {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th v-if="status == 'Не опачено'">ДЕЙСТВИЯ</th>
+                    <!-- <th v-if="status == 'Не опачено'">ДЕЙСТВИЯ</th> -->
                   </tr>
                 </thead>
 
@@ -432,10 +374,10 @@ const calculateTotalPrice = computed(() => {
                         :rules="[]"
                       />
                     </td>
-                    <td
+                    <!-- <td
                       class="text-center"
                       :style="{ width: '80px', zIndex: '10' }"
-                      v-if="!status || status == 'Не опачено'"
+                      v-if="status == 'Не опачено'"
                     >
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
@@ -459,7 +401,7 @@ const calculateTotalPrice = computed(() => {
                         style="color: red"
                         @click="deleteListItem(variant.product_variant_id)"
                       ></VIcon>
-                    </td>
+                    </td> -->
                   </tr>
                 </tbody>
 
@@ -473,7 +415,6 @@ const calculateTotalPrice = computed(() => {
                     <td class="text-body-1">
                       Общая количество: {{ calculateCount }}
                     </td>
-                    <td></td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -489,7 +430,7 @@ const calculateTotalPrice = computed(() => {
 
             <VDivider />
 
-            <VCol cols="12" v-if="status == 'Не опачено'">
+            <!-- <VCol cols="12" v-if="status == 'Не опачено'">
               <VRow>
                 <VCol cols="3" class="d-flex align-center">
                   <VTextField
@@ -533,25 +474,25 @@ const calculateTotalPrice = computed(() => {
                   ></VProgressCircular>
                 </VCol>
               </VRow>
-            </VCol>
+            </VCol> -->
           </VRow>
           <VCardText
-            class="d-flex justify-end gap-2 pt-2"
+            class="d-flex justify-end gap-4 pt-5"
             v-if="status == 'Не опачено'"
           >
             <VBtn
               :loading="isFetching == 'submit'"
               :disabled="isFetching == 'submit'"
               type="button"
-              @click="onSubmit"
+              @click="onConfirm"
             >
-              Отправить
+              Оплатить
             </VBtn>
             <VBtn
               :loading="isFetching == 'reject'"
               :disabled="isFetching == 'reject'"
               type="button"
-              @click="onRejectSubmit"
+              @click="onReject"
               color="secondary"
             >
               Отменить
@@ -565,7 +506,7 @@ const calculateTotalPrice = computed(() => {
       v-if="product_variants.length"
       :items="product_variants"
       :total-price="calculateTotalPrice"
-      :total-count="calculateCount"
+      :total-count="Number(calculateCount)"
       :cash-register="activeCashRLabel"
       :checkId="check_id"
     />

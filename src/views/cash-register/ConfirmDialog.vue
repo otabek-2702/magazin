@@ -1,5 +1,6 @@
 <script setup>
 import { removeSpaces, transformPrice } from "@/helpers";
+import axios from "@/plugins/axios";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -19,15 +20,55 @@ const onFormCancel = () => {
   emit("update:isDialogOpen", false);
 };
 
+const isFetching = ref(false)
 const input_price = ref();
+const payment_type = ref();
+
+const payment_types_list = [
+  { name: "Наличные", value: "cash" },
+  { name: "Uzcard", value: "uzcard" },
+  { name: "Humo", value: "humo" },
+  { name: "Click", value: "click" },
+];
+
+const onConfirm = async () => {
+  isFetching.value = true;
+  try {
+    const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
+      payment_type: payment_type.value,
+    });
+    if (reponse.status === 200) {
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = false;
+  }
+};
 
 const calculate = computed(() => {
-    const trimmedPrice = removeSpaces(props.totalPrice)
-    return {
-        sdacha: removeSpaces(input_price.value) > trimmedPrice ?  transformPrice(removeSpaces(input_price.value)-trimmedPrice ): 0,
-        doljen: removeSpaces(input_price.value) < trimmedPrice ? transformPrice(trimmedPrice - removeSpaces(input_price.value)): 0
-    }
-})
+  const trimmedPrice = removeSpaces(props.totalPrice);
+    const givenPrice = removeSpaces(input_price.value) *1000
+
+  return {
+    sdacha:
+      givenPrice > trimmedPrice
+        ? transformPrice(givenPrice - trimmedPrice)
+        : 0,
+    doljen:
+      givenPrice < trimmedPrice
+        ? transformPrice(trimmedPrice - givenPrice)
+        : 0,
+  };
+});
 </script>
 
 <template>
@@ -52,18 +93,28 @@ const calculate = computed(() => {
             <VTextField
               v-model="input_price"
               :value="transformPrice(input_price)"
-              label="Введите сумму"
+              label="Введите сумму (в тысячах)"
               :rules="[]"
               autofocus
             />
           </VCol>
-          
+
           <VCol cols="12">
             <h2>Сдача: {{ calculate.sdacha }} so'm</h2>
             <h2>Доплата: {{ calculate.doljen }} so'm</h2>
           </VCol>
-          <VDivider />
           <VCol cols="12">
+            <VSelect
+              v-model="payment_type"
+              label="Выберите способ оплаты"
+              clear-icon="bx-x"
+              :items="payment_types_list"
+              item-title="name"
+              item-value="id"
+            />
+          </VCol>
+          <VDivider />
+          <VCol cols="12" class="d-flex justify-space-between">
             <VBtn
               color="info"
               v-print="{
@@ -72,6 +123,9 @@ const calculate = computed(() => {
             >
               <VIcon size="20" icon="mdi-printer" class="me-2" />
               Печать чека
+            </VBtn>
+            <VBtn color="success" @click="onConfirm" type="submit" :disabled="isFetching" :loader="isFetching">
+              Подтвердить
             </VBtn>
           </VCol>
         </VRow>

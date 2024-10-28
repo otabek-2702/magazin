@@ -70,7 +70,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   });
 
   // Core fetch function
-  const fetchData = async (force = false,options: FetchOptions = {}) => {
+  const fetchData = async (force = false, options: FetchOptions = {}) => {
     if (
       !force &&
       (state.value.isFetching ||
@@ -110,13 +110,13 @@ export function useFetch<T = any>(config: UseFetchConfig) {
 
       options.onSuccess?.(data);
     } catch (error) {
-        state.value.error =
-          error instanceof Error ? error.message : "An error occurred";
-        state.value.isError = true;
-        state.value.items = [];
-        options.onError?.(error as Error);
+      state.value.error =
+        error instanceof Error ? error.message : "An error occurred";
+      state.value.isError = true;
+      state.value.items = [];
+      options.onError?.(error as Error);
     } finally {
-        state.value.isFetching = false;
+      state.value.isFetching = false;
     }
   };
 
@@ -127,7 +127,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   const handleSearch = (options: FetchOptions = {}) => {
     finalSearch.value = state.value.searchQuery;
     state.value.currentPage = 1;
-    fetchData(true,options );
+    fetchData(true, options);
   };
 
   // Reset function
@@ -188,7 +188,6 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   if (config.immediate) {
     fetchData(true);
   }
-
 
   return {
     // State (wrapped in computed to make them readonly from outside)

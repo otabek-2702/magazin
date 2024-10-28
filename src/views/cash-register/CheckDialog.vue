@@ -7,20 +7,20 @@ const props = defineProps({
     required: true,
   },
   totalPrice: {
-    type: String,
+    type: String ,
     required: true,
   },
   totalCount: {
-    type: Number,
+    type: Number ,
     required: true,
   },
   cashRegister: {
-    type: String,
+    type: String ,
     required: true,
   },
   checkId: {
     // Added new prop for check ID
-    type: String,
+    type: Number ,
     required: true,
   },
 });
