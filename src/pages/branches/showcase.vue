@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
-import { fetchOptions } from "@/helpers";
+import { fetchOptions, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 
 // Initialize branches state
@@ -108,6 +108,17 @@ onMounted(() => {
             </thead>
 
             <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>К-во: {{ transformPrice(state.totalQuantity ?? 0) }}</td>
+                <td>Сумма: {{ transformPrice(state.totalPrice ?? 0) }}</td>
+                <td></td>
+                <td></td>
+              </tr>
               <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
                 <td>

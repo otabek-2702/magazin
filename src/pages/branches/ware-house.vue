@@ -4,12 +4,14 @@ import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
 import AddNewWayBillToShowcaseDialog from "@/views/branch/invoice/AddNewDialog.vue";
-import { fetchOptions } from "@/helpers";
+import { fetchOptions, transformPrice } from "@/helpers";
 
 const searchQuery = ref("");
 const finalSearch = ref("");
 const selectedBranch = ref();
 const rowPerPage = ref(30);
+const totalQuantity = ref(0);
+const totalPrice = ref(0);
 const currentPage = ref(1);
 const totalPage = ref(1);
 const lastFetchedPage = ref(null);
@@ -41,6 +43,8 @@ const fetchData = async (force = false) => {
     totalDatasCount.value = data["meta"]["pagination"]["total"];
     totalPage.value = data["meta"]["pagination"]["total_pages"];
     rowPerPage.value = data["meta"]["pagination"]["per_page"];
+    totalQuantity.value = data["total_quantity"];
+    totalPrice.value = data["total_price"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
@@ -180,6 +184,17 @@ const openBarcodeDialog = (id) => {
             </thead>
 
             <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>К-во: {{ transformPrice(totalQuantity ?? 0) }}</td>
+                <td>Сумма: {{ transformPrice(totalPrice ?? 0) }}</td>
+                <td></td>
+                <td></td>
+              </tr>
               <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
                 <td>

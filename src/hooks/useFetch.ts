@@ -37,6 +37,8 @@ interface FetchState<T> {
   isError: boolean;
   isFetching: boolean;
   searchQuery: string;
+  totalQuantity: string | number;
+  totalPrice: string | number;
 }
 
 export function useFetch<T = any>(config: UseFetchConfig) {
@@ -51,6 +53,8 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     isError: false,
     isFetching: false,
     searchQuery: "",
+    totalQuantity: 0,
+    totalPrice: 0,
   });
 
   // Internal state
