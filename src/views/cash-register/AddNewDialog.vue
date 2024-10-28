@@ -33,7 +33,7 @@ const onSubmit = () => {
         check_id.value = response?.data?.payment_invoice?.id;
         emit("fetchDatas");
         isConfirmDialogVisible.value = true;
-        infoDialogItemId.value = response.data.id
+        infoDialogItemId.value = response.data.payment_invoice.id
       } catch (error) {
         console.error(error);
       } finally {
