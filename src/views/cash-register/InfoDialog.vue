@@ -43,6 +43,7 @@ const fetchDataById = async () => {
         data: { payment_invoice },
       } = response;
 
+      check_id.value = payment_invoice.id
       status.value = payment_invoice.status;
       product_variants.value = payment_invoice.items;
       check_id.value = payment_invoice.id;
@@ -353,19 +354,11 @@ const calculateTotalPrice = computed(() => {
 
 <template>
   <VDialog fullscreen v-model="props.isDialogOpen">
-    <!-- Dialog Activator -->
-    <template #activator="{ props }">
-      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
-        >Продажа товаров</VBtn
-      >
-    </template>
-
-    <!-- Dialog Content -->
     <VCard title="Продажа">
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="handleDrawerModelValueUpdate(false)"
+        @click="handleDialogModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -400,7 +393,7 @@ const calculateTotalPrice = computed(() => {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th v-if="!status || status == 'Не опачено'">ДЕЙСТВИЯ</th>
+                    <th v-if="status == 'Не опачено'">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -496,7 +489,7 @@ const calculateTotalPrice = computed(() => {
 
             <VDivider />
 
-            <VCol cols="12">
+            <VCol cols="12" v-if="status == 'Не опачено'">
               <VRow>
                 <VCol cols="3" class="d-flex align-center">
                   <VTextField
@@ -542,7 +535,10 @@ const calculateTotalPrice = computed(() => {
               </VRow>
             </VCol>
           </VRow>
-          <VCardText class="d-flex justify-end gap-2 pt-2">
+          <VCardText
+            class="d-flex justify-end gap-2 pt-2"
+            v-if="status == 'Не опачено'"
+          >
             <VBtn
               :loading="isFetching == 'submit'"
               :disabled="isFetching == 'submit'"
@@ -557,7 +553,6 @@ const calculateTotalPrice = computed(() => {
               type="button"
               @click="onRejectSubmit"
               color="secondary"
-              v-if="status == 'Черновик'"
             >
               Отменить
               <VIcon end icon="bx-minus-circle" />
@@ -572,6 +567,7 @@ const calculateTotalPrice = computed(() => {
       :total-price="calculateTotalPrice"
       :total-count="calculateCount"
       :cash-register="activeCashRLabel"
+      :checkId="check_id"
     />
 
     <ConfirmDialog

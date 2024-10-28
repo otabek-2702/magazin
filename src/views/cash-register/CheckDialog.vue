@@ -1,5 +1,5 @@
 <script setup>
-import { transformPrice } from '@/helpers';
+import { transformPrice } from "@/helpers";
 
 const props = defineProps({
   items: {
@@ -11,22 +11,27 @@ const props = defineProps({
     required: true,
   },
   totalCount: {
-    type: String,
+    type: Number,
     required: true,
   },
   cashRegister: {
     type: String,
     required: true,
   },
+  checkId: {
+    // Added new prop for check ID
+    type: String,
+    required: true,
+  },
 });
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleString('ru-RU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(date).toLocaleString("ru-RU", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 </script>
@@ -36,16 +41,22 @@ const formatDate = (date) => {
     <div class="receipt">
       <div class="header">
         <h1>SOLUS</h1>
-        <p>{{ cashRegister }}</p>
-        <p>{{ formatDate(new Date()) }}</p>
+        <div class="check-data">
+          <p>Чек №{{ props.checkId }}</p>
+          <p>{{ formatDate(new Date()) }}</p>
+        </div>
+        <p>{{ props.cashRegister }}</p>
       </div>
-      
+
       <div class="items">
         <template v-for="(item, index) in items" :key="index">
           <div class="item">
             <div class="item-name">{{ item.product_variant_name }}</div>
             <div class="item-details">
-              <span>{{ item.quantity }} x {{ transformPrice(item.sell_price) }}</span>
+              <span
+                >{{ item.quantity }} x
+                {{ transformPrice(item.sell_price) }}</span
+              >
               <span>{{ transformPrice(item.sell_price * item.quantity) }}</span>
             </div>
           </div>
@@ -67,7 +78,6 @@ const formatDate = (date) => {
         <p>Спасибо за покупку!</p>
         <p>Ждем вас снова!</p>
       </div>
-
     </div>
   </div>
 </template>
@@ -84,11 +94,11 @@ const formatDate = (date) => {
 }
 
 .receipt {
-  width: 76mm; /* Increased width but still leaving small margin for safety */
+  width: 76mm;
   max-width: 76mm;
   min-height: 100%;
   padding: 2mm;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   font-weight: 700;
   text-align: center;
   color: #000 !important;
@@ -99,15 +109,20 @@ const formatDate = (date) => {
 
 .header {
   text-align: center;
-  margin-bottom: 4mm;
+  margin-bottom: 3mm;
 }
 
 .header h1 {
-  font-size: 32pt; /* Increased font size */
+  font-size: 32pt;
   font-weight: 900;
   margin: 0;
   padding: 0;
   color: #000 !important;
+}
+.check-data {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
 }
 
 .header p {
@@ -177,7 +192,8 @@ const formatDate = (date) => {
     padding: 0 !important;
   }
 
-  html, body {
+  html,
+  body {
     width: 76mm !important;
     height: auto !important;
     margin: 0 !important;
@@ -222,11 +238,10 @@ const formatDate = (date) => {
   .receipt {
     width: 76mm !important;
   }
-  
+
   #receipt-content {
     transform-origin: left top;
     transform: scale(1);
   }
 }
-
 </style>

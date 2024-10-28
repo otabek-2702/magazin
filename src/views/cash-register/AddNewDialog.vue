@@ -19,16 +19,18 @@ const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
+const check_id = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post("/payment_invoices", {
+        const response = await axios.post("/payment_invoices", {
           cashbox_id: cashbox_id.value,
           items: product_variants.value,
         });
+        check_id.value = response?.data?.payment_invoice?.id
         emit("fetchDatas");
         isConfirmDialogVisible.value = true
       } catch (error) {
@@ -88,11 +90,11 @@ const findProductVariant = async (raw_sku) => {
     const sku = raw_sku.toString().replace(/ЫЛГ/g, "SKU");
     const response = await axios.get(`/showcases?search=${sku}`);
 
-    if (response.status === 200 && response.data.showcase) {
+    if (response.status === 200 && response.data.showcase[0]) {
       const {
         quantity,
         variant: { id, product, color, size, sku },
-      } = response.data.showcase[0];
+      } = response.data?.showcase[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
@@ -221,10 +223,10 @@ const deleteListItem = (id) => {
 
 const calculateCount = computed(() => {
   if (!product_variants.value) return 0;
-  return product_variants.value.reduce(
+  return Number(product_variants.value.reduce(
     (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
     0
-  );
+  ))
 });
 const calculateTotalPrice = computed(() => {
   if (!product_variants.value) return 0;
@@ -289,7 +291,7 @@ const calculateTotalPrice = computed(() => {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th v-if="!status || status == 'Не опачено'">ДЕЙСТВИЯ</th>
+                    <th>ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -331,7 +333,6 @@ const calculateTotalPrice = computed(() => {
                     <td
                       class="text-center"
                       :style="{ width: '80px', zIndex: '10' }"
-                      v-if="!status || status == 'Не опачено'"
                     >
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
@@ -450,6 +451,7 @@ const calculateTotalPrice = computed(() => {
       :total-price="calculateTotalPrice"
       :total-count="calculateCount"
       :cash-register="activeCashRLabel"
+      :checkId="check_id"
     />
 
     <ConfirmDialog

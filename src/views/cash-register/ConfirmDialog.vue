@@ -46,7 +46,7 @@ const calculate = computed(() => {
       <VCardText>
         <VRow>
           <VCol cols="12">
-            <h2>Общая сумма: {{ props.totalPrice }}</h2>
+            <h2>Общая сумма: {{ props.totalPrice }} so'm</h2>
           </VCol>
           <VCol cols="12">
             <VTextField
@@ -58,8 +58,8 @@ const calculate = computed(() => {
           </VCol>
           
           <VCol cols="12">
-            <h2>Сдача: {{ calculate.sdacha }}</h2>
-            <h2>Доплата: {{ calculate.doljen }}</h2>
+            <h2>Сдача: {{ calculate.sdacha }} so'm</h2>
+            <h2>Доплата: {{ calculate.doljen }} so'm</h2>
           </VCol>
           <VDivider />
           <VCol cols="12">
