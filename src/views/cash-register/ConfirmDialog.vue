@@ -56,7 +56,7 @@ const onConfirm = async () => {
 
 const calculate = computed(() => {
   const trimmedPrice = removeSpaces(props.totalPrice);
-    const givenPrice = removeSpaces(input_price.value) *1000
+    const givenPrice = removeSpaces(input_price.value)
 
   return {
     sdacha:
@@ -93,7 +93,7 @@ const calculate = computed(() => {
             <VTextField
               v-model="input_price"
               :value="transformPrice(input_price)"
-              label="Введите сумму (в тысячах)"
+              label="Введите сумму "
               :rules="[]"
               autofocus
             />
@@ -110,7 +110,7 @@ const calculate = computed(() => {
               clear-icon="bx-x"
               :items="payment_types_list"
               item-title="name"
-              item-value="id"
+              item-value="value"
             />
           </VCol>
           <VDivider />
