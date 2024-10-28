@@ -103,6 +103,10 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       state.value.items = data.data || data[config.resourceKey || ""] || [];
       lastFetchedPage.value = state.value.currentPage;
 
+      console.log(data)
+      state.value.totalQuantity =  data.total_quantity;
+      state.value.totalPrice =  data.total_price;
+
       // Update pagination meta
       const meta = data.meta?.pagination as PaginationMeta;
       if (meta) {
@@ -146,6 +150,8 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       isError: false,
       isFetching: false,
       searchQuery: "",
+      totalQuantity: 0,
+      totalPrice: 0,
     };
     finalSearch.value = "";
     lastFetchedPage.value = null;
