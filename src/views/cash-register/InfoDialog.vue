@@ -32,6 +32,7 @@ const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
+const check_date = ref();
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -47,6 +48,7 @@ const fetchDataById = async () => {
       status.value = payment_invoice.status;
       product_variants.value = payment_invoice.items;
       check_id.value = payment_invoice.id;
+      check_date.value = formatTimestamp(payment_invoice.created_at)
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -289,7 +291,19 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
-const infoDialogItemId = ref(0);
+function formatTimestamp(isoString) {
+  const date = new Date(isoString);
+
+  // Format each part with leading zeros
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 </script>
 
 <template>
@@ -315,10 +329,14 @@ const infoDialogItemId = ref(0);
               />
             </VCol>
 
-            <VCol cols="6" class="d-flex align-center">
+            <VCol cols="6" class="d-flex align-center gap-6">
               <h2>
                 Активный терминал:
                 {{ activeCashRLabel }}
+              </h2>
+              <h2>
+                Время Создания :
+                {{ check_date }}
               </h2>
             </VCol>
 

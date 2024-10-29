@@ -1,12 +1,11 @@
 <script setup>
-import { computed,  ref } from 'vue';
-import AddNewDrawer from '@/views/cash-register/cash-box/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/cash-register/cash-box/UpdateDrawer.vue';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import { useFetch } from '@/hooks/useFetch';
-import { transformPrice } from '@/helpers';
+import { computed, ref } from "vue";
+import AddNewDrawer from "@/views/cash-register/cash-box/AddNewDrawer.vue";
+import UpdateDrawer from "@/views/cash-register/cash-box/UpdateDrawer.vue";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import { useFetch } from "@/hooks/useFetch";
+import { transformPrice } from "@/helpers";
 // import InfoDialog from '@/views/cash-register/cash-box/InfoDialog.vue';
-
 
 const {
   items: cash_boxes,
@@ -26,7 +25,6 @@ const {
   debounceMs: 300,
 });
 
-
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
 // const isInfoDialogVisible = ref(false);
@@ -45,7 +43,6 @@ const openEditDrawer = (id) => {
 //   infoDialogItemId.value = id;
 //   isInfoDialogVisible.value = true;
 // };
-
 </script>
 
 <template>
@@ -93,8 +90,11 @@ const openEditDrawer = (id) => {
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
                 <td class="overflow-hide">{{ cash_box.description }}</td>
-                <td >{{ transformPrice(cash_box.remains) }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td>{{ transformPrice(cash_box.remains) }}</td>
+                <td
+                  class="text-center"
+                  :style="{ width: '80px', zIndex: '10' }"
+                >
                   <Can I="update" a="CashBoxes">
                     <VIcon
                       @click="
@@ -116,7 +116,9 @@ const openEditDrawer = (id) => {
 
             <tfoot v-show="!isFetching && !cash_boxes.length">
               <tr>
-                <td colspan="6" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="6" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -154,7 +156,6 @@ const openEditDrawer = (id) => {
       :productId="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     /> -->
-    
   </section>
 </template>
 

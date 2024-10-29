@@ -40,7 +40,7 @@ const infoDialogItemId = ref(0);
 const isInfoDialogVisible = ref(false);
 
 const handleInfoDialogOpen = (id) => {
-  console.log(id)
+  console.log(id);
   infoDialogItemId.value = id;
   isInfoDialogVisible.value = true;
 };
@@ -54,6 +54,20 @@ const resolveInvoiceStatus = (status) => {
 
   return roleMap[status] || { color: "primary" };
 };
+
+function formatTimestamp(isoString) {
+  const date = new Date(isoString);
+
+  // Format each part with leading zeros
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 </script>
 
 <template>
@@ -70,13 +84,15 @@ const resolveInvoiceStatus = (status) => {
       <VDivider />
 
       <!-- SECTION Table -->
-      <VTable >
+      <VTable>
         <!-- 👉 Table head -->
         <thead>
           <tr>
             <th style="width: 48px">ID</th>
+            <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
             <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
+            <th>Время Создания</th>
           </tr>
         </thead>
 
@@ -89,6 +105,7 @@ const resolveInvoiceStatus = (status) => {
             style="cursor: pointer"
           >
             <td>{{ invoice.id }}</td>
+            <td>{{ formatTimestamp(invoice?.created_at) }}</td>
             <td>
               <VChip
                 :color="resolveInvoiceStatus(invoice.status).color"
@@ -104,11 +121,11 @@ const resolveInvoiceStatus = (status) => {
               </VChip>
             </td>
             <td>{{ invoice.full_qty }}</td>
+            <td>{{invoice.cashbox.name}}</td>
           </tr>
         </tbody>
 
         <Skeleton :count="3" v-if="isFetching" />
-
 
         <tfoot v-show="!isFetching && !invoices?.length">
           <tr>
@@ -118,7 +135,6 @@ const resolveInvoiceStatus = (status) => {
           </tr>
         </tfoot>
       </VTable>
-
 
       <!-- SECTION Pagination -->
       <VDivider />

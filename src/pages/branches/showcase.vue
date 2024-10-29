@@ -174,7 +174,7 @@ onMounted(() => {
 
             <VPagination
               v-if="products.length"
-              v-model="currentPage"
+              v-model="state.currentPage"
               :total-visible="7"
               :length="totalPage"
             />
