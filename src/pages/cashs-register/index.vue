@@ -92,7 +92,8 @@ function formatTimestamp(isoString) {
             <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
             <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
-            <th>Время Создания</th>
+            <th>КАССА</th>
+            <th>ТИП ОПЛАТЫ</th>
           </tr>
         </thead>
 
@@ -121,7 +122,8 @@ function formatTimestamp(isoString) {
               </VChip>
             </td>
             <td>{{ invoice.full_qty }}</td>
-            <td>{{invoice.cashbox.name}}</td>
+            <td>{{ invoice.cashbox.name }}</td>
+            <td>{{ invoice.payment_type }}</td>
           </tr>
         </tbody>
 
