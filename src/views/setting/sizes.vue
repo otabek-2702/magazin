@@ -1,51 +1,49 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from '@axios';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
-import { requiredValidator } from '@/@core/utils/validators';
+import { ref, onMounted } from "vue";
+import axios from "@axios";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
+import { toast } from "vue3-toastify";
+import { requiredValidator } from "@/@core/utils/validators";
+import { useFetch } from "@/hooks/useFetch";
 
-const sizes = ref([]);
-const isFetchingStart = ref(false);
 const isFetching = ref(false);
-const finalSearch = ref('');
-const newElemName = ref();
 const editingId = ref(null);
 const isDialogVisible = ref(false);
 const isDeleting = ref(false);
 const deleteData = ref({ id: null, name: null });
 
-const fetchData = async (force = false) => {
-  if (!force && isFetchingStart.value) return;
-
-  try {
-    isFetchingStart.value = true;
-    const { data } = await axios.get(`/sizes?search=${finalSearch.value}`);
-    sizes.value = data['sizes'];
-  } catch (error) {
-    console.error('Ошибка загрузки размеров:', error);
-  } finally {
-    isFetchingStart.value = false;
-  }
-};
+const {
+  state,
+  items: sizes,
+  totalPages: totalPage,
+  paginationData,
+  fetchData,
+  handleSearch,
+  searchQuery,
+  isFetching: isFetchingStart,
+} = useFetch({
+  baseUrl: "sizes",
+  resourceKey: "sizes",
+  immediate: true,
+  initialPage: 1,
+  perPage: 15,
+  debounceMs: 300,
+});
 
 // Add
 const onAddSubmit = async () => {
   try {
     isFetching.value = true;
-    await axios.post('/sizes', {
-      name: newElemName.value,
+    await axios.post("/sizes", {
+      name: searchQuery.value,
     });
     fetchData(true);
 
-    toast('Успешно добавлено', {
-      
-      type: 'success',
-      
+    toast("Успешно добавлено", {
+      type: "success",
     });
-    finalSearch.value = '';
-    newElemName.value = null;
+  searchQuery.value = null;
   } catch (error) {
     console.error(error);
   } finally {
@@ -63,10 +61,10 @@ const hideEditInput = async (size) => {
     try {
       await axios.put(`/sizes/${size.id}`, { name: size.name });
       await fetchData(true);
-      toast('Успешно обновлено', { type: 'success' });
+      toast("Успешно обновлено", { type: "success" });
     } catch (error) {
-      console.error('Ошибка при обновлении размера:', error);
-      toast('Ошибка при обновлении', { type: 'error' });
+      console.error("Ошибка при обновлении размера:", error);
+      toast("Ошибка при обновлении", { type: "error" });
     }
   }
   editingId.value = null;
@@ -82,31 +80,16 @@ const deleteItem = async (id) => {
   try {
     isDeleting.value = true;
     await axios.delete(`/sizes/${id}`);
-    toast('Успешно удалено', { type: 'success' });
+    toast("Успешно удалено", { type: "success" });
     await fetchData(true);
   } catch (error) {
-    console.error('Ошибка при удалении:', error);
-    toast('Ошибка при удалении', { type: 'error' });
+    console.error("Ошибка при удалении:", error);
+    toast("Ошибка при удалении", { type: "error" });
   } finally {
     isDeleting.value = false;
     isDialogVisible.value = false;
   }
 };
-
-// search
-const searchElements = async () => {
-  finalSearch.value = newElemName.value;
-  fetchData(true);
-};
-
-watch(newElemName, (newVal) => {
-  if (!newVal) {
-    finalSearch.value = '';
-    fetchData(true);
-  }
-});
-
-onMounted(fetchData);
 </script>
 <template>
   <VCard title="Размеры">
@@ -121,17 +104,19 @@ onMounted(fetchData);
       <VSpacer />
       <VCol cols="8">
         <VTextField
-          @keyup.enter="searchElements"
+          @keyup.enter="handleSearch"
           :disabled="isFetching"
           label="Имя"
-          v-model="newElemName"
+          v-model="searchQuery"
           density="compact"
           :rules="[]"
         />
       </VCol>
       <VCol cols="4" class="app-user-search-filter d-flex align-center">
         <Can I="add" a="Sizes">
-          <VBtn :disabled="isFetching" :loader="isFetching" @click="onAddSubmit">Добавить</VBtn>
+          <VBtn :disabled="isFetching" :loader="isFetching" @click="onAddSubmit"
+            >Добавить</VBtn
+          >
         </Can>
       </VCol>
     </VCardText>
@@ -185,12 +170,28 @@ onMounted(fetchData);
 
       <tfoot v-if="!isFetchingStart && !sizes.length">
         <tr>
-          <td colspan="3" class="text-center text-body-1">Нет доступных данных</td>
+          <td colspan="3" class="text-center text-body-1">
+            Нет доступных данных
+          </td>
         </tr>
       </tfoot>
     </VTable>
 
+    <!-- SECTION Pagination -->
     <VDivider />
+
+    <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+      <div class="d-flex align-center" style="width: 300px">
+        <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
+      </div>
+
+      <VPagination
+        v-if="sizes.length"
+        v-model="state.currentPage"
+        :total-visible="7"
+        :length="totalPage"
+      />
+    </VCardText>
   </VCard>
 </template>
 <style scoped>

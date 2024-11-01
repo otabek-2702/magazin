@@ -10,7 +10,6 @@ import InfoDialog from "@/views/return/InfoDialog.vue";
 const {
   state,
   items: invoices,
-  currentPage,
   totalPages: totalPage,
   paginationData,
   fetchData,
