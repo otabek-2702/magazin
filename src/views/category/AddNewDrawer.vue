@@ -41,9 +41,9 @@ const onSubmit = () => {
 
         if (response.status == 201) {
           toast('Успешно', {
-            theme: 'auto',
+            
             type: 'success',
-            dangerouslyHTMLString: true,
+            
           });
           emit('fetchDatas');
 

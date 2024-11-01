@@ -40,9 +40,9 @@ const onSubmit = () => {
         });
         emit('fetchDatas');
         toast('Успешно добавлено', {
-          theme: 'auto',
+          
           type: 'success',
-          dangerouslyHTMLString: true,
+          
         });
         handleDrawerModelValueUpdate(false);
       } catch (error) {

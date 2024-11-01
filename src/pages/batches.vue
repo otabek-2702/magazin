@@ -1,17 +1,17 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import AddNewDrawer from '@/views/batch/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/batch/UpdateDrawer.vue';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import AddNewDrawer from "@/views/batch/AddNewDrawer.vue";
+import UpdateDrawer from "@/views/batch/UpdateDrawer.vue";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
 // import InfoDialog from '@/views/batch/InfoDialog.vue';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
+import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
+import { toast } from "vue3-toastify";
 
 const { can } = useAppAbility();
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(10);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -27,7 +27,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -35,19 +36,19 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/batches?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/batches?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    batches.value = data['batches'];
+    batches.value = data["batches"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error("Ошибка загрузки товаров:", error);
   } finally {
     isFetching.value = false;
   }
@@ -62,7 +63,7 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
@@ -102,13 +103,14 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = batches.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = batches.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = batches.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    batches.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
-
-
 
 // Edit
 const openEditDrawer = (id) => {
@@ -141,16 +143,14 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/batches/' + id);
-    toast('Успешно удалено', {
-      theme: 'auto',
-      type: 'success',
-      dangerouslyHTMLString: true,
+    await axios.delete("/batches/" + id);
+    toast("Успешно удалено", {
+      type: "success",
     });
     await fetchData(true);
     isDialogVisible.value = false;
   } catch (error) {
-    console.error('Ошибка :', error);
+    console.error("Ошибка :", error);
   } finally {
     isDeleting.value = false;
   }
@@ -158,8 +158,10 @@ const deleteItem = async function (id) {
 
 const transformDate = (date) => {
   const value = new Date(date);
-  const addZero = (v) => v<10 ? '0' + v.toString() : v
-  return `${addZero(value.getDate())}-${addZero(value.getMonth() + 1)}-${value.getFullYear()}`
+  const addZero = (v) => (v < 10 ? "0" + v.toString() : v);
+  return `${addZero(value.getDate())}-${addZero(
+    value.getMonth() + 1
+  )}-${value.getFullYear()}`;
 };
 </script>
 
@@ -218,7 +220,10 @@ const transformDate = (date) => {
                 <td>{{ batch.name }}</td>
                 <td>{{ batch.road_expenses }}</td>
                 <td class="overflow-hide">{{ batch.description }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td
+                  class="text-center"
+                  :style="{ width: '80px', zIndex: '10' }"
+                >
                   <Can I="update" a="Batches">
                     <VIcon
                       @click="
@@ -248,7 +253,9 @@ const transformDate = (date) => {
 
             <tfoot v-show="!isFetching && !batches.length">
               <tr>
-                <td colspan="6" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="6" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -286,7 +293,6 @@ const transformDate = (date) => {
       :productId="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     /> -->
-    
   </section>
 </template>
 

@@ -54,24 +54,24 @@ const onSubmit = () => {
           emit('fetchDatas');
 
           toast('Успешно', {
-            theme: 'auto',
+            
             type: 'success',
-            dangerouslyHTMLString: true,
+            
           });
           closeNavigationDrawer();
         }
       } catch (error) {
         if (error.response.data.message == 'The login has already been taken.') {
           toast('Этот логин уже занят.', {
-            theme: 'auto',
+            
             type: 'error',
-            dangerouslyHTMLString: true,
+            
           });
         } else {
           toast(error?.message, {
-            theme: 'auto',
+            
             type: 'error',
-            dangerouslyHTMLString: true,
+            
           });
         }
       } finally {

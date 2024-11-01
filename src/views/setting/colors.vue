@@ -77,9 +77,9 @@ const onAddSubmit = async () => {
     fetchData(true);
     finalSearch.value = '';
     toast('Успешно добавлено', {
-      theme: 'auto',
+      
       type: 'success',
-      dangerouslyHTMLString: true,
+      
     });
     newElemName.value = null;
   } catch (error) {

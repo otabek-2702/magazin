@@ -116,9 +116,9 @@ const deleteItem = async function (id) {
     isDeleting.value = true;
     await axios.delete('/users/' + id);
     toast('Успешно удалено', {
-      theme: 'auto',
+      
       type: 'success',
-      dangerouslyHTMLString: true,
+      
     });
     fetchData(true);
     isDialogVisible.value = false;

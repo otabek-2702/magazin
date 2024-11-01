@@ -32,7 +32,7 @@ const onSubmit = () => {
         toast("Успешно добавлено", {
           theme: "auto",
           type: "success",
-          dangerouslyHTMLString: true,
+          
         });
         handleDrawerModelValueUpdate(false);
       } catch (error) {
@@ -93,7 +93,7 @@ const findProductVariant = async (raw_sku) => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
     return;
   }
@@ -110,7 +110,7 @@ const addToList = () => {
       toast("На складе отсутствует этот товар.", {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,
+        
       });
       sku_ref.value.focus();
       return;
@@ -129,7 +129,7 @@ const addToList = () => {
       toast("Доступное количество на складе не может быть превышено.", {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,
+        
       });
       quantity_ref.value.focus();
       return;
@@ -155,7 +155,7 @@ const addToList = () => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
   }
 
@@ -177,7 +177,7 @@ const hideEditInput = async (variant) => {
     toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
-      dangerouslyHTMLString: true,
+      
     });
     return;
   } else if (variant.quantity > variant.quantity) {
@@ -186,7 +186,7 @@ const hideEditInput = async (variant) => {
       {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,
+        
       }
     );
     return;

@@ -47,9 +47,9 @@ const onSubmit = () => {
         if (response.status == 200) {
           emit('fetchDatas');
           toast('Успешно', {
-            theme: 'auto',
+            
             type: 'success',
-            dangerouslyHTMLString: true,
+            
           });
           closeNavigationDrawer();
         }

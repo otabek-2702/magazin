@@ -47,7 +47,7 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       emit("fetchDatas");
 

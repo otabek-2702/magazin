@@ -25,6 +25,7 @@ interface UseFetchConfig {
   initialPage?: number;
   perPage?: number;
   debounceMs?: number;
+  params?: Record<string, any>;
 }
 
 interface FetchState<T> {
@@ -87,11 +88,12 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       state.value.isFetching = true;
       state.value.error = null;
       state.value.isError = false;
-
+console.log(config)
       const params = {
         page: state.value.currentPage,
         paginate: state.value.rowsPerPage,
         search: finalSearch.value,
+        ...config?.params,
         ...options.additionalParams,
       };
 

@@ -80,7 +80,7 @@ const onSubmit = async (reject_or_submit = false) => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       handleDialogModelValueUpdate(false);
     }
@@ -102,7 +102,7 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       emit("fetchDatas");
 
@@ -123,7 +123,7 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       emit("fetchDatas");
 
@@ -285,7 +285,7 @@ const addToList = () => {
     toast("Заполните все поля формы", {
       theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
   }
 };

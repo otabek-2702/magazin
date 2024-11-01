@@ -43,9 +43,9 @@ const onAddSubmit = async () => {
     fetchData(true);
 
     toast('Успешно добавлено', {
-      theme: 'auto',
+      
       type: 'success',
-      dangerouslyHTMLString: true,
+      
     });
     finalSearch.value = '';
     newElem.value = {

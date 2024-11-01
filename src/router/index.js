@@ -188,24 +188,40 @@ const router = createRouter({
             },
             {
               path: "cash-boxes",
-              name: "CashBoxes",
-              component: () => import("@/pages/cashs-register/cash-boxes.vue"),
-              meta: {
-                action: "show",
-                subject: "CashBoxes",
-              },
+              children: [
+                {
+                  path: "",
+                  name: "CashBoxes",
+                  component: () =>
+                    import("@/pages/cashs-register/cash-boxes/index.vue"),
+                  meta: {
+                    action: "show",
+                    subject: "CashBoxes",
+                  },
+                },
+                {
+                  path: ":id",
+                  name: "CashBoxShow",
+                  component: () =>
+                    import("@/pages/cashs-register/cash-boxes/[id].vue"),
+                  meta: {
+                    action: "show",
+                    subject: "CashBoxShow",
+                  },
+                },
+              ],
             },
           ],
         },
         // returns
         {
-          path: 'returns',
-          name: 'Returns',
-          component : () => import('@/pages/returns.vue'),
+          path: "returns",
+          name: "Returns",
+          component: () => import("@/pages/returns.vue"),
           meta: {
             action: "show",
-            subject: "Refunds"
-          }
+            subject: "Refunds",
+          },
         },
         // suppliers
         {

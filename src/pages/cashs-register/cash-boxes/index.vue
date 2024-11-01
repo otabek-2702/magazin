@@ -1,11 +1,13 @@
 <script setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import AddNewDrawer from "@/views/cash-register/cash-box/AddNewDrawer.vue";
 import UpdateDrawer from "@/views/cash-register/cash-box/UpdateDrawer.vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { useFetch } from "@/hooks/useFetch";
 import { transformPrice } from "@/helpers";
-// import InfoDialog from '@/views/cash-register/cash-box/InfoDialog.vue';
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const {
   items: cash_boxes,
@@ -27,7 +29,6 @@ const {
 
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
-// const isInfoDialogVisible = ref(false);
 
 // Edit
 const updateID = ref(0);
@@ -35,14 +36,6 @@ const openEditDrawer = (id) => {
   updateID.value = id;
   isUpdateDrawerVisible.value = true;
 };
-
-// // Show one
-// const infoDialogItemId = ref(0);
-
-// const handleInfoDialogOpen = (id) => {
-//   infoDialogItemId.value = id;
-//   isInfoDialogVisible.value = true;
-// };
 </script>
 
 <template>
@@ -86,6 +79,12 @@ const openEditDrawer = (id) => {
                 :style="{ cursor: 'pointer' }"
                 v-for="cash_box in cash_boxes"
                 :key="cash_box.id"
+                @click="
+                  router.push({
+                    name: 'CashBoxShow',
+                    params: { id: cash_box.id },
+                  })
+                "
               >
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
@@ -150,12 +149,6 @@ const openEditDrawer = (id) => {
       v-model:isDrawerOpen="isUpdateDrawerVisible"
       @fetchDatas="() => fetchData(true)"
     />
-
-    <!-- <InfoDialog
-      v-model:isDrawerOpen="isInfoDialogVisible"
-      :productId="infoDialogItemId"
-      @fetchDatas="() => fetchData(true)"
-    /> -->
   </section>
 </template>
 

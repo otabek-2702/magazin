@@ -63,7 +63,7 @@ const onSubmit = () => {
         toast("Успешно добавлено", {
           theme: "auto",
           type: "success",
-          dangerouslyHTMLString: true,
+          
         });
         handleDrawerModelValueUpdate(false);
       } catch (error) {

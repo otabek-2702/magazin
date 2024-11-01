@@ -114,7 +114,7 @@ const findProductVariant = async (raw_sku) => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
     setTimeout(() => {
       product_variant_sku.value = null;
@@ -137,7 +137,7 @@ const addToList = () => {
     toast("На витрине отсутствует этот товар.", {
       theme: "auto",
       type: "warning",
-      dangerouslyHTMLString: true,
+      
     });
     sku_ref.value.focus();
     setTimeout(() => {
@@ -158,7 +158,7 @@ const addToList = () => {
         {
           theme: "auto",
           type: "warning",
-          dangerouslyHTMLString: true,
+          
         }
       );
       product_variant_sku.value = null;
@@ -197,7 +197,7 @@ const hideEditInput = async (variant) => {
     toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
-      dangerouslyHTMLString: true,
+      
     });
     return;
   } else if (variant.quantity > variant.amount_remainder) {
@@ -206,7 +206,7 @@ const hideEditInput = async (variant) => {
       {
         theme: "auto",
         type: "warning",
-        dangerouslyHTMLString: true,
+        
       }
     );
     return;

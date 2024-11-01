@@ -153,9 +153,9 @@ const deleteItem = async function (id) {
   try {
     await axios.delete('/roles/' + id);
     toast('Успешно удалено', {
-      theme: 'auto',
+      
       type: 'success',
-      dangerouslyHTMLString: true,
+      
     });
     await fetchData();
     isDialogVisible.value = false;

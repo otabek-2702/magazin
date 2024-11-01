@@ -161,9 +161,9 @@ const deleteItem = async function (id) {
     isDeleting.value = true;
     await axios.delete('/product_variants/' + id);
     toast('Успешно удалено', {
-      theme: 'auto',
+      
       type: 'success',
-      dangerouslyHTMLString: true,
+      
     });
     await fetchData(true);
     isDialogVisible.value = false;

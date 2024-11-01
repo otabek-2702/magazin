@@ -8,7 +8,7 @@ export const transformPrice = (price) => {
     .replace(/\s/g, "")
     .replace(/[^\d\s]/g, "")
     .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return formattedPrice?.trim() ?? "";
+  return formattedPrice?.trim() ?? "0";
 };
 
 export const removeSpaces = (input) => {
@@ -16,6 +16,20 @@ export const removeSpaces = (input) => {
   let newValNumeric = Number(newVal);
   return newValNumeric ? newValNumeric : newVal;
 };
+
+export function formatTimestamp(isoString) {
+  const date = new Date(isoString);
+
+  // Format each part with leading zeros
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 
 export const fetchOptions = async (
   url,

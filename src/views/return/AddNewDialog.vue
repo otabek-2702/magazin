@@ -32,7 +32,7 @@ const onSubmit = () => {
         toast("Успешно", {
           theme: "auto",
           type: "success",
-          dangerouslyHTMLString: true,
+          
         });
         return_id.value = response.data.refund.id;
         status.value = "Черновик";
@@ -116,9 +116,8 @@ const findProductVariant = async (raw_sku) => {
 
   if (!product_variant_data.value) {
     toast("Товар не найден", {
-      theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
     setTimeout(() => {
       product_variant_sku.value = null;
@@ -141,7 +140,7 @@ const addToList = () => {
     toast("На витрине отсутствует этот товар.", {
       theme: "auto",
       type: "warning",
-      dangerouslyHTMLString: true,
+      
     });
     sku_ref.value.focus();
     setTimeout(() => {
@@ -162,7 +161,7 @@ const addToList = () => {
     //     {
     //       theme: "auto",
     //       type: "warning",
-    //       dangerouslyHTMLString: true,
+    //       
     //     }
     //   );
     //   product_variant_sku.value = null;
@@ -201,7 +200,7 @@ const addToList = () => {
 //     toast("Количество товара должно быть больше нуля.", {
 //       theme: "auto",
 //       type: "warning",
-//       dangerouslyHTMLString: true,
+//       
 //     });
 //     return;
 //   } else if (variant.quantity > variant.amount_remainder) {
@@ -210,7 +209,7 @@ const addToList = () => {
 //       {
 //         theme: "auto",
 //         type: "warning",
-//         dangerouslyHTMLString: true,
+//         
 //       }
 //     );
 //     return;
@@ -234,7 +233,7 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       emit("fetchDatas");
 
@@ -255,7 +254,7 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        dangerouslyHTMLString: true,
+        
       });
       emit("fetchDatas");
 

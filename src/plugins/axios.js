@@ -67,7 +67,7 @@ axiosIns.interceptors.response.use(
       toast(error.response.data.message ?? error.message, {
         theme: 'auto',
         type: 'error',
-        dangerouslyHTMLString: true,
+        
       });
 
       // Handle redirection for specific status codes if not in development mode

@@ -45,7 +45,7 @@ const onSubmit = () => {
         toast("Успешно добавлено", {
           theme: "auto",
           type: "success",
-          dangerouslyHTMLString: true,
+          
         });
         handleDialogModelValueUpdate(false);
       } catch (error) {
@@ -190,7 +190,7 @@ const addToList = () => {
     toast("Заполните все поля формы", {
       theme: "auto",
       type: "error",
-      dangerouslyHTMLString: true,
+      
     });
   }
 };

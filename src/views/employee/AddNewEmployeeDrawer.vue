@@ -52,9 +52,9 @@ const onSubmit = () => {
       } catch (error) {
         if (error.response.data.message == 'The login has already been taken.') {
           toast('Этот логин уже занят.', {
-            theme: 'auto',
+            
             type: 'error',
-            dangerouslyHTMLString: true,
+            
           });
         } else {
           console.error('Ошибка:', error);

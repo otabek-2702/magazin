@@ -44,9 +44,9 @@ const onSubmit = () => {
         });
 
         toast('Успешно', {
-          theme: 'auto',
+          
           type: 'success',
-          dangerouslyHTMLString: true,
+          
         });
         // Убедитесь, что fetch вызывается только после успешного обновления
         emit('fetchDatas');
