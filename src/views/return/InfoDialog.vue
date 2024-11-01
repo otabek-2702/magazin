@@ -3,7 +3,6 @@ import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
-import Skeleton from "@/views/skeleton/Skeleton.vue";
 import CheckDialog from "./CheckDialog.vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
 
@@ -37,18 +36,18 @@ const check_date = ref();
 const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
-    const response = await axios.get(`/payment_invoices/${props.id}`);
+    const response = await axios.get(`/refunds/${props.id}`);
     if (response.status === 200) {
       const {
-        data: { payment_invoice },
+        data: { refund },
       } = response;
-      console.log(payment_invoice.status);
+      console.log(refund.status);
 
-      check_id.value = payment_invoice.id;
-      status.value = payment_invoice.status;
-      product_variants.value = payment_invoice.items;
-      check_id.value = payment_invoice.id;
-      check_date.value = formatTimestamp(payment_invoice.created_at)
+      check_id.value = refund.id;
+      status.value = refund.status;
+      product_variants.value = refund.items;
+      check_id.value = refund.id;
+      check_date.value = formatTimestamp(refund.created_at);
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -58,13 +57,30 @@ const fetchDataById = async () => {
 };
 
 const onConfirm = async () => {
-  isConfirmDialogVisible.value = true;
+  isFetching.value = "confirm";
+  try {
+    const reponse = await axios.post(`/refunds/confirm/${props.id}`);
+    if (reponse.status === 200) {
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = "";
+  }
 };
 
 const onReject = async () => {
   isFetching.value = "reject";
   try {
-    const reponse = await axios.post(`/payment_invoices/reject/${props.id}`);
+    const reponse = await axios.post(`/refunds/reject/${props.id}`);
     if (reponse.status === 200) {
       toast("Успешно", {
         theme: "auto",
@@ -107,6 +123,11 @@ watch(
   }
 );
 
+// Autofocus
+watch(()=>props.isDialogOpen, (newVal) => {
+  if (newVal) sku_ref.value?.focus();
+});
+
 onMounted(() => {
   fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
 });
@@ -129,62 +150,8 @@ watch(cashbox_id, (newVal) => {
   }
 });
 
+// find Product
 
-
-// Add
-const addToList = () => {
-  // find if object exists
-  if (product_variant_data.value?.amount_remainder <= 0) {
-    toast("На витрине отсутствует этот товар.", {
-      theme: "auto",
-      type: "warning",
-      dangerouslyHTMLString: true,
-    });
-    sku_ref.value.focus();
-    setTimeout(() => {
-      product_variant_sku.value = null;
-    }, 300);
-    return;
-  }
-  const existingObj = product_variants.value.find(
-    (el) =>
-      el.product_variant_id == product_variant_data.value.product_variant_id
-  );
-
-  if (existingObj) {
-    let totalQuantity = existingObj.quantity + 1;
-    if (totalQuantity > existingObj.amount_remainder) {
-      toast(
-        `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
-        {
-          theme: "auto",
-          type: "warning",
-          dangerouslyHTMLString: true,
-        }
-      );
-      product_variant_sku.value = null;
-      return;
-    }
-    product_variants.value = product_variants.value?.map((el) => {
-      if (el.product_variant_id == existingObj.product_variant_id) {
-        return {
-          ...el,
-          quantity: totalQuantity,
-        };
-      }
-      return el;
-    });
-  } else {
-    product_variants.value.push({
-      ...product_variant_data.value,
-      quantity: 1,
-    });
-  }
-
-  // reset
-  product_variant_data.value = null;
-  sku_ref.value.focus();
-};
 
 // Edit
 const editingId = ref(null);
@@ -214,13 +181,6 @@ const hideEditInput = async (variant) => {
   }
   variant.quantity = Number(variant.quantity);
   editingId.value = null;
-};
-
-// Delete
-const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter(
-    (el) => el.product_variant_id != id
-  );
 };
 
 const calculateCount = computed(() => {
@@ -304,7 +264,7 @@ function formatTimestamp(isoString) {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <!-- <th v-if="status == 'Не опачено'">ДЕЙСТВИЯ</th> -->
+                    <!-- <th v-if="status == 'Черновик'">ДЕЙСТВИЯ</th> -->
                   </tr>
                 </thead>
 
@@ -346,7 +306,7 @@ function formatTimestamp(isoString) {
                     <!-- <td
                       class="text-center"
                       :style="{ width: '80px', zIndex: '10' }"
-                      v-if="status == 'Не опачено'"
+                      v-if="status == 'Черновик'"
                     >
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
@@ -398,61 +358,19 @@ function formatTimestamp(isoString) {
             </VCol>
 
             <VDivider />
-
-            <!-- <VCol cols="12" v-if="status == 'Не опачено'">
-              <VRow>
-                <VCol cols="3" class="d-flex align-center">
-                  <VTextField
-                    v-model="product_variant_sku"
-                    ref="sku_ref"
-                    @input="
-                      product_variant_sku = product_variant_sku.toUpperCase()
-                    "
-                    @keyup.enter="findProductVariant(product_variant_sku)"
-                    label="Штрих код товара"
-                    item-title="name"
-                    item-value="id"
-                    :rules="[]"
-                    autofocus
-                  />
-                </VCol>
-
-                <VCol cols="6">
-                  <h4 class="pt-1">
-                    Товар: {{ product_variant_data?.product_variant_name }}
-                  </h4>
-                  <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                  <p class="pt-2 mb-0">
-                    Имеется в наличии:
-                    <b>{{ product_variant_data?.amount_remainder ?? 0 }} шт</b>
-                  </p>
-                </VCol>
-
-                <VCol cols="2" class="d-flex align-center">
-                  <h3 class="pt-1">
-                    Стоимость:<br />
-                    {{ transformPrice(product_variant_data?.sell_price) }} SO'M
-                  </h3>
-                </VCol>
-
-                <VCol cols="1" class="d-flex align-center justify-center">
-                  <VProgressCircular
-                    color="primary"
-                    v-if="isFetchingVariant"
-                    indeterminate
-                  ></VProgressCircular>
-                </VCol>
-              </VRow>
-            </VCol> -->
           </VRow>
           <VCardText class="d-flex justify-end gap-4 pt-5">
             <VBtn
-              :loading="isFetching == 'submit'"
-              :disabled="isFetching == 'submit'"
-              type="button"
+              :loading="isFetching == 'confirm'"
+              :disabled="isFetching == 'confirm'"
               @click="onConfirm"
+              color="success"
+              v-if="status == 'Черновик'"
+              class="me-3"
+              type="button"
             >
-              Оплатить
+              Подтвердить
+              <VIcon end icon="bx-check-circle" />
             </VBtn>
             <VBtn
               :loading="isFetching == 'reject'"
@@ -460,7 +378,7 @@ function formatTimestamp(isoString) {
               type="button"
               @click="onReject"
               color="secondary"
-              v-if="status == 'Не опачено'"
+              v-if="status == 'Черновик'"
             >
               Отменить
               <VIcon end icon="bx-minus-circle" />

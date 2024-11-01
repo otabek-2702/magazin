@@ -133,6 +133,13 @@ export default [
     ]
   },
   {
+    title: 'Возвраты',
+    to: { name: 'Returns' },
+    icon: { icon: 'mdi-cash-refund' },
+    subject: 'Refunds',
+    action: 'show'
+  },
+  {
     title: 'Поставщики',
     to: { name: 'Suppliers' },
     icon: { icon: 'mdi-human-dolly' },

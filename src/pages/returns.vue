@@ -3,8 +3,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { fetchOptions } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
-import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
-import InfoDialog from "@/views/cash-register/InfoDialog.vue";
+import AddNewDialog from "@/views/return/AddNewDialog.vue";
+import InfoDialog from "@/views/return/InfoDialog.vue";
 
 // Initialize useFetch hook with your configuration
 const {
@@ -18,8 +18,8 @@ const {
   searchQuery,
   isFetching,
 } = useFetch({
-  baseUrl: "payment_invoices",
-  resourceKey: "payment_invoices",
+  baseUrl: "refunds",
+  resourceKey: "refunds",
   immediate: true,
   initialPage: 1,
   perPage: 30,
@@ -43,9 +43,9 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    "Не опачено": { color: "error" },
-    Отклонено: { color: "warning" },
-    Оплачено: { color: "success" },
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
   };
 
   return roleMap[status] || { color: "primary" };
@@ -89,7 +89,6 @@ function formatTimestamp(isoString) {
             <th>СТАТУС</th>
             <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
             <th>КАССА</th>
-            <th>ТИП ОПЛАТЫ</th>
           </tr>
         </thead>
 
@@ -119,11 +118,10 @@ function formatTimestamp(isoString) {
             </td>
             <td>{{ invoice.full_qty }}</td>
             <td>{{ invoice.cashbox.name }}</td>
-            <td>{{ invoice.payment_type }}</td>
           </tr>
         </tbody>
 
-        <Skeleton :count="6" v-if="isFetching" />
+        <Skeleton :count="5" v-if="isFetching" />
 
         <tfoot v-show="!isFetching && !invoices?.length">
           <tr>

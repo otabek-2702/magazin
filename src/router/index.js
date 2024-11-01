@@ -197,6 +197,16 @@ const router = createRouter({
             },
           ],
         },
+        // returns
+        {
+          path: 'returns',
+          name: 'Returns',
+          component : () => import('@/pages/returns.vue'),
+          meta: {
+            action: "show",
+            subject: "Refunds"
+          }
+        },
         // suppliers
         {
           path: "suppliers",

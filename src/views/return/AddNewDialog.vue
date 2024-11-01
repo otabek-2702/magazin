@@ -2,15 +2,12 @@
 import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
-import CheckDialog from "./CheckDialog.vue";
-import ConfirmDialog from "./ConfirmDialog.vue";
+import { fetchOptions, transformPrice } from "@/helpers";
 
 const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
-const isConfirmDialogVisible = ref(false);
-const isFetching = ref(false);
+const isFetching = ref("");
 const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
@@ -19,31 +16,36 @@ const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
-const check_id = ref();
+const return_id = ref();
+const status = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      isFetching.value = true;
+      isFetching.value = "submit";
       try {
-        const response = await axios.post("/payment_invoices", {
+        const response = await axios.post("/refunds", {
           cashbox_id: cashbox_id.value,
           items: product_variants.value,
         });
-        check_id.value = response?.data?.payment_invoice?.id;
         emit("fetchDatas");
-        isConfirmDialogVisible.value = true;
-        infoDialogItemId.value = response.data.payment_invoice.id;
+        toast("Успешно", {
+          theme: "auto",
+          type: "success",
+          dangerouslyHTMLString: true,
+        });
+        return_id.value = response.data.refund.id;
+        status.value = "Черновик";
       } catch (error) {
         console.error(error);
       } finally {
-        isFetching.value = false;
+        isFetching.value = "";
       }
     }
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
+const handleDialogModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   if (val === false) {
     product_variant_sku.value = null;
@@ -52,11 +54,14 @@ const handleDrawerModelValueUpdate = (val) => {
     refForm.value?.reset();
     refForm.value?.resetValidation();
     nextTick(() => {
-      sku_ref.value?.focus();
       const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
       if (storageCashboxId) {
         cashbox_id.value = storageCashboxId;
       }
+    });
+  } else {
+    nextTick(() => {
+      sku_ref.value?.focus();
     });
   }
 };
@@ -99,9 +104,8 @@ const findProductVariant = async (raw_sku) => {
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
-        amount_remainder: Number(quantity),
         sku,
-        sell_price: Number(product.sell_price),
+        price: Number(product.sell_price),
       };
     }
   } catch (error) {
@@ -152,18 +156,18 @@ const addToList = () => {
 
   if (existingObj) {
     let totalQuantity = existingObj.quantity + 1;
-    if (totalQuantity > existingObj.amount_remainder) {
-      toast(
-        `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
-        {
-          theme: "auto",
-          type: "warning",
-          dangerouslyHTMLString: true,
-        }
-      );
-      product_variant_sku.value = null;
-      return;
-    }
+    // if (totalQuantity > existingObj.amount_remainder) {
+    //   toast(
+    //     `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
+    //     {
+    //       theme: "auto",
+    //       type: "warning",
+    //       dangerouslyHTMLString: true,
+    //     }
+    //   );
+    //   product_variant_sku.value = null;
+    //   return;
+    // }
     product_variants.value = product_variants.value?.map((el) => {
       if (el.product_variant_id == existingObj.product_variant_id) {
         return {
@@ -185,41 +189,83 @@ const addToList = () => {
   sku_ref.value.focus();
 };
 
-// Edit
-const editingId = ref(null);
+// // Edit
+// const editingId = ref(null);
 
-const showEditInput = (id) => {
-  editingId.value = id;
-};
+// const showEditInput = (id) => {
+//   editingId.value = id;
+// };
 
-const hideEditInput = async (variant) => {
-  if (variant?.quantity <= 0) {
-    toast("Количество товара должно быть больше нуля.", {
-      theme: "auto",
-      type: "warning",
-      dangerouslyHTMLString: true,
-    });
-    return;
-  } else if (variant.quantity > variant.amount_remainder) {
-    toast(
-      `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
-      {
+// const hideEditInput = async (variant) => {
+//   if (variant?.quantity <= 0) {
+//     toast("Количество товара должно быть больше нуля.", {
+//       theme: "auto",
+//       type: "warning",
+//       dangerouslyHTMLString: true,
+//     });
+//     return;
+//   } else if (variant.quantity > variant.amount_remainder) {
+//     toast(
+//       `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
+//       {
+//         theme: "auto",
+//         type: "warning",
+//         dangerouslyHTMLString: true,
+//       }
+//     );
+//     return;
+//   }
+//   variant.quantity = Number(variant.quantity);
+//   editingId.value = null;
+// };
+
+// // Delete
+// const deleteListItem = (id) => {
+//   product_variants.value = product_variants.value.filter(
+//     (el) => el.product_variant_id != id
+//   );
+// };
+
+const onConfirm = async () => {
+  isFetching.value = "confirm";
+  try {
+    const reponse = await axios.post(`/refunds/confirm/${return_id.value}`);
+    if (reponse.status === 200) {
+      toast("Успешно", {
         theme: "auto",
-        type: "warning",
+        type: "success",
         dangerouslyHTMLString: true,
-      }
-    );
-    return;
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = "";
   }
-  variant.quantity = Number(variant.quantity);
-  editingId.value = null;
 };
 
-// Delete
-const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter(
-    (el) => el.product_variant_id != id
-  );
+const onReject = async () => {
+  isFetching.value = "reject";
+  try {
+    const reponse = await axios.post(`/refunds/reject/${return_id.value}`);
+    if (reponse.status === 200) {
+      toast("Успешно", {
+        theme: "auto",
+        type: "success",
+        dangerouslyHTMLString: true,
+      });
+      emit("fetchDatas");
+
+      handleDialogModelValueUpdate(false);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isFetching.value = "";
+  }
 };
 
 const calculateCount = computed(() => {
@@ -237,8 +283,7 @@ const calculateTotalPrice = computed(() => {
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) =>
-        accumulator + Number(el.sell_price) * quantity(el) ?? 0,
+      (accumulator, el) => accumulator + Number(el.price) * quantity(el) ?? 0,
       0
     )
   );
@@ -251,9 +296,9 @@ const infoDialogItemId = ref(0);
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
-        >Продажа товаров</VBtn
-      >
+      <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
+        >Возврат Товаров
+      </VBtn>
     </template>
 
     <!-- Dialog Content -->
@@ -261,7 +306,7 @@ const infoDialogItemId = ref(0);
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="handleDrawerModelValueUpdate(false)"
+        @click="handleDialogModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -296,7 +341,6 @@ const infoDialogItemId = ref(0);
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th>ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -309,58 +353,15 @@ const infoDialogItemId = ref(0);
                     <td>
                       {{ variant.product_variant_name }}
                     </td>
-                    <td>{{ transformPrice(variant.sell_price) }} so'm</td>
+                    <td>{{ transformPrice(variant.price) }} so'm</td>
                     <td>
                       <b>
-                        {{
-                          transformPrice(variant.sell_price * variant.quantity)
-                        }}
+                        {{ transformPrice(variant.price * variant.quantity) }}
                         so'm
                       </b>
                     </td>
                     <td>
-                      <VTextField
-                        v-model="variant.quantity"
-                        :readonly="editingId !== variant.product_variant_id"
-                        :class="{
-                          'text-input':
-                            editingId !== variant.product_variant_id,
-                        }"
-                        @blur="hideEditInput(variant)"
-                        @keyup.enter="hideEditInput(variant)"
-                        @focus="autoSelectInputValue"
-                        class="custom-input"
-                        density="compact"
-                        type="number"
-                        :rules="[]"
-                      />
-                    </td>
-                    <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                    >
-                      <VIcon
-                        v-if="editingId == variant.product_variant_id"
-                        @click.stop="hideEditInput(variant)"
-                        size="30"
-                        icon="bx-check"
-                        style="color: rgb(var(--v-theme-success))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        v-else
-                        @click.stop="showEditInput(variant.product_variant_id)"
-                        size="30"
-                        icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        size="30"
-                        icon="mdi-minus-circle-outline"
-                        style="color: red"
-                        @click="deleteListItem(variant.product_variant_id)"
-                      ></VIcon>
+                      {{ variant.quantity }}
                     </td>
                   </tr>
                 </tbody>
@@ -375,7 +376,6 @@ const infoDialogItemId = ref(0);
                     <td class="text-body-1">
                       Общая количество: {{ Number(calculateCount) }}
                     </td>
-                    <td></td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -396,7 +396,7 @@ const infoDialogItemId = ref(0);
                 <VCol cols="3" class="d-flex align-center">
                   <VTextField
                     v-model="product_variant_sku"
-                    :ref="sku_ref"
+                    ref="sku_ref"
                     @input="
                       product_variant_sku = product_variant_sku.toUpperCase()
                     "
@@ -408,7 +408,6 @@ const infoDialogItemId = ref(0);
                     autofocus
                   />
                 </VCol>
-
                 <VCol cols="1" class="d-flex align-center justify-center">
                   <VProgressCircular
                     color="primary"
@@ -416,42 +415,48 @@ const infoDialogItemId = ref(0);
                     indeterminate
                   ></VProgressCircular>
                 </VCol>
+                <VSpacer />
+
+                <VCol class="d-flex justify-end gap-2 align-center">
+                  <VBtn
+                    :loading="isFetching === 'submit'"
+                    :disabled="isFetching === 'submit'"
+                    type="button"
+                    @click="onSubmit"
+                    v-if="!status"
+                  >
+                    Принять
+                  </VBtn>
+                  <VBtn
+                    :loading="isFetching === 'confirm'"
+                    :disabled="isFetching === 'confirm'"
+                    @click="onConfirm"
+                    color="success"
+                    v-if="status === 'Черновик'"
+                    class="me-3"
+                    type="button"
+                  >
+                    Подтвердить
+                    <VIcon end icon="bx-check-circle" />
+                  </VBtn>
+                  <VBtn
+                    :loading="isFetching === 'reject'"
+                    :disabled="isFetching === 'reject'"
+                    type="button"
+                    @click="onReject"
+                    color="secondary"
+                    v-if="status === 'Черновик'"
+                  >
+                    Отменить
+                    <VIcon end icon="bx-minus-circle" />
+                  </VBtn>
+                </VCol>
               </VRow>
             </VCol>
           </VRow>
-          <VCardText class="d-flex justify-end gap-2 pt-2">
-            <VBtn
-              :loading="isFetching"
-              :disabled="isFetching"
-              type="button"
-              @click="onSubmit"
-            >
-              Оплатить
-            </VBtn>
-          </VCardText>
         </VForm>
       </VCardText>
     </VCard>
-    <CheckDialog
-      v-if="product_variants.length"
-      :items="product_variants"
-      :total-price="calculateTotalPrice"
-      :total-count="Number(calculateCount)"
-      :cash-register="activeCashRLabel"
-      :checkId="check_id"
-    />
-
-    <ConfirmDialog
-      v-model:isDialogOpen="isConfirmDialogVisible"
-      :total-price="calculateTotalPrice"
-      :id="infoDialogItemId"
-      @fetchDatas="
-        () => {
-          emit('fetchDatas');
-          handleDrawerModelValueUpdate(false);
-        }
-      "
-    />
   </VDialog>
 </template>
 
