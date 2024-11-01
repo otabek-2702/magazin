@@ -2,7 +2,7 @@
 import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { fetchOptions, transformPrice } from "@/helpers";
+import { autoSelectInputValue, fetchOptions, removeSpaces, transformPrice } from "@/helpers";
 
 const emit = defineEmits(["fetchDatas"]);
 
@@ -15,6 +15,8 @@ const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
+const price = ref();
+const price_ref = ref();
 const product_variants = ref([]);
 const return_id = ref();
 const status = ref();
@@ -32,7 +34,6 @@ const onSubmit = () => {
         toast("Успешно", {
           theme: "auto",
           type: "success",
-          
         });
         return_id.value = response.data.refund.id;
         status.value = "Черновик";
@@ -98,14 +99,13 @@ const findProductVariant = async (raw_sku) => {
 
     if (response.status === 200 && response.data.showcase[0]) {
       const {
-        quantity,
         variant: { id, product, color, size, sku },
       } = response.data?.showcase[0];
       product_variant_data.value = {
         product_variant_id: id,
         product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
         sku,
-        price: Number(product.sell_price),
+        sell_price: Number(product.sell_price),
       };
     }
   } catch (error) {
@@ -117,14 +117,14 @@ const findProductVariant = async (raw_sku) => {
   if (!product_variant_data.value) {
     toast("Товар не найден", {
       type: "error",
-      
     });
     setTimeout(() => {
       product_variant_sku.value = null;
     }, 300);
     return;
   }
-  addToList();
+  price.value = product_variant_data.value.sell_price;
+  price_ref.value?.focus();
   product_variant_sku.value = null;
 };
 
@@ -136,42 +136,18 @@ watch(isDialogVisible, () => {
 // Add
 const addToList = () => {
   // find if object exists
-  if (product_variant_data.value?.amount_remainder <= 0) {
-    toast("На витрине отсутствует этот товар.", {
-      theme: "auto",
-      type: "warning",
-      
-    });
-    sku_ref.value.focus();
-    setTimeout(() => {
-      product_variant_sku.value = null;
-    }, 300);
-    return;
-  }
   const existingObj = product_variants.value.find(
     (el) =>
       el.product_variant_id == product_variant_data.value.product_variant_id
   );
 
   if (existingObj) {
-    let totalQuantity = existingObj.quantity + 1;
-    // if (totalQuantity > existingObj.amount_remainder) {
-    //   toast(
-    //     `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
-    //     {
-    //       theme: "auto",
-    //       type: "warning",
-    //       
-    //     }
-    //   );
-    //   product_variant_sku.value = null;
-    //   return;
-    // }
-    product_variants.value = product_variants.value?.map((el) => {
+    product_variants.value= product_variants.value?.map((el) => {
       if (el.product_variant_id == existingObj.product_variant_id) {
         return {
           ...el,
-          quantity: totalQuantity,
+          price: removeSpaces(price.value),
+          quantity: existingObj.quantity + 1,
         };
       }
       return el;
@@ -179,12 +155,14 @@ const addToList = () => {
   } else {
     product_variants.value.push({
       ...product_variant_data.value,
+      price: removeSpaces(price.value),
       quantity: 1,
     });
   }
 
   // reset
   product_variant_data.value = null;
+  price.value = null;
   sku_ref.value.focus();
 };
 
@@ -200,7 +178,7 @@ const addToList = () => {
 //     toast("Количество товара должно быть больше нуля.", {
 //       theme: "auto",
 //       type: "warning",
-//       
+//
 //     });
 //     return;
 //   } else if (variant.quantity > variant.amount_remainder) {
@@ -209,7 +187,7 @@ const addToList = () => {
 //       {
 //         theme: "auto",
 //         type: "warning",
-//         
+//
 //       }
 //     );
 //     return;
@@ -233,7 +211,6 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -254,7 +231,6 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -392,7 +368,7 @@ const infoDialogItemId = ref(0);
 
             <VCol cols="12">
               <VRow>
-                <VCol cols="3" class="d-flex align-center">
+                <VCol cols="4" class="d-flex align-center gap-4">
                   <VTextField
                     v-model="product_variant_sku"
                     ref="sku_ref"
@@ -401,11 +377,30 @@ const infoDialogItemId = ref(0);
                     "
                     @keyup.enter="findProductVariant(product_variant_sku)"
                     label="Штрих код товара"
-                    item-title="name"
-                    item-value="id"
                     :rules="[]"
                     autofocus
                   />
+                  <VTextField
+                    v-model="price"
+                    ref="price_ref"
+                    @focus="autoSelectInputValue"
+                    :value="transformPrice(price)"
+                    @keyup.enter="addToList"
+                    label="Цена"
+                    :rules="[]"
+                  />
+                </VCol>
+                <VCol cols="4">
+                  
+                  <h4 class="pt-1">
+                    Товар: {{ product_variant_data?.product_variant_name }}
+                  </h4>
+                  <p class="pt-2 mb-0">
+                    Цена:
+                    <b>{{
+                      transformPrice(product_variant_data?.sell_price)
+                    }} so'm</b>
+                  </p>
                 </VCol>
                 <VCol cols="1" class="d-flex align-center justify-center">
                   <VProgressCircular
@@ -416,7 +411,7 @@ const infoDialogItemId = ref(0);
                 </VCol>
                 <VSpacer />
 
-                <VCol class="d-flex justify-end gap-2 align-center">
+                <VCol cols="2" class="d-flex justify-end gap-2 align-center">
                   <VBtn
                     :loading="isFetching === 'submit'"
                     :disabled="isFetching === 'submit'"
