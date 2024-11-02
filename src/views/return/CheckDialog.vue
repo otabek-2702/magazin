@@ -1,5 +1,6 @@
 <script setup>
-import { transformPrice } from "@/helpers";
+import { removeSpaces, transformPrice } from "@/helpers";
+import { computed } from "vue";
 
 const props = defineProps({
   items: {
@@ -7,23 +8,47 @@ const props = defineProps({
     required: true,
   },
   totalPrice: {
-    type: String ,
+    type: String,
     required: true,
   },
   totalCount: {
-    type: Number ,
+    type: Number,
     required: true,
   },
   cashRegister: {
-    type: String ,
+    type: String,
     required: true,
   },
   checkId: {
     // Added new prop for check ID
-    type: Number ,
+    type: Number,
     required: true,
   },
+  reFetch:{
+    type:Boolean,
+    required:false
+  }
 });
+
+const payment_invoice = ref({})
+
+const fetchDataById = async () => {
+  isFetchingStart.value = true;
+  try {
+    const response = await axios.get(`/payment_invoices/${props.check_id}`);
+    if (response.status === 200) {
+      const {
+        data: { payment_invoice },
+      } = response;
+      payment_invoice.value = payment_invoice
+
+    }
+  } catch (error) {
+    console.error("Ошибка:", error);
+  } finally {
+    isFetchingStart.value = false;
+  }
+};
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString("ru-RU", {
@@ -34,6 +59,16 @@ const formatDate = (date) => {
     minute: "2-digit",
   });
 };
+
+watch(() => props.reFetch, () => {
+  if (props.checkId) {
+    fetchDataById()
+  }
+})
+
+const totalPricWitheSale = computed(() => {
+  return 
+})
 </script>
 
 <template>
@@ -67,6 +102,10 @@ const formatDate = (date) => {
         <div class="total-line">
           <span>Кол-во товаров:</span>
           <span>{{ totalCount }}</span>
+        </div>
+        <div class="total-line">
+          <span>Общая сумма :</span>
+          <span>{{ totalPrice }}</span>
         </div>
         <div class="total-line">
           <span>ИТОГО:</span>
@@ -166,12 +205,12 @@ const formatDate = (date) => {
 .total-line {
   display: flex;
   justify-content: space-between;
-  font-size: 15pt;
   margin: 2mm 0;
+  font-size: 10pt;
 }
 
-.total-line:first-child {
-  font-size: 12pt;
+.total-line:last-child {
+  font-size: 15pt;
 }
 
 .footer {

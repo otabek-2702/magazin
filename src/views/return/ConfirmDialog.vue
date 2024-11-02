@@ -103,7 +103,7 @@ const handleDialogModelValueUpdate = () => {
           <VCol cols="12">
             <VTextField
               v-model="input_price"
-              :value="transformPrice(input_price)"
+              :value="transformPrice(input_price, true)"
               label="Введите сумму "
               :rules="[]"
               autofocus

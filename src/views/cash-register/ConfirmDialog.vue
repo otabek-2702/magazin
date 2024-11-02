@@ -1,7 +1,7 @@
 <script setup>
 import { removeSpaces, transformPrice } from "@/helpers";
 import axios from "@/plugins/axios";
-import { computed } from "vue";
+import { computed, provide } from "vue";
 import { toast } from "vue3-toastify";
 
 const props = defineProps({
@@ -17,9 +17,17 @@ const props = defineProps({
     required: true,
     type: String,
   },
+  sale_price: {
+    type: String,
+    required: true,
+  },
 });
 
-const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
+const emit = defineEmits([
+  "update:isDialogOpen",
+  "fetchDatas",
+  "update:sale_price",
+]);
 
 const onFormCancel = () => {
   emit("update:isDialogOpen", false);
@@ -41,13 +49,13 @@ const onConfirm = async () => {
   try {
     const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
       payment_type: payment_type.value,
+      sale: removeSpaces(props.sale_price),
     });
 
     if (reponse.status === 200) {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -72,8 +80,8 @@ const calculate = computed(() => {
   };
 });
 
-const handleDialogModelValueUpdate = () => {
-  emit("update:isDialogOpen", false);
+const handleDialogModelValueUpdate = (val) => {
+  emit("update:isDialogOpen", val);
   if (!val) {
     nextTick(() => {
       input_price.value = null;
@@ -81,6 +89,25 @@ const handleDialogModelValueUpdate = () => {
     });
   }
 };
+
+const maxSale = (val) => {
+  const maxSalePrice = removeSpaces(props.totalPrice) / 10;
+  const numeredVal = removeSpaces(val);
+  return (
+    !(numeredVal > maxSalePrice) ||
+    `Невозможно применить скидку ${val} сум — превышен лимит 10%. Максимум — ${transformPrice(
+      maxSalePrice
+    )} сум`
+  );
+};
+
+const updateSalePrice = (value) => {
+  emit("update:sale_price", value);
+};
+
+const totalPriceWithSale = computed(
+  () => removeSpaces(props.totalPrice) - removeSpaces(props.sale_price)
+);
 </script>
 
 <template>
@@ -99,12 +126,12 @@ const handleDialogModelValueUpdate = () => {
       <VCardText>
         <VRow>
           <VCol cols="12">
-            <h2>Общая сумма: {{ props.totalPrice }} so'm</h2>
+            <h2>Общая сумма: {{ totalPriceWithSale }} so'm</h2>
           </VCol>
           <VCol cols="12">
             <VTextField
               v-model="input_price"
-              :value="transformPrice(input_price)"
+              :value="transformPrice(input_price, true)"
               label="Введите сумму "
               :rules="[]"
               autofocus
@@ -119,10 +146,18 @@ const handleDialogModelValueUpdate = () => {
             <VSelect
               v-model="payment_type"
               label="Выберите способ оплаты"
-              
               :items="payment_types_list"
               item-title="name"
               item-value="value"
+            />
+          </VCol>
+          <VCol cols="12">
+            <VTextField
+              @update:modelValue="updateSalePrice"
+              :value="transformPrice(props.sale_price, true)"
+              label="Введите сумму для скидки"
+              :rules="[maxSale]"
+              class="text-field-error_size"
             />
           </VCol>
           <VDivider />

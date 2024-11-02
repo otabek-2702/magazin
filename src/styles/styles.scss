@@ -24,3 +24,9 @@ td:last-child:empty {
 // table tbody td {
 //   text-align: center;
 // }
+
+
+.text-field-error_size  div.v-messages__message {
+  font-size: 14px !important; /* Change this to your desired font size */
+  line-height: 15px;
+}

@@ -6,6 +6,7 @@ import {
   autoSelectInputValue,
   fetchOptions,
   formatTimestamp,
+  removeSpaces,
   transformPrice,
 } from "@/helpers";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
@@ -36,6 +37,7 @@ const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
 const check_date = ref();
+const sale_price = ref();
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -52,6 +54,7 @@ const fetchDataById = async () => {
       check_id.value = payment_invoice.id;
       check_date.value = formatTimestamp(payment_invoice.created_at);
       cashbox_id.value = payment_invoice.cashbox.id;
+      sale_price.value = parseInt(payment_invoice.sale)
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -141,6 +144,8 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
+
+const calculateTotalPriceWithSale = computed(() => removeSpaces(calculateTotalPrice.value) - removeSpaces(sale_price.value));
 </script>
 
 <template>
@@ -234,7 +239,8 @@ const calculateTotalPrice = computed(() => {
                     <td colspan="3"></td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b>{{ calculateTotalPrice }} </b> SO'M
+                      <b v-if="sale_price">{{ calculateTotalPrice }} - {{ sale_price }} = {{ calculateTotalPriceWithSale }}</b>
+                      <b v-else>{{ calculateTotalPrice }} </b> SO'M
                     </td>
                     <td class="text-body-1">
                       Общая количество: {{ calculateCount }}
@@ -275,17 +281,19 @@ const calculateTotalPrice = computed(() => {
               Отменить
               <VIcon end icon="bx-minus-circle" />
             </VBtn>
-            <h2>Этот чек уже оплачен!</h2>
+            <template v-if="status && status !== 'Не опачено'">
+              <h2>Этот чек уже оплачен!</h2>
 
-            <VBtn
-              color="info"
-              v-print="{
-                id: 'receipt-content',
-              }"
-            >
-              <VIcon size="20" icon="mdi-printer" class="me-2" />
-              Печать чека
-            </VBtn>
+              <VBtn
+                color="info"
+                v-print="{
+                  id: 'receipt-content',
+                }"
+              >
+                <VIcon size="20" icon="mdi-printer" class="me-2" />
+                Печать чека
+              </VBtn>
+            </template>
           </VCardText>
         </VForm>
       </VCardText>
@@ -297,6 +305,7 @@ const calculateTotalPrice = computed(() => {
       :total-count="Number(calculateCount)"
       :cash-register="activeCashRLabel"
       :checkId="check_id"
+      :sale_price="sale_price"
     />
 
     <ConfirmDialog
@@ -310,6 +319,7 @@ const calculateTotalPrice = computed(() => {
           handleDialogModelValueUpdate(false);
         }
       "
+      v-model:sale_price="sale_price"
     />
   </VDialog>
 </template>

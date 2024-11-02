@@ -1,5 +1,6 @@
 <script setup>
-import { transformPrice } from "@/helpers";
+import { removeSpaces, transformPrice } from "@/helpers";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
   items: {
@@ -7,23 +8,50 @@ const props = defineProps({
     required: true,
   },
   totalPrice: {
-    type: String ,
+    type: String,
     required: true,
   },
   totalCount: {
-    type: Number ,
+    type: Number,
     required: true,
   },
   cashRegister: {
-    type: String ,
+    type: String,
     required: true,
   },
   checkId: {
-    // Added new prop for check ID
-    type: Number ,
+    type: Number,
     required: true,
   },
+  sale_price: {
+    type: String,
+    required: true,
+  },
+  reFetch: {
+    type: Boolean,
+    default: false,
+  }
 });
+
+const payment_invoice = ref({});
+const isFetchingStart = ref(false);
+
+const fetchDataById = async () => {
+  isFetchingStart.value = true;
+  try {
+    const response = await axios.get(`/payment_invoices/${props.checkId}`);
+    if (response.status === 200) {
+      const {
+        data: { payment_invoice: invoiceData },
+      } = response;
+      payment_invoice.value = invoiceData;
+    }
+  } catch (error) {
+    console.error("Ошибка:", error);
+  } finally {
+    isFetchingStart.value = false;
+  }
+};
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString("ru-RU", {
@@ -34,6 +62,24 @@ const formatDate = (date) => {
     minute: "2-digit",
   });
 };
+
+const totalPriceWithSale = computed(() => {
+  const total = removeSpaces(props.totalPrice) - removeSpaces(props.sale_price);
+  return transformPrice(total);
+});
+
+const hasSale = computed(() => {
+  return removeSpaces(props.sale_price) > 0;
+});
+
+watch(
+  () => props.reFetch,
+  () => {
+    if (props.checkId) {
+      fetchDataById();
+    }
+  }
+);
 </script>
 
 <template>
@@ -53,10 +99,7 @@ const formatDate = (date) => {
           <div class="item">
             <div class="item-name">{{ item.product_variant_name }}</div>
             <div class="item-details">
-              <span
-                >{{ item.quantity }} x
-                {{ transformPrice(item.sell_price) }}</span
-              >
+              <span>{{ item.quantity }} x {{ transformPrice(item.sell_price) }}</span>
               <span>{{ transformPrice(item.sell_price * item.quantity) }}</span>
             </div>
           </div>
@@ -65,10 +108,22 @@ const formatDate = (date) => {
 
       <div class="summary">
         <div class="total-line">
-          <span>Кол-во товаров:</span>
-          <span>{{ totalCount }}</span>
         </div>
         <div class="total-line">
+          <span>Общая сумма:</span>
+          <span>{{ totalPrice }}</span>
+        </div>
+        <template v-if="hasSale">
+          <div class="total-line discount">
+            <span>СКИДКА:</span>
+            <span>-{{ transformPrice(props.sale_price) }} SO'M</span>
+          </div>
+          <div class="total-line final-total">
+            <span>ИТОГО:</span>
+            <span>{{ totalPriceWithSale }} SO'M</span>
+          </div>
+        </template>
+        <div v-else class="total-line final-total">
           <span>ИТОГО:</span>
           <span>{{ totalPrice }} SO'M</span>
         </div>
@@ -119,6 +174,7 @@ const formatDate = (date) => {
   padding: 0;
   color: #000 !important;
 }
+
 .check-data {
   display: flex;
   justify-content: space-between;
@@ -166,12 +222,21 @@ const formatDate = (date) => {
 .total-line {
   display: flex;
   justify-content: space-between;
-  font-size: 15pt;
   margin: 2mm 0;
+  font-size: 10pt;
 }
 
-.total-line:first-child {
+.discount {
   font-size: 12pt;
+}
+
+
+.final-total {
+  font-size: 15pt;
+  font-weight: bold;
+  border-top: 1px dashed #000;
+  padding-top: 2mm;
+  margin-top: 3mm;
 }
 
 .footer {

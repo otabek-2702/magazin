@@ -90,7 +90,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   v-model="sum"
                   label="Сумма"
                   autofocus
-                  :value="transformPrice(sum)"
+                  :value="transformPrice(sum, true)"
                   @focus="autoSelectInputValue"
                 />
               </VCol>

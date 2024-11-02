@@ -20,6 +20,7 @@ const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
+const sale_price = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
@@ -114,7 +115,6 @@ const findProductVariant = async (raw_sku) => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      
     });
     setTimeout(() => {
       product_variant_sku.value = null;
@@ -137,9 +137,8 @@ const addToList = () => {
     toast("На витрине отсутствует этот товар.", {
       theme: "auto",
       type: "warning",
-      
     });
-    sku_ref.value.focus();
+    sku_ref.value?.focus();
     setTimeout(() => {
       product_variant_sku.value = null;
     }, 300);
@@ -158,7 +157,6 @@ const addToList = () => {
         {
           theme: "auto",
           type: "warning",
-          
         }
       );
       product_variant_sku.value = null;
@@ -197,7 +195,6 @@ const hideEditInput = async (variant) => {
     toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
-      
     });
     return;
   } else if (variant.quantity > variant.amount_remainder) {
@@ -206,7 +203,6 @@ const hideEditInput = async (variant) => {
       {
         theme: "auto",
         type: "warning",
-        
       }
     );
     return;
@@ -390,11 +386,11 @@ const infoDialogItemId = ref(0);
             <VDivider />
 
             <VCol cols="12">
-              <VRow>
+              <VRow class="py-3">
                 <VCol cols="3" class="d-flex align-center">
                   <VTextField
                     v-model="product_variant_sku"
-                    :ref="sku_ref"
+                    ref="sku_ref"
                     @input="
                       product_variant_sku = product_variant_sku.toUpperCase()
                     "
@@ -414,19 +410,19 @@ const infoDialogItemId = ref(0);
                     indeterminate
                   ></VProgressCircular>
                 </VCol>
+                <VCardText class="d-flex justify-end gap-2 pt-2">
+                  <VBtn
+                    :loading="isFetching"
+                    :disabled="isFetching"
+                    type="button"
+                    @click="onSubmit"
+                  >
+                    Оплатить
+                  </VBtn>
+                </VCardText>
               </VRow>
             </VCol>
           </VRow>
-          <VCardText class="d-flex justify-end gap-2 pt-2">
-            <VBtn
-              :loading="isFetching"
-              :disabled="isFetching"
-              type="button"
-              @click="onSubmit"
-            >
-              Оплатить
-            </VBtn>
-          </VCardText>
         </VForm>
       </VCardText>
     </VCard>
@@ -437,6 +433,7 @@ const infoDialogItemId = ref(0);
       :total-count="Number(calculateCount)"
       :cash-register="activeCashRLabel"
       :checkId="check_id"
+      :sale_price="sale_price"
     />
 
     <ConfirmDialog
@@ -449,6 +446,7 @@ const infoDialogItemId = ref(0);
           handleDrawerModelValueUpdate(false);
         }
       "
+      v-model:sale_price="sale_price"
     />
   </VDialog>
 </template>

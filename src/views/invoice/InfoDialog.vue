@@ -404,7 +404,7 @@ const calculateCount = computed(() => {
                     <td>
                       <VTextField
                         v-model="variant.price"
-                        :value="transformPrice(variant.price)"
+                        :value="transformPrice(variant.price, true)"
                         :readonly="editingId !== variant.product_variant_id"
                         :class="{
                           'text-input':
@@ -516,7 +516,7 @@ const calculateCount = computed(() => {
                 <VCol cols="4" class="d-flex align-center">
                   <VTextField
                     v-model="price"
-                    :value="transformPrice(price)"
+                    :value="transformPrice(price, true)"
                     label="Цена"
                     :rules="[]"
                     ref="price_ref"

@@ -1,14 +1,18 @@
 import axios from "@/plugins/axios";
 import { nextTick } from "vue";
 
-export const transformPrice = (price) => {
+export const transformPrice = (price, nullable = false) => {
   let formattedPrice = price
     ?.toString()
     .replace(".00", "")
     .replace(/\s/g, "")
     .replace(/[^\d\s]/g, "")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return formattedPrice?.trim() ?? "0";
+    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+    .trim()
+  if (!formattedPrice && !nullable) {
+    return "0";
+  }
+  return formattedPrice ?? "";
 };
 
 export const removeSpaces = (input) => {
