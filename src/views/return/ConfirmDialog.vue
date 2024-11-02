@@ -42,7 +42,6 @@ const onConfirm = async () => {
     const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
       payment_type: payment_type.value,
     });
-    console.log(reponse.status);
     if (reponse.status === 200) {
       toast("Успешно", {
         theme: "auto",
@@ -119,7 +118,7 @@ const handleDialogModelValueUpdate = () => {
             <VSelect
               v-model="payment_type"
               label="Выберите способ оплаты"
-              clear-icon="bx-x"
+              
               :items="payment_types_list"
               item-title="name"
               item-value="value"

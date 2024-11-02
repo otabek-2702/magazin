@@ -2,7 +2,12 @@
 import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
+import {
+  autoSelectInputValue,
+  fetchOptions,
+  formatTimestamp,
+  transformPrice,
+} from "@/helpers";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import CheckDialog from "./CheckDialog.vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
@@ -22,12 +27,10 @@ const isConfirmDialogVisible = ref(false);
 
 const isFetchingStart = ref(true);
 const isFetching = ref("");
-const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const cashbox_id = ref();
 const status = ref();
-const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
@@ -42,13 +45,13 @@ const fetchDataById = async () => {
       const {
         data: { payment_invoice },
       } = response;
-      console.log(payment_invoice.status);
 
       check_id.value = payment_invoice.id;
       status.value = payment_invoice.status;
       product_variants.value = payment_invoice.items;
       check_id.value = payment_invoice.id;
-      check_date.value = formatTimestamp(payment_invoice.created_at)
+      check_date.value = formatTimestamp(payment_invoice.created_at);
+      cashbox_id.value = payment_invoice.cashbox.id;
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -69,7 +72,6 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -117,111 +119,6 @@ const activeCashRLabel = computed(() => {
     cashboxes_list.value?.find((el) => el.id == cashbox_id.value)?.name ?? ""
   );
 });
-onMounted(() => {
-  const storageCashR = Number(localStorage.getItem("cashbox_id"));
-  if (storageCashR) {
-    cashbox_id.value = storageCashR;
-  }
-});
-watch(cashbox_id, (newVal) => {
-  if (newVal) {
-    localStorage.setItem("cashbox_id", Number(newVal));
-  }
-});
-
-
-
-// Add
-const addToList = () => {
-  // find if object exists
-  if (product_variant_data.value?.amount_remainder <= 0) {
-    toast("На витрине отсутствует этот товар.", {
-      theme: "auto",
-      type: "warning",
-      
-    });
-    sku_ref.value.focus();
-    setTimeout(() => {
-      product_variant_sku.value = null;
-    }, 300);
-    return;
-  }
-  const existingObj = product_variants.value.find(
-    (el) =>
-      el.product_variant_id == product_variant_data.value.product_variant_id
-  );
-
-  if (existingObj) {
-    let totalQuantity = existingObj.quantity + 1;
-    if (totalQuantity > existingObj.amount_remainder) {
-      toast(
-        `Доступное количество на витрине не может превышать максимально допустимое значение (максимум: ${existingObj.amount_remainder}).`,
-        {
-          theme: "auto",
-          type: "warning",
-          
-        }
-      );
-      product_variant_sku.value = null;
-      return;
-    }
-    product_variants.value = product_variants.value?.map((el) => {
-      if (el.product_variant_id == existingObj.product_variant_id) {
-        return {
-          ...el,
-          quantity: totalQuantity,
-        };
-      }
-      return el;
-    });
-  } else {
-    product_variants.value.push({
-      ...product_variant_data.value,
-      quantity: 1,
-    });
-  }
-
-  // reset
-  product_variant_data.value = null;
-  sku_ref.value.focus();
-};
-
-// Edit
-const editingId = ref(null);
-
-const showEditInput = (id) => {
-  editingId.value = id;
-};
-
-const hideEditInput = async (variant) => {
-  if (variant?.quantity <= 0) {
-    toast("Количество товара должно быть больше нуля.", {
-      theme: "auto",
-      type: "warning",
-      
-    });
-    return;
-  } else if (variant.quantity > variant.amount_remainder) {
-    toast(
-      `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
-      {
-        theme: "auto",
-        type: "warning",
-        
-      }
-    );
-    return;
-  }
-  variant.quantity = Number(variant.quantity);
-  editingId.value = null;
-};
-
-// Delete
-const deleteListItem = (id) => {
-  product_variants.value = product_variants.value.filter(
-    (el) => el.product_variant_id != id
-  );
-};
 
 const calculateCount = computed(() => {
   if (!product_variants.value) return 0;
@@ -244,19 +141,6 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
-function formatTimestamp(isoString) {
-  const date = new Date(isoString);
-
-  // Format each part with leading zeros
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
 </script>
 
 <template>
@@ -274,11 +158,11 @@ function formatTimestamp(isoString) {
               <VSelect
                 v-model="cashbox_id"
                 label="Выберите кассу"
-                clearable
-                clear-icon="bx-x"
                 :items="cashboxes_list"
                 item-title="name"
                 item-value="id"
+                :readonly="status !== 'Не опачено'"
+                :clearable="status == 'Не опачено'"
               />
             </VCol>
 
@@ -304,7 +188,6 @@ function formatTimestamp(isoString) {
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <!-- <th v-if="status == 'Не опачено'">ДЕЙСТВИЯ</th> -->
                   </tr>
                 </thead>
 
@@ -343,34 +226,6 @@ function formatTimestamp(isoString) {
                         :rules="[]"
                       />
                     </td>
-                    <!-- <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                      v-if="status == 'Не опачено'"
-                    >
-                      <VIcon
-                        v-if="editingId == variant.product_variant_id"
-                        @click.stop="hideEditInput(variant)"
-                        size="30"
-                        icon="bx-check"
-                        style="color: rgb(var(--v-theme-success))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        v-else
-                        @click.stop="showEditInput(variant.product_variant_id)"
-                        size="30"
-                        icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        size="30"
-                        icon="mdi-minus-circle-outline"
-                        style="color: red"
-                        @click="deleteListItem(variant.product_variant_id)"
-                      ></VIcon>
-                    </td> -->
                   </tr>
                 </tbody>
 
@@ -398,59 +253,14 @@ function formatTimestamp(isoString) {
             </VCol>
 
             <VDivider />
-
-            <!-- <VCol cols="12" v-if="status == 'Не опачено'">
-              <VRow>
-                <VCol cols="3" class="d-flex align-center">
-                  <VTextField
-                    v-model="product_variant_sku"
-                    ref="sku_ref"
-                    @input="
-                      product_variant_sku = product_variant_sku.toUpperCase()
-                    "
-                    @keyup.enter="findProductVariant(product_variant_sku)"
-                    label="Штрих код товара"
-                    item-title="name"
-                    item-value="id"
-                    :rules="[]"
-                    autofocus
-                  />
-                </VCol>
-
-                <VCol cols="6">
-                  <h4 class="pt-1">
-                    Товар: {{ product_variant_data?.product_variant_name }}
-                  </h4>
-                  <h4>Штрих-код: {{ product_variant_data?.sku }}</h4>
-                  <p class="pt-2 mb-0">
-                    Имеется в наличии:
-                    <b>{{ product_variant_data?.amount_remainder ?? 0 }} шт</b>
-                  </p>
-                </VCol>
-
-                <VCol cols="2" class="d-flex align-center">
-                  <h3 class="pt-1">
-                    Стоимость:<br />
-                    {{ transformPrice(product_variant_data?.sell_price) }} SO'M
-                  </h3>
-                </VCol>
-
-                <VCol cols="1" class="d-flex align-center justify-center">
-                  <VProgressCircular
-                    color="primary"
-                    v-if="isFetchingVariant"
-                    indeterminate
-                  ></VProgressCircular>
-                </VCol>
-              </VRow>
-            </VCol> -->
           </VRow>
-          <VCardText class="d-flex justify-end gap-4 pt-5">
+          <VCardText class="d-flex justify-end align-center gap-4 pt-8">
             <VBtn
               :loading="isFetching == 'submit'"
               :disabled="isFetching == 'submit'"
               type="button"
               @click="onConfirm"
+              v-if="status == 'Не опачено'"
             >
               Оплатить
             </VBtn>
@@ -464,6 +274,17 @@ function formatTimestamp(isoString) {
             >
               Отменить
               <VIcon end icon="bx-minus-circle" />
+            </VBtn>
+            <h2>Этот чек уже оплачен!</h2>
+
+            <VBtn
+              color="info"
+              v-print="{
+                id: 'receipt-content',
+              }"
+            >
+              <VIcon size="20" icon="mdi-printer" class="me-2" />
+              Печать чека
             </VBtn>
           </VCardText>
         </VForm>
@@ -482,6 +303,7 @@ function formatTimestamp(isoString) {
       v-model:isDialogOpen="isConfirmDialogVisible"
       :total-price="calculateTotalPrice"
       :id="props.id"
+      :status="status"
       @fetchDatas="
         () => {
           emit('fetchDatas');

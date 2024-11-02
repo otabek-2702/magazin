@@ -3,11 +3,9 @@ import { computed, onMounted, ref, watch } from "vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { fetchOptions, formatTimestamp, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
-import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
-import InfoDialog from "@/views/cash-register/InfoDialog.vue";
+import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 
 const route = useRoute();
-console.log(route);
 const {
   state,
   items: invoices,
@@ -37,20 +35,12 @@ onMounted(() => {
   fetchData();
 });
 
-// Show one
-const infoDialogItemId = ref(0);
-const isInfoDialogVisible = ref(false);
-
-const handleInfoDialogOpen = (id) => {
-  console.log(id);
-  infoDialogItemId.value = id;
-  isInfoDialogVisible.value = true;
-};
-
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    Убыток: { color: "error", prepend: "-" },
     Прибыль: { color: "success", prepend: "" },
+    Убыток: { color: "error", prepend: "-" },
+    Инкассация: { color: "error", prepend: "-" },
+    
   };
 
   return roleMap[status] || { color: "primary" };
@@ -67,29 +57,17 @@ const invoicesListMeta = computed(() => [
     icon: "mdi-cash-plus",
     color: "success",
     title: "Доход",
-    stats: transformPrice(
-      invoices.value?.reduce((acc, el) => {
-        if (el.type === "Прибыль") {
-          return acc + Number(el.sum);
-        }
-        return acc;
-      }, 0)
-    ),
+    stats: transformPrice(0),
   },
   {
     icon: "mdi-cash-minus",
     color: "error",
     title: "Расход",
-    stats: transformPrice(
-      invoices.value?.reduce((acc, el) => {
-        if (el.type === "Убыток") {
-          return acc + Number(el.sum);
-        }
-        return acc;
-      }, 0)
-    ),
+    stats: transformPrice(0),
   },
 ]);
+
+const isAddNewOutputDrawerVisible = ref(false);
 </script>
 
 <template>
@@ -124,14 +102,14 @@ const invoicesListMeta = computed(() => [
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard id="invoice-list">
-          <VCardText class="d-flex align-center flex-wrap gap-4" :title="''">
+        <VCard id="invoice-list" >
+          <VCardTitle class="d-flex align-center gap-4 py-6">
+            <span>{{cashbox_data?.name}}</span>
             <VSpacer />
-
-            <div class="d-flex align-center flex-wrap gap-6">
-              <!-- <AddNewDialog @fetchDatas="() => fetchData(true)" /> -->
-            </div>
-          </VCardText>
+            <VBtn @click="isAddNewOutputDrawerVisible = true"
+              >Добавить Расход
+            </VBtn>
+          </VCardTitle>
 
           <VDivider />
 
@@ -144,6 +122,7 @@ const invoicesListMeta = computed(() => [
                 <th>ВРЕМЯ СОЗДАНИЯ</th>
                 <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
                 <th>ТИП ОПЛАТЫ</th>
+                <th>КОММЕНТАРИЙ</th>
               </tr>
             </thead>
 
@@ -169,6 +148,7 @@ const invoicesListMeta = computed(() => [
                   </VChip>
                 </td>
                 <td>{{ invoice.payment_type }}</td>
+                <td>{{ invoice.comment }}</td>
               </tr>
             </tbody>
 
@@ -200,12 +180,12 @@ const invoicesListMeta = computed(() => [
           </VCardText>
         </VCard>
       </VCol>
-      <InfoDialog
-        v-model:isDialogOpen="isInfoDialogVisible"
-        :id="infoDialogItemId"
-        @fetchDatas="() => fetchData(true)"
-      />
     </VRow>
+    <AddNewOutputDrawer
+      v-model:isDrawerOpen="isAddNewOutputDrawerVisible"
+      @fetchDatas="() => fetchData(true)"
+      :cashbox_id="parseInt(route?.params?.id)"
+    />
   </section>
 </template>
 

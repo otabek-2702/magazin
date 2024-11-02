@@ -120,8 +120,6 @@ const barcodeDialogId = ref(0);
 const openBarcodeDialog = (id) => {
   barcodeDialogId.value = id;
   isBarcodeDialogVisible.value = true;
-  console.log(branches_list.value)
-
 };
 
 // end BarCode

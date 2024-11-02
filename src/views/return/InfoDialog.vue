@@ -41,7 +41,6 @@ const fetchDataById = async () => {
       const {
         data: { refund },
       } = response;
-      console.log(refund.status);
 
       check_id.value = refund.id;
       status.value = refund.status;
@@ -221,8 +220,6 @@ const calculateTotalPrice = computed(() => {
               <VSelect
                 v-model="cashbox_id"
                 label="Выберите кассу"
-                clearable
-                clear-icon="bx-x"
                 :items="cashboxes_list"
                 item-title="name"
                 item-value="id"

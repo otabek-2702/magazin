@@ -270,8 +270,6 @@ const infoDialogItemId = ref(0);
               <VSelect
                 v-model="cashbox_id"
                 label="Выберите кассу"
-                clearable
-                clear-icon="bx-x"
                 :items="cashboxes_list"
                 item-title="name"
                 item-value="id"

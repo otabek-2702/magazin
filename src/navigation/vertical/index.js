@@ -124,7 +124,7 @@ export default [
         action: 'show'
       },
       {
-        title: 'Касса',
+        title: 'Расчётные чеки',
         to: { name: 'CashsRegister' },
         subject: 'CashsRegister',
         action: 'show'
