@@ -1,5 +1,5 @@
 <script setup>
-import { removeSpaces, transformPrice } from "@/helpers";
+import { autoSelectInputValue, removeSpaces, transformPrice } from "@/helpers";
 import axios from "@/plugins/axios";
 import { computed, provide } from "vue";
 import { toast } from "vue3-toastify";
@@ -158,6 +158,7 @@ const totalPriceWithSale = computed(
               label="Введите сумму для скидки"
               :rules="[maxSale]"
               class="text-field-error_size"
+              @focus="autoSelectInputValue"
             />
           </VCol>
           <VDivider />
