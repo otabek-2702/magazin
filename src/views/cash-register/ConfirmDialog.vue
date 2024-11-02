@@ -126,7 +126,7 @@ const totalPriceWithSale = computed(
       <VCardText>
         <VRow>
           <VCol cols="12">
-            <h2>Общая сумма: {{ totalPriceWithSale }} so'm</h2>
+            <h2>Общая сумма: {{ transformPrice(totalPriceWithSale) }} so'm</h2>
           </VCol>
           <VCol cols="12">
             <VTextField
