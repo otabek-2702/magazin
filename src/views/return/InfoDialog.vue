@@ -2,9 +2,11 @@
 import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, fetchOptions, formatTimestamp, transformPrice } from "@/helpers";
-import CheckDialog from "./CheckDialog.vue";
-import ConfirmDialog from "./ConfirmDialog.vue";
+import {
+  autoSelectInputValue,
+  formatTimestamp,
+  transformPrice,
+} from "@/helpers";
 
 const props = defineProps({
   id: {
@@ -17,11 +19,8 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
 
-const isConfirmDialogVisible = ref(false);
-
 const isFetchingStart = ref(true);
 const isFetching = ref("");
-const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const cashbox_id = ref();
@@ -32,6 +31,7 @@ const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
 const check_date = ref();
+const cashbox = ref();
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -42,11 +42,11 @@ const fetchDataById = async () => {
         data: { refund },
       } = response;
 
-      check_id.value = refund.id;
       status.value = refund.status;
       product_variants.value = refund.items;
       check_id.value = refund.id;
       check_date.value = formatTimestamp(refund.created_at);
+      cashbox.value = refund.cashbox;
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -63,7 +63,6 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -84,7 +83,6 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -111,8 +109,6 @@ const handleDialogModelValueUpdate = (val) => {
   }
 };
 
-const cashboxes_list = ref([]);
-
 watch(
   () => props.isDialogOpen,
   (newVal) => {
@@ -123,63 +119,12 @@ watch(
 );
 
 // Autofocus
-watch(()=>props.isDialogOpen, (newVal) => {
-  if (newVal) sku_ref.value?.focus();
-});
-
-onMounted(() => {
-  fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
-});
-
-// Cash register
-const activeCashRLabel = computed(() => {
-  return (
-    cashboxes_list.value?.find((el) => el.id == cashbox_id.value)?.name ?? ""
-  );
-});
-onMounted(() => {
-  const storageCashR = Number(localStorage.getItem("cashbox_id"));
-  if (storageCashR) {
-    cashbox_id.value = storageCashR;
+watch(
+  () => props.isDialogOpen,
+  (newVal) => {
+    if (newVal) sku_ref.value?.focus();
   }
-});
-watch(cashbox_id, (newVal) => {
-  if (newVal) {
-    localStorage.setItem("cashbox_id", Number(newVal));
-  }
-});
-
-// find Product
-
-
-// Edit
-const editingId = ref(null);
-
-const showEditInput = (id) => {
-  editingId.value = id;
-};
-
-const hideEditInput = async (variant) => {
-  if (variant?.quantity <= 0) {
-    toast("Количество товара должно быть больше нуля.", {
-      theme: "auto",
-      type: "warning",
-    });
-    return;
-  } else if (variant.quantity > variant.amount_remainder) {
-    toast(
-      `Доступное количество товаров на витрине не может быть превышено, максимально допустимое значение (максимум: ${variant.amount_remainder}).`,
-      {
-        theme: "auto",
-        type: "warning",
-        
-      }
-    );
-    return;
-  }
-  variant.quantity = Number(variant.quantity);
-  editingId.value = null;
-};
+);
 
 const calculateCount = computed(() => {
   if (!product_variants.value) return 0;
@@ -202,12 +147,16 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
-
 </script>
 
 <template>
-  <VDialog fullscreen v-model="props.isDialogOpen">
-    <VCard title="Продажа">
+  <VDialog
+    fullscreen
+    :model-value="props.isDialogOpen"
+    @update:model-value="handleDialogModelValueUpdate"
+  >
+    <!-- Title -->
+    <VCard title="Возврат">
       <DialogCloseBtn
         variant="text"
         size="small"
@@ -216,20 +165,13 @@ const calculateTotalPrice = computed(() => {
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
           <VRow>
-            <VCol cols="3">
-              <VSelect
-                v-model="cashbox_id"
-                label="Выберите кассу"
-                :items="cashboxes_list"
-                item-title="name"
-                item-value="id"
-              />
-            </VCol>
-
-            <VCol cols="6" class="d-flex align-center gap-6">
+            <VCol
+              cols="6"
+              class="d-flex align-center gap-6 justify-space-between"
+            >
               <h2>
                 Активный терминал:
-                {{ activeCashRLabel }}
+                {{ cashbox?.name }}
               </h2>
               <h2>
                 Время Создания :
@@ -287,34 +229,6 @@ const calculateTotalPrice = computed(() => {
                         :rules="[]"
                       />
                     </td>
-                    <!-- <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                      v-if="status == 'Черновик'"
-                    >
-                      <VIcon
-                        v-if="editingId == variant.product_variant_id"
-                        @click.stop="hideEditInput(variant)"
-                        size="30"
-                        icon="bx-check"
-                        style="color: rgb(var(--v-theme-success))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        v-else
-                        @click.stop="showEditInput(variant.product_variant_id)"
-                        size="30"
-                        icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
-                        class="mx-2"
-                      />
-                      <VIcon
-                        size="30"
-                        icon="mdi-minus-circle-outline"
-                        style="color: red"
-                        @click="deleteListItem(variant.product_variant_id)"
-                      ></VIcon>
-                    </td> -->
                   </tr>
                 </tbody>
 
@@ -371,26 +285,6 @@ const calculateTotalPrice = computed(() => {
         </VForm>
       </VCardText>
     </VCard>
-    <CheckDialog
-      v-if="product_variants.length"
-      :items="product_variants"
-      :total-price="calculateTotalPrice"
-      :total-count="Number(calculateCount)"
-      :cash-register="activeCashRLabel"
-      :checkId="check_id"
-    />
-
-    <ConfirmDialog
-      v-model:isDialogOpen="isConfirmDialogVisible"
-      :total-price="calculateTotalPrice"
-      :id="props.id"
-      @fetchDatas="
-        () => {
-          emit('fetchDatas');
-          handleDialogModelValueUpdate(false);
-        }
-      "
-    />
   </VDialog>
 </template>
 

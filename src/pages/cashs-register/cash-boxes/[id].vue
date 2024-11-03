@@ -37,10 +37,9 @@ onMounted(() => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    Прибыль: { color: "success", prepend: "" },
+    Прибыль: { color: "success", prepend: "+" },
     Убыток: { color: "error", prepend: "-" },
-    Инкассация: { color: "error", prepend: "-" },
-    
+    Инкассация: { color: "primary", prepend: "-" },
   };
 
   return roleMap[status] || { color: "primary" };
@@ -102,9 +101,9 @@ const isAddNewOutputDrawerVisible = ref(false);
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard id="invoice-list" >
+        <VCard id="invoice-list">
           <VCardTitle class="d-flex align-center gap-4 py-6">
-            <span>{{cashbox_data?.name}}</span>
+            <span>{{ cashbox_data?.name }}</span>
             <VSpacer />
             <VBtn @click="isAddNewOutputDrawerVisible = true"
               >Добавить Расход
@@ -141,10 +140,10 @@ const isAddNewOutputDrawerVisible = ref(false);
                     :color="resolveInvoiceStatus(invoice.type).color"
                     density="compact"
                     label
-                    class="text-uppercase text-subtitle-1"
+                    class="text-uppercase text-subtitle-1 font-weight-black"
                   >
-                    {{ resolveInvoiceStatus(invoice.type).prepend
-                    }}{{ transformPrice(invoice.sum) }}
+                    {{ resolveInvoiceStatus(invoice.type).prepend }}
+                    {{ transformPrice(invoice.sum) }}
                   </VChip>
                 </td>
                 <td>{{ invoice.payment_type }}</td>
@@ -152,7 +151,7 @@ const isAddNewOutputDrawerVisible = ref(false);
               </tr>
             </tbody>
 
-            <Skeleton :count="4" v-if="isFetching" />
+            <Skeleton :count="5" v-if="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices?.length">
               <tr>

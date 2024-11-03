@@ -2,7 +2,12 @@
 import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, fetchOptions, removeSpaces, transformPrice } from "@/helpers";
+import {
+  autoSelectInputValue,
+  fetchOptions,
+  removeSpaces,
+  transformPrice,
+} from "@/helpers";
 
 const emit = defineEmits(["fetchDatas"]);
 
@@ -142,7 +147,7 @@ const addToList = () => {
   );
 
   if (existingObj) {
-    product_variants.value= product_variants.value?.map((el) => {
+    product_variants.value = product_variants.value?.map((el) => {
       if (el.product_variant_id == existingObj.product_variant_id) {
         return {
           ...el,
@@ -264,7 +269,6 @@ const calculateTotalPrice = computed(() => {
   );
 });
 
-const infoDialogItemId = ref(0);
 </script>
 
 <template>
@@ -276,8 +280,8 @@ const infoDialogItemId = ref(0);
       </VBtn>
     </template>
 
-    <!-- Dialog Content -->
-    <VCard title="Продажа">
+    <!-- Title -->
+    <VCard title="Возврат">
       <DialogCloseBtn
         variant="text"
         size="small"
@@ -389,15 +393,17 @@ const infoDialogItemId = ref(0);
                   />
                 </VCol>
                 <VCol cols="4">
-                  
                   <h4 class="pt-1">
                     Товар: {{ product_variant_data?.product_variant_name }}
                   </h4>
                   <p class="pt-2 mb-0">
                     Цена:
-                    <b>{{
-                      transformPrice(product_variant_data?.sell_price)
-                    }} so'm</b>
+                    <b
+                      >{{
+                        transformPrice(product_variant_data?.sell_price)
+                      }}
+                      so'm</b
+                    >
                   </p>
                 </VCol>
                 <VCol cols="1" class="d-flex align-center justify-center">

@@ -1,4 +1,5 @@
 <script setup>
+import { requiredValidator } from "@/@core/utils/validators";
 import { autoSelectInputValue, removeSpaces, transformPrice } from "@/helpers";
 import axios from "@/plugins/axios";
 import { computed, provide } from "vue";
@@ -82,6 +83,8 @@ const calculate = computed(() => {
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", val);
+  emit("update:sale_price", 0);
+
   if (!val) {
     nextTick(() => {
       input_price.value = null;
@@ -114,7 +117,7 @@ const totalPriceWithSale = computed(
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 500"
     :model-value="props.isDialogOpen"
-    @update:model-value="(v) => emit('update:isDialogOpen', v)"
+    @update:model-value="handleDialogModelValueUpdate"
   >
     <VCard class="pa-sm-9 pa-5">
       <DialogCloseBtn variant="text" size="small" @click="onFormCancel" />
@@ -149,6 +152,7 @@ const totalPriceWithSale = computed(
               :items="payment_types_list"
               item-title="name"
               item-value="value"
+              :rules="[requiredValidator]"
             />
           </VCol>
           <VCol cols="12">
