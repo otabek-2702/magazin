@@ -173,6 +173,7 @@ watch(
               :rules="[maxSale]"
               class="text-field-error_size"
               @focus="autoSelectInputValue"
+              persistent-placeholder
             />
           </VCol>
           <VDivider />
