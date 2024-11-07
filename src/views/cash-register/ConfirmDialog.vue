@@ -70,7 +70,7 @@ const onConfirm = async () => {
 };
 
 const calculate = computed(() => {
-  const trimmedPrice = removeSpaces(totalPriceWithSale);
+  const trimmedPrice = removeSpaces(totalPriceWithSale.value);
   const givenPrice = removeSpaces(input_price.value);
 
   return {
