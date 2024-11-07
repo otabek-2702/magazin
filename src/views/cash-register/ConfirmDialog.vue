@@ -34,6 +34,7 @@ const onFormCancel = () => {
   emit("update:isDialogOpen", false);
 };
 
+const refForm = ref();
 const isFetching = ref(false);
 const input_price = ref();
 const payment_type = ref();
@@ -46,6 +47,9 @@ const payment_types_list = [
 ];
 
 const onConfirm = async () => {
+  const { valid } = await refForm.value?.validate();
+  if (!valid) return;
+
   isFetching.value = true;
   try {
     const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
@@ -90,6 +94,8 @@ const handleDialogModelValueUpdate = (val) => {
       input_price.value = null;
       payment_type.value = null;
     });
+    refForm.value?.reset();
+    refForm.value?.resetValidation();
   }
 };
 
@@ -137,70 +143,74 @@ watch(
       </VCardItem>
 
       <VCardText>
-        <VRow>
-          <VCol cols="12">
-            <h3>
-              Фактическая Сумма : {{ transformPrice(props.totalPrice) }} so'm
-            </h3>
-          </VCol>
-          <VCol cols="12">
-            <VTextField
-              v-model="input_price"
-              :value="transformPrice(input_price, true)"
-              label="Введите сумму "
-              :rules="[]"
-              autofocus
-            />
-          </VCol>
+        <VForm ref="refForm">
+          <VRow>
+            <VCol cols="12">
+              <h3>
+                Фактическая Сумма : {{ transformPrice(props.totalPrice) }} so'm
+              </h3>
+            </VCol>
+            <VCol cols="12">
+              <VTextField
+                v-model="input_price"
+                :value="transformPrice(input_price, true)"
+                label="Введите сумму "
+                :rules="[]"
+                autofocus
+              />
+            </VCol>
 
-          <VCol cols="12">
-            <h3>Сдача: {{ calculate.sdacha }} so'm</h3>
-            <h3>Доплата: {{ calculate.doljen }} so'm</h3>
-          </VCol>
-          <VCol cols="12">
-            <VSelect
-              v-model="payment_type"
-              label="Выберите способ оплаты"
-              :items="payment_types_list"
-              item-title="name"
-              item-value="value"
-              :rules="[requiredValidator]"
-            />
-          </VCol>
-          <VCol cols="12">
-            <VTextField
-              @update:modelValue="updateSalePrice"
-              :value="transformPrice(props.sale_price, true)"
-              label="Введите сумму для скидки"
-              :rules="[maxSale]"
-              class="text-field-error_size"
-              @focus="autoSelectInputValue"
-              persistent-placeholder
-            />
-          </VCol>
-          <h2 class="ps-3 py-3">Общая сумма : {{ transformPrice(totalPriceWithSale) }} so'm</h2>
-          <VDivider />
-          <VCol cols="12" class="d-flex justify-space-between">
-            <VBtn
-              color="info"
-              v-print="{
-                id: 'receipt-content',
-              }"
-            >
-              <VIcon size="20" icon="mdi-printer" class="me-2" />
-              Печать чека
-            </VBtn>
-            <VBtn
-              color="success"
-              @click="onConfirm"
-              type="submit"
-              :disabled="isFetching"
-              :loading="isFetching"
-            >
-              Подтвердить
-            </VBtn>
-          </VCol>
-        </VRow>
+            <VCol cols="12">
+              <h3>Сдача: {{ calculate.sdacha }} so'm</h3>
+              <h3>Доплата: {{ calculate.doljen }} so'm</h3>
+            </VCol>
+            <VCol cols="12">
+              <VSelect
+                v-model="payment_type"
+                label="Выберите способ оплаты"
+                :items="payment_types_list"
+                item-title="name"
+                item-value="value"
+                :rules="[requiredValidator]"
+              />
+            </VCol>
+            <VCol cols="12">
+              <VTextField
+                @update:modelValue="updateSalePrice"
+                :value="transformPrice(props.sale_price, true)"
+                label="Введите сумму для скидки"
+                :rules="[maxSale]"
+                class="text-field-error_size"
+                @focus="autoSelectInputValue"
+                persistent-placeholder
+              />
+            </VCol>
+            <h2 class="ps-3 py-3">
+              Общая сумма : {{ transformPrice(totalPriceWithSale) }} so'm
+            </h2>
+            <VDivider />
+            <VCol cols="12" class="d-flex justify-space-between">
+              <VBtn
+                color="info"
+                v-print="{
+                  id: 'receipt-content',
+                }"
+              >
+                <VIcon size="20" icon="mdi-printer" class="me-2" />
+                Печать чека
+              </VBtn>
+              <VBtn
+                color="success"
+                @click="onConfirm"
+                type="submit"
+                :disabled="isFetching"
+                :loading="isFetching"
+              >
+                Подтвердить
+              </VBtn>
+            </VCol>
+          </VRow>
+        </VForm>
       </VCardText>
     </VCard>
   </VDialog>
