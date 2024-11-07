@@ -4,13 +4,6 @@ td:last-child:empty {
   display: none; /* Hide the empty last child <td> */
 }
 
-// Styles for printing
-// @media print {
-//   @page {
-//     size: 30mm 57mm landscape !important; /* Adjust to paper size */
-//   }
-// }
-
 .overflow-hide {
   max-width: 46vw !important;
   white-space: nowrap;
@@ -18,12 +11,6 @@ td:last-child:empty {
   text-overflow: ellipsis;
 }
 
-// table thead th{
-//   text-align: center !important;
-// }
-// table tbody td {
-//   text-align: center;
-// }
 
 
 .text-field-error_size  div.v-messages__message {
