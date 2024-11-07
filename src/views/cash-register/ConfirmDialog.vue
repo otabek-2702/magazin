@@ -70,7 +70,7 @@ const onConfirm = async () => {
 };
 
 const calculate = computed(() => {
-  const trimmedPrice = removeSpaces(props.totalPrice);
+  const trimmedPrice = removeSpaces(totalPriceWithSale);
   const givenPrice = removeSpaces(input_price.value);
 
   return {
@@ -139,7 +139,9 @@ watch(
       <VCardText>
         <VRow>
           <VCol cols="12">
-            <h2>Общая сумма: {{ transformPrice(totalPriceWithSale) }} so'm</h2>
+            <h3>
+              Фактическая Сумма : {{ transformPrice(props.totalPrice) }} so'm
+            </h3>
           </VCol>
           <VCol cols="12">
             <VTextField
@@ -152,8 +154,8 @@ watch(
           </VCol>
 
           <VCol cols="12">
-            <h2>Сдача: {{ calculate.sdacha }} so'm</h2>
-            <h2>Доплата: {{ calculate.doljen }} so'm</h2>
+            <h3>Сдача: {{ calculate.sdacha }} so'm</h3>
+            <h3>Доплата: {{ calculate.doljen }} so'm</h3>
           </VCol>
           <VCol cols="12">
             <VSelect
@@ -176,6 +178,7 @@ watch(
               persistent-placeholder
             />
           </VCol>
+          <h2 class="ps-3 py-3">Общая сумма : {{ transformPrice(totalPriceWithSale) }} so'm</h2>
           <VDivider />
           <VCol cols="12" class="d-flex justify-space-between">
             <VBtn
