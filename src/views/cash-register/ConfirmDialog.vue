@@ -146,7 +146,7 @@ watch(
         <VForm ref="refForm">
           <VRow>
             <VCol cols="12">
-              <h3>
+              <h3 class="text-secondary">
                 Фактическая Сумма : {{ transformPrice(props.totalPrice) }} so'm
               </h3>
             </VCol>
