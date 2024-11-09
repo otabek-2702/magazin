@@ -117,16 +117,16 @@ const updateSalePrice = (value) => {
 const totalPriceWithSale = computed(
   () => removeSpaces(props.totalPrice) - removeSpaces(props.sale_price)
 );
-watch(
-  () => props.isDialogOpen,
-  (newVal) => {
-    if (newVal) {
-      const saledPrice = removeSpaces(props.totalPrice) / 10;
-
-      emit("update:sale_price", saledPrice);
-    }
-  }
-);
+//watch(
+//  () => props.isDialogOpen,
+//  (newVal) => {
+//    if (newVal) {
+//      const saledPrice = removeSpaces(props.totalPrice) / 10;
+//
+//      emit("update:sale_price", saledPrice);
+//    }
+//  }
+//);
 </script>
 
 <template>
