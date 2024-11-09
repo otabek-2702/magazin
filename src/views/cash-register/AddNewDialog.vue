@@ -20,7 +20,7 @@ const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
-const sale_price = ref();
+const sale_price = ref(0);
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {

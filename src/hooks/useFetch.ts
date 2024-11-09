@@ -88,7 +88,6 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       state.value.isFetching = true;
       state.value.error = null;
       state.value.isError = false;
-console.log(config)
       const params = {
         page: state.value.currentPage,
         paginate: state.value.rowsPerPage,
@@ -105,7 +104,6 @@ console.log(config)
       state.value.items = data.data || data[config.resourceKey || ""] || [];
       lastFetchedPage.value = state.value.currentPage;
 
-      console.log(data)
       state.value.totalQuantity =  data.total_quantity;
       state.value.totalPrice =  data.total_price;
 

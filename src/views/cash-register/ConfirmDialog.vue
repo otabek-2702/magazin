@@ -87,7 +87,6 @@ const calculate = computed(() => {
 
 const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", val);
-  emit("update:sale_price", 0);
 
   if (!val) {
     nextTick(() => {
@@ -97,6 +96,8 @@ const handleDialogModelValueUpdate = (val) => {
     refForm.value?.reset();
     refForm.value?.resetValidation();
   }
+
+  emit("update:sale_price", 0);
 };
 
 const maxSale = (val) => {
