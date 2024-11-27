@@ -76,7 +76,7 @@ const fetchProducts = async () => {
       products_list.value = response.data["products"]
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetchingVariant.value = false;
   }

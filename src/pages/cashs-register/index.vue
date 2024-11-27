@@ -1,34 +1,27 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import { fetchOptions, formatTimestamp } from "@/helpers";
+import { fetchOptions, formatTimestamp, getFormattedToday } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
 import InfoDialog from "@/views/cash-register/InfoDialog.vue";
+import AppDateTimePicker from "@/@core/components/AppDateTimePicker.vue";
+import { requiredValidator } from "@/@core/utils/validators";
 
-// Initialize useFetch hook with your configuration
 const {
   state,
   items: invoices,
-  currentPage,
   totalPages: totalPage,
   paginationData,
   fetchData,
-  handleSearch,
-  searchQuery,
   isFetching,
 } = useFetch({
   baseUrl: "payment_invoices",
-  resourceKey: "payment_invoices",
-  immediate: true,
-  initialPage: 1,
-  perPage: 30,
-  debounceMs: 300,
-});
-
-// Initialize component
-onMounted(() => {
-  fetchData();
+  params: {
+    from_date: getFormattedToday(),
+    to_date: getFormattedToday(),
+  },
 });
 
 // Show one
@@ -50,17 +43,55 @@ const resolveInvoiceStatus = (status) => {
   return roleMap[status] || { color: "primary" };
 };
 
+const dateValue = ref();
+const resetDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed, so add 1
+  const day = String(today.getDate()).padStart(2, "0"); // Ensure day is 2 digits
+
+  // Format the date as YYYY-MM-DD
+  const formattedDate = `${year}-${month}-${day}`;
+  dateValue.value = formattedDate;
+  return formattedDate;
+};
+onMounted(() => {
+  resetDate();
+});
+
+watch(dateValue, (newVal) => {
+  const [from, to, ...other] = newVal.split(" — ");
+
+  state.value.params = {
+    ...state.params,
+    from_date: from,
+    to_date: to || from,
+  };
+});
 </script>
 
 <template>
   <section>
-    <VCard id="invoice-list">
-      <VCardText class="d-flex align-center flex-wrap gap-4">
-        <VSpacer />
+    <VCard>
+      <VCardText>
+        <VRow>
+          <VCol cols="12" sm="3">
+            <AppDateTimePicker
+              v-model="dateValue"
+              :config="{ mode: 'range', locale: Uzbek }"
+              placeholder="Выберите диапазон дат"
+              :rules="[requiredValidator]"
+              clearable
+              @click:clear="resetDate"
+              density="compact"
+            />
+          </VCol>
+          <VSpacer />
 
-        <div class="d-flex align-center flex-wrap gap-6">
-          <AddNewDialog @fetchDatas="() => fetchData(true)" />
-        </div>
+          <VCol cols="auto">
+            <AddNewDialog @fetchDatas="() => fetchData(true)" />
+          </VCol>
+        </VRow>
       </VCardText>
 
       <VDivider />

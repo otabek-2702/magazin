@@ -81,7 +81,7 @@ const onReject = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }

@@ -105,7 +105,7 @@ const fetchProducts = async () => {
       products_list.value = response.data.products;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -118,7 +118,7 @@ const fetchSizes = async () => {
       sizes_list.value = response.data.sizes;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -131,7 +131,7 @@ const fetchColors = async () => {
       colors_list.value = response.data.colors;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 

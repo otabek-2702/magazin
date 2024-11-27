@@ -96,7 +96,7 @@ const onConfirm = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }
@@ -119,7 +119,7 @@ const onReject = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }
@@ -189,7 +189,7 @@ const findProductVariant = async (raw_sku) => {
       };
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   if (!product_variant_data.value) {

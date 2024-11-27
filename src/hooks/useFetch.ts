@@ -1,8 +1,9 @@
 // composables/useFetch.ts
-import { ref, computed, watch, onUnmounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { AxiosResponse } from "axios";
 import axios from "@/plugins/axios";
 import { debounce } from "@/utils/debounce";
+import { omit } from "@/helpers";
 
 // Types and Interfaces
 interface PaginationMeta {
@@ -12,20 +13,13 @@ interface PaginationMeta {
   per_page: number;
 }
 
-interface FetchOptions {
-  additionalParams?: Record<string, any>;
-  onSuccess?: (data: any) => void;
-  onError?: (error: Error) => void;
-}
-
 interface UseFetchConfig {
   baseUrl: string;
   resourceKey?: string;
-  immediate?: boolean;
   initialPage?: number;
   perPage?: number;
   debounceMs?: number;
-  params?: Record<string, any>;
+  params?: Record<string, string | number>;
 }
 
 interface FetchState<T> {
@@ -34,12 +28,13 @@ interface FetchState<T> {
   totalPages: number;
   rowsPerPage: number;
   totalItems: number;
-  error: string | null;
-  isError: boolean;
+
   isFetching: boolean;
   searchQuery: string;
+  metaDatas: Record<any, string | number>;
   totalQuantity: string | number;
   totalPrice: string | number;
+  params: Record<any, string | number>;
 }
 
 export function useFetch<T = any>(config: UseFetchConfig) {
@@ -48,14 +43,14 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     items: [],
     currentPage: config.initialPage || 1,
     totalPages: 1,
-    rowsPerPage: config.perPage || 10,
+    rowsPerPage: config.perPage || 30,
     totalItems: 0,
-    error: null,
-    isError: false,
     isFetching: false,
     searchQuery: "",
+    metaDatas: {},
     totalQuantity: 0,
     totalPrice: 0,
+    params: config.params,
   });
 
   // Internal state
@@ -75,7 +70,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   });
 
   // Core fetch function
-  const fetchData = async (force = false, options: FetchOptions = {}) => {
+  const fetchData = async (force = false) => {
     if (
       !force &&
       (state.value.isFetching ||
@@ -86,14 +81,11 @@ export function useFetch<T = any>(config: UseFetchConfig) {
 
     try {
       state.value.isFetching = true;
-      state.value.error = null;
-      state.value.isError = false;
       const params = {
         page: state.value.currentPage,
         paginate: state.value.rowsPerPage,
         search: finalSearch.value,
-        ...config?.params,
-        ...options.additionalParams,
+        ...state.value.params,
       };
 
       const { data }: AxiosResponse = await axios.get(`/${config.baseUrl}`, {
@@ -101,11 +93,16 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       });
 
       // Update items based on resourceKey or default structure
-      state.value.items = data.data || data[config.resourceKey || ""] || [];
+      state.value.items =
+        data.data || data[config.resourceKey || config.baseUrl || ""] || [];
       lastFetchedPage.value = state.value.currentPage;
 
-      state.value.totalQuantity =  data.total_quantity;
-      state.value.totalPrice =  data.total_price;
+      // Additional datas
+      state.value.metaDatas = omit(data, [
+        "data",
+        config.resourceKey || config.baseUrl || "",
+        "pagination",
+      ]);
 
       // Update pagination meta
       const meta = data.meta?.pagination as PaginationMeta;
@@ -115,14 +112,8 @@ export function useFetch<T = any>(config: UseFetchConfig) {
         state.value.totalPages = meta.total_pages;
         state.value.rowsPerPage = meta.per_page;
       }
-
-      options.onSuccess?.(data);
     } catch (error) {
-      state.value.error =
-        error instanceof Error ? error.message : "An error occurred";
-      state.value.isError = true;
       state.value.items = [];
-      options.onError?.(error as Error);
     } finally {
       state.value.isFetching = false;
     }
@@ -132,10 +123,10 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   const debouncedFetchData = debounce(fetchData, config.debounceMs || 300);
 
   // Search handler
-  const handleSearch = (options: FetchOptions = {}) => {
+  const handleSearch = () => {
     finalSearch.value = state.value.searchQuery;
     state.value.currentPage = 1;
-    fetchData(true, options);
+    fetchData(true);
   };
 
   // Reset function
@@ -144,14 +135,14 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       items: [],
       currentPage: config.initialPage || 1,
       totalPages: 1,
-      rowsPerPage: config.perPage || 10,
+      rowsPerPage: config.perPage || 30,
       totalItems: 0,
-      error: null,
-      isError: false,
       isFetching: false,
       searchQuery: "",
+      metaDatas: {},
       totalQuantity: 0,
       totalPrice: 0,
+      params: config.params,
     };
     finalSearch.value = "";
     lastFetchedPage.value = null;
@@ -179,7 +170,9 @@ export function useFetch<T = any>(config: UseFetchConfig) {
   watch(
     () => state.value.currentPage,
     () => {
-      if (!state.value.isFetching) {
+      if (state.value.currentPage > state.value.totalPages) {
+        state.value.currentPage = Math.max(1, state.value.totalPages);
+      } else if (!state.value.isFetching) {
         debouncedFetchData();
       }
     }
@@ -194,10 +187,15 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     }
   );
 
-  // Initial fetch if immediate is true
-  if (config.immediate) {
-    fetchData(true);
-  }
+  watch(
+    () => state.value.params,
+    () => {
+      state.value.currentPage = 1;
+      fetchData(true);
+    }
+  );
+
+  fetchData(true);
 
   return {
     // State (wrapped in computed to make them readonly from outside)
@@ -207,12 +205,11 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     rowsPerPage: computed(() => state.value.rowsPerPage),
     totalItems: computed(() => state.value.totalItems),
     isFetching: computed(() => state.value.isFetching),
-    isError: computed(() => state.value.isError),
-    error: computed(() => state.value.error),
     searchQuery: computed({
       get: () => state.value.searchQuery,
       set: (value) => (state.value.searchQuery = value),
     }),
+    metaDatas: computed(() => state.value.metaDatas),
 
     // Computed
     paginationData,

@@ -114,7 +114,7 @@ const findProductVariant = async (raw_sku) => {
       };
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetchingVariant.value = false;
   }
@@ -222,7 +222,7 @@ const onConfirm = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }
@@ -242,7 +242,7 @@ const onReject = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }

@@ -84,7 +84,7 @@ const findProductVariant = async (raw_sku) => {
       };
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   if (!product_variant_data.value) {

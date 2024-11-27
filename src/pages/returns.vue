@@ -18,11 +18,6 @@ const {
   isFetching,
 } = useFetch({
   baseUrl: "refunds",
-  resourceKey: "refunds",
-  immediate: true,
-  initialPage: 1,
-  perPage: 30,
-  debounceMs: 300,
 });
 
 // Initialize component

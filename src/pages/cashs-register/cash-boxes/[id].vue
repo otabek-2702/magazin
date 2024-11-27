@@ -1,39 +1,27 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { fetchOptions, formatTimestamp, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
+import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 
 const route = useRoute();
 const {
   state,
   items: invoices,
-  currentPage,
   totalPages: totalPage,
   paginationData,
   fetchData,
-  handleSearch,
-  searchQuery,
   isFetching,
+  metaDatas
 } = useFetch({
   baseUrl: "cashbox_movements",
   params: { cashbox_id: route?.params?.id },
-  resourceKey: "cashbox_movements",
-  immediate: true,
-  initialPage: 1,
-  perPage: 30,
-  debounceMs: 300,
 });
 
 // cash data
-const cashbox_data = ref();
 
-// Initialize component
-onMounted(() => {
-  fetchOptions(`/cashboxes/${route.params.id}`, cashbox_data, "cashbox");
-  fetchData();
-});
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
@@ -50,19 +38,25 @@ const invoicesListMeta = computed(() => [
     icon: "mdi-cash-multiple",
     color: "primary",
     title: "Итоговая сумма в кассе",
-    stats: transformPrice(cashbox_data.value?.remains),
+    stats: invoices.value[0]?.cashbox?.remains,
   },
   {
     icon: "mdi-cash-plus",
     color: "success",
     title: "Доход",
-    stats: transformPrice(0),
+    stats: metaDatas.value.positive_sum,
   },
   {
     icon: "mdi-cash-minus",
     color: "error",
     title: "Расход",
-    stats: transformPrice(0),
+    stats: metaDatas.value.negative_sum,
+  },
+  {
+    icon: "mdi-bank",
+    color: "primary",
+    title: "Инкассация",
+    stats: metaDatas.value.clear_sum,
   },
 ]);
 
@@ -85,7 +79,7 @@ const isAddNewOutputDrawerVisible = ref(false);
               <span>{{ meta.title }}</span>
               <div class="d-flex align-center gap-2">
                 <h6 :class="`text-h6 text-${meta.color}`">
-                  {{ meta.stats }} so'm
+                  <AnimatedNumber :number="meta.stats" /> so'm
                 </h6>
               </div>
               <span class="text-sm">{{ meta.subtitle }}</span>

@@ -35,7 +35,7 @@ const fetchData = async () => {
     // After fetching data, generate the barcode
     nextTick(() => generateBarcode(itemData.value?.sku));
   } catch (error) {
-    console.log('Error fetching data:', error);
+    console.error(error);
   } finally {
     isFetchingStart.value = false;
   }

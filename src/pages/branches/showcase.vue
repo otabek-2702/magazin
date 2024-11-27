@@ -27,11 +27,6 @@ const {
   isFetching,
 } = useFetch({
   baseUrl: "showcases",
-  resourceKey: "showcase",
-  immediate: true,
-  initialPage: 1,
-  perPage: 30,
-  debounceMs: 300,
 });
 
 // Watch for branch selection changes to update filters

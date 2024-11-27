@@ -52,7 +52,7 @@ export const fetchOptions = async (
       }
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -61,3 +61,32 @@ export const autoSelectInputValue = (e) => {
     e.target.select();
   });
 };
+
+export const getFormattedToday = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed, so add 1
+  const day = String(today.getDate()).padStart(2, "0"); // Ensure day is 2 digits
+
+  // Format the date as YYYY-MM-DD
+  return`${year}-${month}-${day}`;
+}
+
+/**
+ * Creates a new object by omitting specified keys from the original object
+ * 
+ * @param {Object} obj - The source object
+ * @param {string[]} keysToOmit - An array of keys to remove
+ * @returns {Object} A new object without the specified keys
+ */
+export function omit(obj, keysToOmit) {
+  // Create a shallow copy of the object
+  const result = { ...obj };
+  
+  // Remove specified keys
+  keysToOmit.forEach(key => {
+    delete result[key];
+  });
+  
+  return result;
+}

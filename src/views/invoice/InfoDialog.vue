@@ -109,7 +109,7 @@ const onConfirm = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }
@@ -130,7 +130,7 @@ const onReject = async () => {
       handleDialogModelValueUpdate(false);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetching.value = "";
   }
@@ -195,7 +195,7 @@ const fetchVariants = async () => {
       }
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } finally {
     isFetchingVariant.value = false;
   }
@@ -212,7 +212,6 @@ watch(currency_id, (newVal) => {
 });
 
 watch(variant_search_input, (newVal) => {
-  console.log(newVal);
   if (newVal?.length >= 2) {
     fetchVariants();
   }

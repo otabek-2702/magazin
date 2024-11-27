@@ -120,7 +120,7 @@ const fetchCategories = async () => {
       categories_list.value = response.data.categories;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -133,7 +133,7 @@ const fetchSuppliers = async () => {
       suppliers_list.value = response.data.suppliers;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 

@@ -24,11 +24,6 @@ const {
   isFetching: isFetchingStart,
 } = useFetch({
   baseUrl: "sizes",
-  resourceKey: "sizes",
-  immediate: true,
-  initialPage: 1,
-  perPage: 15,
-  debounceMs: 300,
 });
 
 // Add

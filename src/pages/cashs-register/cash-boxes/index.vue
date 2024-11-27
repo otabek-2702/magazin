@@ -6,6 +6,7 @@ import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { useFetch } from "@/hooks/useFetch";
 import { transformPrice } from "@/helpers";
 import { useRouter } from "vue-router";
+import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 
 const router = useRouter();
 
@@ -20,11 +21,6 @@ const {
   isFetching,
 } = useFetch({
   baseUrl: "cashboxes",
-  resourceKey: "cashboxes",
-  immediate: true,
-  initialPage: 1,
-  perPage: 30,
-  debounceMs: 300,
 });
 
 const isAddNewDrawerVisible = ref(false);
@@ -89,7 +85,7 @@ const openEditDrawer = (id) => {
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
                 <td class="overflow-hide">{{ cash_box.description }}</td>
-                <td>{{ transformPrice(cash_box.remains) }}</td>
+                <td><AnimatedNumber :number="(cash_box.remains)" /></td>
                 <td
                   class="text-center"
                   :style="{ width: '80px', zIndex: '10' }"
