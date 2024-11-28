@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import {  onMounted, ref, watch } from "vue";
 import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import { fetchOptions, formatTimestamp, getFormattedToday } from "@/helpers";
+import {  formatTimestamp, getFormattedToday } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
 import InfoDialog from "@/views/cash-register/InfoDialog.vue";
@@ -45,15 +45,7 @@ const resolveInvoiceStatus = (status) => {
 
 const dateValue = ref();
 const resetDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed, so add 1
-  const day = String(today.getDate()).padStart(2, "0"); // Ensure day is 2 digits
-
-  // Format the date as YYYY-MM-DD
-  const formattedDate = `${year}-${month}-${day}`;
-  dateValue.value = formattedDate;
-  return formattedDate;
+  dateValue.value = getFormattedToday();
 };
 onMounted(() => {
   resetDate();
@@ -63,7 +55,7 @@ watch(dateValue, (newVal) => {
   const [from, to, ...other] = newVal.split(" — ");
 
   state.value.params = {
-    ...state.params,
+    ...state.value.params,
     from_date: from,
     to_date: to || from,
   };

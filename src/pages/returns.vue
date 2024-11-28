@@ -48,7 +48,7 @@ const resolveInvoiceStatus = (status) => {
 
 <template>
   <section>
-    <VCard id="invoice-list">
+    <VCard>
       <VCardText class="d-flex align-center flex-wrap gap-4">
         <VSpacer />
 

@@ -1,7 +1,8 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import { fetchOptions, formatTimestamp, transformPrice } from "@/helpers";
+import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
@@ -14,14 +15,19 @@ const {
   paginationData,
   fetchData,
   isFetching,
-  metaDatas
+  metaDatas,
 } = useFetch({
   baseUrl: "cashbox_movements",
-  params: { cashbox_id: route?.params?.id },
+  params: {
+    cashbox_id: route?.params?.id,
+    from_date: getFormattedToday(),
+    to_date: getFormattedToday(),
+  },
 });
 
-// cash data
+const cashbox = computed(() => invoices.value[0]?.cashbox);
 
+// cash data
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
@@ -38,7 +44,7 @@ const invoicesListMeta = computed(() => [
     icon: "mdi-cash-multiple",
     color: "primary",
     title: "Итоговая сумма в кассе",
-    stats: invoices.value[0]?.cashbox?.remains,
+    stats: cashbox.value?.remains,
   },
   {
     icon: "mdi-cash-plus",
@@ -61,6 +67,24 @@ const invoicesListMeta = computed(() => [
 ]);
 
 const isAddNewOutputDrawerVisible = ref(false);
+
+const dateValue = ref();
+const resetDate = () => {
+  dateValue.value = getFormattedToday();
+};
+onMounted(() => {
+  resetDate();
+});
+
+watch(dateValue, (newVal) => {
+  const [from, to, ...other] = newVal.split(" — ");
+
+  state.value.params = {
+    ...state.value.params,
+    from_date: from,
+    to_date: to || from,
+  };
+});
 </script>
 
 <template>
@@ -95,14 +119,28 @@ const isAddNewOutputDrawerVisible = ref(false);
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard id="invoice-list">
-          <VCardTitle class="d-flex align-center gap-4 py-6">
-            <span>{{ cashbox_data?.name }}</span>
-            <VSpacer />
-            <VBtn @click="isAddNewOutputDrawerVisible = true"
-              >Добавить Расход
-            </VBtn>
-          </VCardTitle>
+        <VCard :title="cashbox?.name ?? 'Kassa'">
+          <VCardText>
+            <VRow>
+              <VCol cols="12" sm="3">
+                <AppDateTimePicker
+                  v-model="dateValue"
+                  :config="{ mode: 'range', locale: Uzbek }"
+                  placeholder="Выберите диапазон дат"
+                  :rules="[requiredValidator]"
+                  clearable
+                  @click:clear="resetDate"
+                  density="compact"
+                />
+              </VCol>
+              <VSpacer />
+              <VCol cols="auto">
+                <VBtn @click="isAddNewOutputDrawerVisible = true"
+                  >Добавить Расход
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VCardText>
 
           <VDivider />
 
