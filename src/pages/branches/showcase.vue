@@ -27,6 +27,7 @@ const {
   isFetching,
 } = useFetch({
   baseUrl: "showcases",
+  resourceKey: "showcase",
 });
 
 // Watch for branch selection changes to update filters
