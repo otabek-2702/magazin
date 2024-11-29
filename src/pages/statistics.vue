@@ -147,7 +147,7 @@ const downloadReport = async (endpoint, filename) => {
           block
           :loading="isDownloading === 'returns'"
           :disabled="!dateRange || isDownloading.length"
-          @click="() => downloadReport('returns', 'инкассация')"
+          @click="() => downloadReport('returns', 'возвраты')"
           color="primary"
           prepend-icon="bx-download"
         >
