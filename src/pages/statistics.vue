@@ -1,68 +1,153 @@
 <script setup>
-import { ref } from 'vue';
-import axios from '@axios';
-import ApexChartExpenseRatio from '@/views/statistics/ApexChartExpenseRatio.vue';
-import ChartJsBarChart from '@/views/statistics/ChartJsBarChart.vue';
+import { ref } from "vue";
+import axios from "@axios";
+import { Russian } from "flatpickr/dist/l10n/ru.js";
 
-const chartJsCustomColors = {
-  white: '#fff',
-  yellow: '#ffe802',
-  primary: '#836af9',
-  areaChartBlue: '#2c9aff',
-  barChartYellow: '#ffcf5c',
-  polarChartGrey: '#4f5d70',
-  polarChartInfo: '#299aff',
-  lineChartYellow: '#d4e157',
-  polarChartGreen: '#28dac6',
-  lineChartPrimary: '#9e69fd',
-  lineChartWarning: '#ff9800',
-  horizontalBarInfo: '#26c6da',
-  polarChartWarning: '#ff8131',
-  scatterChartGreen: '#28c76f',
-  warningShade: '#ffbd1f',
-  areaChartBlueLight: '#84d0ff',
-  areaChartGreyLight: '#edf1f4',
-  scatterChartWarning: '#ff9f43',
-}
+const dateRange = ref("");
+const isDownloading = ref("");
+
+const uzDateFormat = new Intl.DateTimeFormat("fr-CA", {
+  timeZone: "Asia/Tashkent",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const dateRangeConfig = {
+  mode: "range",
+  minDate: "2024-01-01",
+  maxDate: uzDateFormat.format(new Date()),
+  locale: Russian,
+  dateFormat: "Y-m-d",
+};
+
+const downloadReport = async (endpoint, filename) => {
+  if (!dateRange.value) return;
+
+  let from, to;
+
+  if (dateRange.value.includes(" — ")) {
+    [from, to] = dateRange.value.split(" — ");
+  } else {
+    from = to = dateRange.value;
+  }
+
+  isDownloading.value = endpoint;
+  try {
+    const response = await axios.post(
+      `/exports/${endpoint}`,
+      { from, to },
+      {
+        responseType: "blob",
+        headers: {
+          Accept: "application/octet-stream",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${filename}|${from}-${to}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } finally {
+    isDownloading.value = "";
+  }
+};
 </script>
 
 <template>
-  <section>
+  <VCard class="pa-5">
+    <VCardTitle class="text-h6 mb-4">Отчеты</VCardTitle>
+
     <VRow>
-      <VCol cols="12" md="6">
-        <VCard title="Соотношение расходов" subtitle="Расходы по различным категориям">
-          <VCardText>
-            <ApexChartExpenseRatio />
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <VCard>
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Последняя статистика</VCardTitle>
-
-            <template #append>
-              <div class="date-picker-wrapper">
-                <AppDateTimePicker
-                  model-value="2022-06-09"
-                  prepend-inner-icon="bx-calendar-alt"
-                  density="compact"
-                  :config="{ position: 'auto right' }"
-                />
-              </div>
-            </template>
-          </VCardItem>
-
-          <VCardText>
-            <ChartJsBarChart :colors="chartJsCustomColors" />
-          </VCardText>
-        </VCard>
+      <!-- Выбор периода -->
+      <VCol cols="12" md="4">
+        <AppDateTimePicker
+          v-model="dateRange"
+          label="Период отчета"
+          prepend-inner-icon="bx-calendar"
+          class="date-picker-field"
+          :config="dateRangeConfig"
+        />
       </VCol>
     </VRow>
-  </section>
+
+    <VRow class="mt-4">
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'stock_entries'"
+          :disabled="!dateRange || isDownloading.length "
+          @click="() => downloadReport('stock_entries', 'приход_товара')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Приход товара
+        </VBtn>
+      </VCol>
+
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'stock_movements'"
+          :disabled="!dateRange || isDownloading.length "
+          @click="() => downloadReport('stock_movements', 'движение_склада')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Движение склада
+        </VBtn>
+      </VCol>
+
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'sales'"
+          :disabled="!dateRange || isDownloading.length "
+          @click="() => downloadReport('sales', 'продажи')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Продажи
+        </VBtn>
+      </VCol>
+
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'expenses'"
+          :disabled="!dateRange || isDownloading.length "
+          @click="() => downloadReport('expenses', 'расходы')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Расходы
+        </VBtn>
+      </VCol>
+
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'encashments'"
+          :disabled="!dateRange || isDownloading.length "
+          @click="() => downloadReport('encashments', 'инкассация')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Инкассация
+        </VBtn>
+      </VCol>
+    </VRow>
+  </VCard>
 </template>
 
-<style></style>
+<style scoped>
+.date-picker-field {
+  width: 100%;
+}
+</style>
