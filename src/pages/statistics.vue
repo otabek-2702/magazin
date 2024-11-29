@@ -82,7 +82,7 @@ const downloadReport = async (endpoint, filename) => {
         <VBtn
           block
           :loading="isDownloading === 'stock_entries'"
-          :disabled="!dateRange || isDownloading.length "
+          :disabled="!dateRange || isDownloading.length"
           @click="() => downloadReport('stock_entries', 'приход_товара')"
           color="primary"
           prepend-icon="bx-download"
@@ -95,7 +95,7 @@ const downloadReport = async (endpoint, filename) => {
         <VBtn
           block
           :loading="isDownloading === 'stock_movements'"
-          :disabled="!dateRange || isDownloading.length "
+          :disabled="!dateRange || isDownloading.length"
           @click="() => downloadReport('stock_movements', 'движение_склада')"
           color="primary"
           prepend-icon="bx-download"
@@ -108,7 +108,7 @@ const downloadReport = async (endpoint, filename) => {
         <VBtn
           block
           :loading="isDownloading === 'sales'"
-          :disabled="!dateRange || isDownloading.length "
+          :disabled="!dateRange || isDownloading.length"
           @click="() => downloadReport('sales', 'продажи')"
           color="primary"
           prepend-icon="bx-download"
@@ -121,7 +121,7 @@ const downloadReport = async (endpoint, filename) => {
         <VBtn
           block
           :loading="isDownloading === 'expenses'"
-          :disabled="!dateRange || isDownloading.length "
+          :disabled="!dateRange || isDownloading.length"
           @click="() => downloadReport('expenses', 'расходы')"
           color="primary"
           prepend-icon="bx-download"
@@ -134,12 +134,24 @@ const downloadReport = async (endpoint, filename) => {
         <VBtn
           block
           :loading="isDownloading === 'encashments'"
-          :disabled="!dateRange || isDownloading.length "
+          :disabled="!dateRange || isDownloading.length"
           @click="() => downloadReport('encashments', 'инкассация')"
           color="primary"
           prepend-icon="bx-download"
         >
           Инкассация
+        </VBtn>
+      </VCol>
+      <VCol cols="12" md="4" sm="6">
+        <VBtn
+          block
+          :loading="isDownloading === 'returns'"
+          :disabled="!dateRange || isDownloading.length"
+          @click="() => downloadReport('returns', 'инкассация')"
+          color="primary"
+          prepend-icon="bx-download"
+        >
+          Возврат товаров
         </VBtn>
       </VCol>
     </VRow>
