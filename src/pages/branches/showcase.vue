@@ -56,13 +56,27 @@ onMounted(() => {
   fetchOptions("branches", branches_list, "branches");
 });
 
+const getPrettyDate = () => {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
 const isFetchingReport = ref(false)
 const downloadReport = async (endpoint, filename) => {
   try {
     isFetchingReport.value = true;
     const response = await axios.post(
       `/exports/${endpoint}`,
-      { from: '2024-11-06', to: '2024-11-06'},
+      { },
       {
         responseType: "blob",
         headers: {
@@ -75,7 +89,8 @@ const downloadReport = async (endpoint, filename) => {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `${filename}|${from}-${to}.xlsx`);
+    link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
+    console.log(link)
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
