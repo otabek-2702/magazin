@@ -48,7 +48,7 @@ export const fetchOptions = async (
       if (customization.is) {
         dataState.value = response.data[key].map(customization.method);
       } else {
-        dataState.value = response.data[key];
+        dataState.value = key? response.data[key]:response.data;
       }
     }
   } catch (error) {

@@ -44,11 +44,7 @@ const isFetching = ref(false);
 const input_price = ref();
 const payment_type = ref();
 
-const payment_types_list = [
-  { name: "Наличные", value: "cash" },
-  { name: "Uzcard", value: "uzcard" },
-  { name: "Humo", value: "humo" },
-];
+const payment_types_list = ref();
 
 const onConfirm = async () => {
   const { valid } = await refForm.value?.validate();
@@ -57,7 +53,7 @@ const onConfirm = async () => {
   isFetching.value = true;
   try {
     const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
-      payment_type: payment_type.value,
+      payment_type_id: payment_type.value,
       sale: removeSpaces(props.sale_price),
     });
 
@@ -132,6 +128,7 @@ const totalPriceWithSale = computed(
 //    }
 //  }
 //);
+onMounted(() => fetchOptions('payment_types', payment_types_list, null))
 </script>
 
 <template>
@@ -175,7 +172,7 @@ const totalPriceWithSale = computed(
                 label="Выберите способ оплаты"
                 :items="payment_types_list"
                 item-title="name"
-                item-value="value"
+                item-value="id"
                 :rules="[requiredValidator]"
               />
             </VCol>
