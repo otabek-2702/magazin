@@ -18,10 +18,10 @@ const barcodeDialogId = ref(0);
 const {
   state,
   items: products,
-  currentPage,
   totalPages: totalPage,
   paginationData,
   fetchData,
+  metaDatas,
   handleSearch,
   searchQuery,
   isFetching,
@@ -60,23 +60,23 @@ const getPrettyDate = () => {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+  const day = String(now.getDate()).padStart(2, "0");
 
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const isFetchingReport = ref(false)
+const isFetchingReport = ref(false);
 const downloadReport = async (endpoint, filename) => {
   try {
     isFetchingReport.value = true;
     const response = await axios.post(
       `/exports/${endpoint}`,
-      { },
+      {},
       {
         responseType: "blob",
         headers: {
@@ -90,7 +90,7 @@ const downloadReport = async (endpoint, filename) => {
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
-    console.log(link)
+    console.log(link);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -99,42 +99,89 @@ const downloadReport = async (endpoint, filename) => {
     isFetchingReport.value = false;
   }
 };
+
+const invoicesListMeta = computed(() => [
+  {
+    icon: "mdi-tag-multiple",
+    color: "primary",
+    title: "Общая стоимость товаров",
+    stats: metaDatas.value?.total_price,
+    append: 'so\'m'
+  },
+  {
+    icon: "mdi-cart-plus",
+    color: "success",
+    title: "Общее количество товаров",
+    stats: metaDatas.value?.total_quantity,
+    append: ''
+  },
+]);
 </script>
 
 <template>
   <section>
     <VRow>
-      <VSpacer />
-      <VCol cols="auto">
-        <VBtn
-          color="success"
-          :disabled="isFetchingReport"
-          :loading="isFetchingReport"
-          prepend-icon="mdi-file-excel"
-          class="font-weight-bold"
-          @click="downloadReport('showcases', 'витрина')"
-        >
-          EXCEL
-        </VBtn>
-      </VCol>
-    </VRow>
-    <VRow>
-      <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+      <VCol
+        v-for="meta in invoicesListMeta"
+        :key="meta.title"
+        cols="12"
+        sm="6"
+        lg="3"
+      >
+        <VCard>
+          <VCardText class="d-flex justify-space-between">
+            <div>
+              <span>{{ meta.title }}</span>
+              <div class="d-flex align-center gap-2">
+                <h6 :class="`text-h6 text-${meta.color}`">
+                  <AnimatedNumber :number="meta.stats" /> {{ meta.append }}
+                </h6>
+              </div>
+            </div>
 
-            <VCol cols="4" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="handleSearch"
-                placeholder="Поиск товара"
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-            </VCol>
+            <VAvatar
+              rounded
+              variant="tonal"
+              :color="meta.color"
+              :icon="meta.icon"
+            />
           </VCardText>
+        </VCard>
+      </VCol>
+      <VCol cols="12">
+        <VCard>
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle> Фильтры поиска </VCardTitle>
+              </VCol>
+
+              <VSpacer />
+
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3" class="justify-self-end">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск товара"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <VBtn
+                  color="success"
+                  :disabled="isFetchingReport"
+                  :loading="isFetchingReport"
+                  prepend-icon="mdi-file-excel"
+                  class="font-weight-bold"
+                  @click="downloadReport('showcases', 'витрина')"
+                >
+                  EXCEL
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
@@ -163,17 +210,6 @@ const downloadReport = async (endpoint, filename) => {
             </thead>
 
             <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>К-во: {{ transformPrice(state.totalQuantity ?? 0) }}</td>
-                <td>Сумма: {{ transformPrice(state.totalPrice ?? 0) }}</td>
-                <td></td>
-                <td></td>
-              </tr>
               <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
                 <td>
