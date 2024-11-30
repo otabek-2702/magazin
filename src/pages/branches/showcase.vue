@@ -55,10 +55,54 @@ onMounted(() => {
   fetchData();
   fetchOptions("branches", branches_list, "branches");
 });
+
+const isFetchingReport = ref(false)
+const downloadReport = async (endpoint, filename) => {
+  try {
+    isFetchingReport.value = true;
+    const response = await axios.post(
+      `/exports/${endpoint}`,
+      { from: '2024-11-06', to: '2024-11-06'},
+      {
+        responseType: "blob",
+        headers: {
+          Accept: "application/octet-stream",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${filename}|${from}-${to}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } finally {
+    isFetchingReport.value = false;
+  }
+};
 </script>
 
 <template>
   <section>
+    <VRow>
+      <VSpacer />
+      <VCol cols="auto">
+        <VBtn
+          color="success"
+          :disabled="isFetchingReport"
+          :loading="isFetchingReport"
+          prepend-icon="mdi-file-excel"
+          class="font-weight-bold"
+          @click="downloadReport('showcases', 'витрина')"
+        >
+          EXCEL
+        </VBtn>
+      </VCol>
+    </VRow>
     <VRow>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
@@ -147,10 +191,7 @@ onMounted(() => {
                 </td>
               </tr>
             </tbody>
-            <Skeleton
-              :count="8"
-              v-show="isFetching && !products.length"
-            />
+            <Skeleton :count="8" v-show="isFetching && !products.length" />
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
