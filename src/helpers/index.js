@@ -8,7 +8,7 @@ export const transformPrice = (price, nullable = false) => {
     .replace(/\s/g, "")
     .replace(/[^\d\s]/g, "")
     .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-    .trim()
+    .trim();
   if (!formattedPrice && !nullable) {
     return "0";
   }
@@ -38,7 +38,7 @@ export function formatTimestamp(isoString) {
 export const fetchOptions = async (
   url,
   dataState,
-  key,
+  resourceKey,
   customization = { is: false }
 ) => {
   try {
@@ -46,9 +46,9 @@ export const fetchOptions = async (
 
     if (response.status === 200) {
       if (customization.is) {
-        dataState.value = response.data[key].map(customization.method);
+        dataState.value = response.data[resourceKey].map(customization.method);
       } else {
-        dataState.value = key? response.data[key]:response.data;
+        dataState.value = resourceKey ? response.data[resourceKey] : response.data;
       }
     }
   } catch (error) {
@@ -69,12 +69,12 @@ export const getFormattedToday = () => {
   const day = String(today.getDate()).padStart(2, "0"); // Ensure day is 2 digits
 
   // Format the date as YYYY-MM-DD
-  return`${year}-${month}-${day}`;
-}
+  return `${year}-${month}-${day}`;
+};
 
 /**
  * Creates a new object by omitting specified keys from the original object
- * 
+ *
  * @param {Object} obj - The source object
  * @param {string[]} keysToOmit - An array of keys to remove
  * @returns {Object} A new object without the specified keys
@@ -82,11 +82,11 @@ export const getFormattedToday = () => {
 export function omit(obj, keysToOmit) {
   // Create a shallow copy of the object
   const result = { ...obj };
-  
+
   // Remove specified keys
-  keysToOmit.forEach(key => {
+  keysToOmit.forEach((key) => {
     delete result[key];
   });
-  
+
   return result;
 }
