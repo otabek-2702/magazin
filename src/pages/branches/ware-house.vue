@@ -1,119 +1,33 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import axios from "@axios";
+import { computed, onMounted, ref } from "vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
 import AddNewWayBillToShowcaseDialog from "@/views/branch/invoice/AddNewDialog.vue";
-import { fetchOptions, transformPrice } from "@/helpers";
+import { fetchOptions } from "@/helpers";
+import { useFetch } from "@/hooks/useFetch";
 
-const searchQuery = ref("");
-const finalSearch = ref("");
-const selectedBranch = ref();
-const rowPerPage = ref(30);
-const totalQuantity = ref(0);
-const totalPrice = ref(0);
-const currentPage = ref(1);
-const totalPage = ref(1);
-const lastFetchedPage = ref(null);
-const totalDatasCount = ref(0);
-const products = ref([]);
-
-// Get main datas start
-const isFetching = ref(false);
-const filtersChanged = ref(false);
-
-const fetchData = async (force = false) => {
-  if (
-    !force &&
-    (isFetching.value ||
-      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
-  ) {
-    return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
-  }
-
-  try {
-    isFetching.value = true;
-    const { data } = await axios.get(
-      `/warehouses?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
-    );
-
-    products.value = data["warehouses"];
-    lastFetchedPage.value = currentPage.value;
-    currentPage.value = data["meta"]["pagination"]["current_page"];
-    totalDatasCount.value = data["meta"]["pagination"]["total"];
-    totalPage.value = data["meta"]["pagination"]["total_pages"];
-    rowPerPage.value = data["meta"]["pagination"]["per_page"];
-    totalQuantity.value = data["total_quantity"];
-    totalPrice.value = data["total_price"];
-
-    filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
-  } catch (error) {
-    console.error("Ошибка загрузки товаров:", error);
-  } finally {
-    isFetching.value = false;
-  }
-};
-
-// Get main datas end
-
-// 👉 watching selected filters
-watch([], () => {
-  // Сбрасываем на первую страницу при изменении фильтров
-  filtersChanged.value = true; // Устанавливаем флаг, что фильтры изменились
-  currentPage.value = 1;
-  fetchData(true);
-});
-
-// search
-const searchElements = () => {
-  finalSearch.value = searchQuery.value;
-  currentPage.value = 1;
-  fetchData(true);
-};
-
-watch(searchQuery, (newVal) => {
-  if (!newVal) {
-    finalSearch.value = "";
-    currentPage.value = 1;
-    fetchData(true);
-  }
+// Initialize useFetch hook with your configuration
+const {
+  state,
+  items: products,
+  totalPages,
+  paginationData,
+  fetchData,
+  metaDatas,
+  handleSearch,
+  searchQuery,
+  isFetching,
+} = useFetch({
+  baseUrl: "warehouses",
 });
 
 const branches_list = ref([]);
 
 onMounted(() => {
-  fetchData();
   fetchOptions("branches", branches_list, "branches");
 });
 
 const isBarcodeDialogVisible = ref(false);
-
-// Pages start
-
-// 👉 watching current page
-watch(currentPage, () => {
-  if (!isFetching.value) {
-    fetchData();
-  }
-});
-
-// 👉 Watching current page
-watchEffect(() => {
-  if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
-});
-
-// 👉 Computing pagination data
-const paginationData = computed(() => {
-  const firstIndex = products.value.length
-    ? (currentPage.value - 1) * rowPerPage.value + 1
-    : 0;
-  const lastIndex =
-    products.value.length + (currentPage.value - 1) * rowPerPage.value;
-
-  return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
-});
-
-// Pages end
 
 // BarCode
 const barcodeDialogId = ref(0);
@@ -123,40 +37,83 @@ const openBarcodeDialog = (id) => {
 };
 
 // end BarCode
+
+const metaDatasList = computed(() => [
+  {
+    icon: "mdi-tag-multiple",
+    color: "primary",
+    title: "Общая стоимость товаров",
+    stats: metaDatas.value?.total_price,
+    append: "so'm",
+  },
+  {
+    icon: "mdi-cart-plus",
+    color: "success",
+    title: "Общее количество товаров",
+    stats: metaDatas.value?.total_quantity,
+    append: "",
+  },
+]);
 </script>
 
 <template>
   <section>
     <VRow>
+      <VCol
+        v-for="meta in metaDatasList"
+        :key="meta.title"
+        cols="12"
+        sm="6"
+        lg="3"
+      >
+        <VCard>
+          <VCardText class="d-flex justify-space-between">
+            <div>
+              <span>{{ meta.title }}</span>
+              <div class="d-flex align-center gap-2">
+                <h6 :class="`text-h6 text-${meta.color}`">
+                  <AnimatedNumber :number="meta.stats" /> {{ meta.append }}
+                </h6>
+              </div>
+            </div>
+
+            <VAvatar
+              rounded
+              variant="tonal"
+              :color="meta.color"
+              :icon="meta.icon"
+            />
+          </VCardText>
+        </VCard>
+      </VCol>
       <VCol cols="12">
         <VCard title="Фильтры поиска">
-          <!-- <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          /> -->
-          <VCardText class="d-flex flex-wrap">
-            <AddNewWayBillToShowcaseDialog @fetchDatas="() => fetchData(true)" />
+          <VCardText>
+            <VRow>
+              <VCol cols="auto">
+                <AddNewWayBillToShowcaseDialog
+                  @fetchDatas="() => fetchData(true)"
+                />
+              </VCol>
 
-            <VSpacer />
+              <VSpacer />
+              <!-- 👉 Search  -->
 
-            <VCol cols="4" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск товара"
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-            </VCol>
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск товара"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+            </VRow>
           </VCardText>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
@@ -182,24 +139,13 @@ const openBarcodeDialog = (id) => {
             </thead>
 
             <tbody>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>К-во: {{ transformPrice(totalQuantity ?? 0) }}</td>
-                <td>Сумма: {{ transformPrice(totalPrice ?? 0) }}</td>
-                <td></td>
-                <td></td>
-              </tr>
               <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
                 <td>
-                  {{ product?.variant.product?.name }}
+                  {{ product.variant.product?.name }}
                   <b
-                    >( {{ product?.variant.color?.name }} |
-                    {{ product?.variant.size?.name }} )</b
+                    >( {{ product.variant.color?.name }} |
+                    {{ product.variant.size?.name }} )</b
                   >
                 </td>
                 <td>{{ product.branch?.name }}</td>
@@ -245,9 +191,8 @@ const openBarcodeDialog = (id) => {
 
             <VPagination
               v-if="products.length"
-              v-model="currentPage"
-              :total-visible="7"
-              :length="totalPage"
+              v-model="state.currentPage"
+              :length="totalPages"
             />
           </VCardText>
         </VCard>

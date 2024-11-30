@@ -39,6 +39,7 @@ export default {
   },
   VPagination: {
     density: 'compact',
+    totalVisible: 7
   },
   VTabs: {
     // set v-tabs default color to primary

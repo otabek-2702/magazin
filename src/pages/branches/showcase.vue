@@ -18,7 +18,7 @@ const barcodeDialogId = ref(0);
 const {
   state,
   items: products,
-  totalPages: totalPage,
+  totalPages,
   paginationData,
   fetchData,
   metaDatas,
@@ -100,20 +100,20 @@ const downloadReport = async (endpoint, filename) => {
   }
 };
 
-const invoicesListMeta = computed(() => [
+const metaDatasList = computed(() => [
   {
     icon: "mdi-tag-multiple",
     color: "primary",
     title: "Общая стоимость товаров",
     stats: metaDatas.value?.total_price,
-    append: 'so\'m'
+    append: "so'm",
   },
   {
     icon: "mdi-cart-plus",
     color: "success",
     title: "Общее количество товаров",
     stats: metaDatas.value?.total_quantity,
-    append: ''
+    append: "",
   },
 ]);
 </script>
@@ -122,7 +122,7 @@ const invoicesListMeta = computed(() => [
   <section>
     <VRow>
       <VCol
-        v-for="meta in invoicesListMeta"
+        v-for="meta in metaDatasList"
         :key="meta.title"
         cols="12"
         sm="6"
@@ -159,7 +159,7 @@ const invoicesListMeta = computed(() => [
               <VSpacer />
 
               <!-- 👉 Search  -->
-              <VCol cols="12" sm="3" class="justify-self-end">
+              <VCol cols="12" sm="3">
                 <VTextField
                   v-model="searchQuery"
                   @keyup.enter="handleSearch"
@@ -263,8 +263,7 @@ const invoicesListMeta = computed(() => [
             <VPagination
               v-if="products.length"
               v-model="state.currentPage"
-              :total-visible="7"
-              :length="totalPage"
+              :length="totalPages"
             />
           </VCardText>
         </VCard>
@@ -279,12 +278,4 @@ const invoicesListMeta = computed(() => [
   </section>
 </template>
 
-<style lang="scss">
-.app-user-search-filter {
-  inline-size: 385px;
-}
-
-.text-capitalize {
-  text-transform: capitalize;
-}
-</style>
+<style lang="scss"></style>

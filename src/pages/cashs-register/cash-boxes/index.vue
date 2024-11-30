@@ -128,7 +128,7 @@ const openEditDrawer = (id) => {
             <VPagination
               v-if="cash_boxes.length"
               v-model="currentPage"
-              :total-visible="7"
+              
               :length="totalPage"
             />
           </VCardText>

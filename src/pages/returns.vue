@@ -123,7 +123,7 @@ const resolveInvoiceStatus = (status) => {
         <VPagination
           v-if="invoices.length"
           v-model="state.currentPage"
-          :total-visible="7"
+          
           :length="totalPage"
         />
       </VCardText>

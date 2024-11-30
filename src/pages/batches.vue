@@ -4,7 +4,6 @@ import axios from "@axios";
 import AddNewDrawer from "@/views/batch/AddNewDrawer.vue";
 import UpdateDrawer from "@/views/batch/UpdateDrawer.vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-// import InfoDialog from '@/views/batch/InfoDialog.vue';
 import { useAppAbility } from "@/plugins/casl/useAppAbility";
 import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
 import { toast } from "vue3-toastify";
@@ -270,7 +269,6 @@ const transformDate = (date) => {
             <VPagination
               v-if="batches.length"
               v-model="currentPage"
-              :total-visible="7"
               :length="totalPage"
             />
           </VCardText>
@@ -288,11 +286,6 @@ const transformDate = (date) => {
       @fetchDatas="() => fetchData(true)"
     />
 
-    <!-- <InfoDialog
-      v-model:isDrawerOpen="isInfoDialogVisible"
-      :productId="infoDialogItemId"
-      @fetchDatas="() => fetchData(true)"
-    /> -->
   </section>
 </template>
 
