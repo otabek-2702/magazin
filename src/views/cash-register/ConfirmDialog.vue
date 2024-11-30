@@ -1,8 +1,13 @@
 <script setup>
 import { requiredValidator } from "@/@core/utils/validators";
-import { autoSelectInputValue, removeSpaces, transformPrice } from "@/helpers";
+import {
+  autoSelectInputValue,
+  fetchOptions,
+  removeSpaces,
+  transformPrice,
+} from "@/helpers";
 import axios from "@/plugins/axios";
-import { computed, provide } from "vue";
+import { computed, onMounted, provide } from "vue";
 import { toast } from "vue3-toastify";
 
 const props = defineProps({
@@ -43,7 +48,6 @@ const payment_types_list = [
   { name: "Наличные", value: "cash" },
   { name: "Uzcard", value: "uzcard" },
   { name: "Humo", value: "humo" },
-  { name: "Click", value: "click" },
 ];
 
 const onConfirm = async () => {

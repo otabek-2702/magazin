@@ -24,6 +24,13 @@ export default [
         subject: 'Users',
         action: 'show'
       },
+      {
+        title: 'Продавцы',
+        to: { name: 'Persons' },
+        // icon: { icon: 'mdi-account-tie' },
+        subject: 'Persons',
+        action: 'show'
+      },
     ]
   },
   {

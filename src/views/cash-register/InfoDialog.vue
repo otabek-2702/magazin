@@ -38,6 +38,7 @@ const product_variants = ref([]);
 const check_id = ref();
 const check_date = ref();
 const sale_price = ref();
+const seller_id = ref();
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
@@ -54,7 +55,8 @@ const fetchDataById = async () => {
       check_id.value = payment_invoice.id;
       check_date.value = formatTimestamp(payment_invoice.created_at);
       cashbox_id.value = payment_invoice.cashbox.id;
-      sale_price.value = parseInt(payment_invoice.sale)
+      sale_price.value = parseInt(payment_invoice.sale);
+      seller_id.value = payment_invoice.person?.id ?? 0;
     }
   } catch (error) {
     console.error("Ошибка:", error);
@@ -145,7 +147,15 @@ const calculateTotalPrice = computed(() => {
   );
 });
 
-const calculateTotalPriceWithSale = computed(() => removeSpaces(calculateTotalPrice.value) - removeSpaces(sale_price.value));
+const calculateTotalPriceWithSale = computed(
+  () => removeSpaces(calculateTotalPrice.value) - removeSpaces(sale_price.value)
+);
+
+const sellers_list = ref([]);
+const isFetchingSellers = ref(false);
+onMounted(() => {
+  fetchOptions("persons", sellers_list, "persons");
+});
 </script>
 
 <template>
@@ -171,7 +181,7 @@ const calculateTotalPriceWithSale = computed(() => removeSpaces(calculateTotalPr
               />
             </VCol>
 
-            <VCol cols="6" class="d-flex align-center gap-6">
+            <VCol cols="4" class="d-flex align-center gap-6">
               <h2>
                 Активный терминал:
                 {{ activeCashRLabel }}
@@ -180,6 +190,20 @@ const calculateTotalPriceWithSale = computed(() => removeSpaces(calculateTotalPr
                 Время Создания :
                 {{ check_date }}
               </h2>
+            </VCol>
+
+            <VCol cols="3">
+              <VAutocomplete
+                v-model="seller_id"
+                label="Выберите продавца"
+                variant="filled"
+                :items="sellers_list"
+                item-title="name"
+                item-value="id"
+                :loading="isFetchingSellers"
+                readonly
+                :clearable="false"
+              />
             </VCol>
 
             <VDivider />
@@ -239,7 +263,10 @@ const calculateTotalPriceWithSale = computed(() => removeSpaces(calculateTotalPr
                     <td colspan="3"></td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b v-if="sale_price">{{ calculateTotalPrice }} - {{ sale_price }} = {{ calculateTotalPriceWithSale }}</b>
+                      <b v-if="sale_price"
+                        >{{ calculateTotalPrice }} - {{ sale_price }} =
+                        {{ calculateTotalPriceWithSale }}</b
+                      >
                       <b v-else>{{ calculateTotalPrice }} </b> SO'M
                     </td>
                     <td class="text-body-1">

@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, watch, watchEffect } from 'vue';
 import axios from '@axios';
-import AddNewDrawer from '@/views/supplier/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/supplier/UpdateDrawer.vue';
+import AddNewDrawer from '@/views/person/AddNewDrawer.vue';
+import UpdateDrawer from '@/views/person/UpdateDrawer.vue';
 import Skeleton from '@/views/skeleton/Skeleton.vue';
 import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
 import { toast } from 'vue3-toastify';
@@ -16,7 +16,7 @@ const rowPerPage = ref(10);
 const currentPage = ref(1);
 const totalPage = ref(1);
 const totalCompanies = ref(0);
-const suppliers = ref([]);
+const persons = ref([]);
 const updateID = ref(0);
 
 const lastFetchedPage = ref(null);
@@ -30,10 +30,10 @@ const fetchData = async (force = false) => {
 
   try {
     const response = await axios.get(
-      `/suppliers?page=${currentPage.value}&search=${finalSearch.value}`,
+      `/persons?page=${currentPage.value}&search=${finalSearch.value}`,
     );
 
-    suppliers.value = response.data['suppliers'];
+    persons.value = response.data['persons'];
     // lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
     // currentPage.value = response.data['meta']['current_page'];
     // totalCompanies.value = response.data['meta']['total'];
@@ -84,8 +84,8 @@ const isUpdateDrawerVisible = ref(false);
 
 // // 👉 Computing pagination data
 // const paginationData = computed(() => {
-//   const firstIndex = suppliers.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-//   const lastIndex = suppliers.value.length + (currentPage.value - 1) * rowPerPage.value;
+//   const firstIndex = persons.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
+//   const lastIndex = persons.value.length + (currentPage.value - 1) * rowPerPage.value;
 
 //   return `${firstIndex}-${lastIndex} of ${totalCompanies.value}`;
 // });
@@ -114,7 +114,7 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/suppliers/' + id);
+    await axios.delete('/persons/' + id);
     toast('Успешно удалено', {
       
       type: 'success',
@@ -150,13 +150,13 @@ const deleteItem = async function (id) {
               <VTextField
                 v-model="searchQuery"
                 @keyup.enter="searchElements"
-                placeholder="Поиск поставщика"
+                placeholder="Поиск продавца"
                 :rules="[]"
                 density="compact"
                 class="me-6"
               />
-              <Can I="add" a="Supplier">
-                <VBtn @click="isAddNewDrawerVisible = true"> Добавить нового поставщика </VBtn>
+              <Can I="add" a="Person">
+                <VBtn @click="isAddNewDrawerVisible = true"> Добавить нового продавца </VBtn>
               </Can>
             </VCol>
           </VCardText>
@@ -168,25 +168,21 @@ const deleteItem = async function (id) {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ</th>
-                <th>НОМЕР ТЕЛЕФОНА</th>
-                <th>АДРЕС</th>
-                <th v-if="can('update', 'Supplier') || can('delete', 'Supplier')">ДЕЙСТВИЯ</th>
+                <th v-if="can('update', 'Person') || can('delete', 'Person')">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="supplier in suppliers" :key="supplier.id">
-                <td>{{ supplier.id }}</td>
-                <td>{{ supplier.name }}</td>
-                <td>{{ supplier.phone_number }}</td>
-                <td>{{ supplier.address }}</td>
+              <tr v-for="person in persons" :key="person.id">
+                <td>{{ person.id }}</td>
+                <td>{{ person.name }}</td>
                 <td class="text-center" style="width: 80px">
-                  <Can I="update" a="Supplier">
+                  <Can I="update" a="Person">
                     <VIcon
                       @click="
                         (event) => {
                           event.stopPropagation();
-                          openEditDrawer(supplier.id);
+                          openEditDrawer(person.id);
                         }
                       "
                       size="30"
@@ -195,21 +191,21 @@ const deleteItem = async function (id) {
                     ></VIcon>
                   </Can>
 
-                  <Can I="delete" a="Supplier">
+                  <Can I="delete" a="Person">
                     <VIcon
                       size="30"
                       icon="bx-trash"
                       style="color: red"
-                      @click="confirmDelete(supplier.id, supplier.title)"
+                      @click="confirmDelete(person.id, person.name)"
                     ></VIcon>
                   </Can>
                 </td>
               </tr>
             </tbody>
 
-            <Skeleton :count="5" v-show="isFetching && !suppliers.length" />
+            <Skeleton :count="5" v-show="isFetching && !persons.length" />
 
-            <tfoot v-if="!isFetching && !suppliers.length">
+            <tfoot v-if="!isFetching && !persons.length">
               <tr>
                 <td colspan="5" class="text-center text-body-1">Нет доступных данных</td>
               </tr>
@@ -224,7 +220,7 @@ const deleteItem = async function (id) {
             </div>
 
             <VPagination
-              v-if="suppliers.length"
+              v-if="persons.length"
               v-model="currentPage"
               :total-visible="7"
               :length="totalPage"

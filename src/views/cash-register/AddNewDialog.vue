@@ -21,6 +21,7 @@ const product_variant_data = ref();
 const product_variants = ref([]);
 const check_id = ref();
 const sale_price = ref(0);
+const seller_id = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
@@ -30,6 +31,7 @@ const onSubmit = () => {
         const response = await axios.post("/payment_invoices", {
           cashbox_id: cashbox_id.value,
           items: product_variants.value,
+          person_id: seller_id.value,
         });
         check_id.value = response?.data?.payment_invoice?.id;
         emit("fetchDatas");
@@ -241,6 +243,12 @@ const calculateTotalPrice = computed(() => {
 });
 
 const infoDialogItemId = ref(0);
+
+const sellers_list = ref([]);
+const isFetchingSellers = ref(false);
+onMounted(() => {
+  fetchOptions("persons", sellers_list, "persons");
+});
 </script>
 
 <template>
@@ -272,11 +280,23 @@ const infoDialogItemId = ref(0);
               />
             </VCol>
 
-            <VCol cols="6" class="d-flex align-center">
+            <VCol cols="4" class="d-flex align-center">
               <h2>
                 Активный терминал:
                 {{ activeCashRLabel }}
               </h2>
+            </VCol>
+
+            <VCol cols="3">
+              <VAutocomplete
+                v-model="seller_id"
+                label="Выберите продавца"
+                variant="filled"
+                :items="sellers_list"
+                item-title="name"
+                item-value="id"
+                :loading="isFetchingSellers"
+              />
             </VCol>
 
             <VDivider />

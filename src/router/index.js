@@ -65,6 +65,15 @@ const router = createRouter({
             subject: "Users",
           },
         },
+        {
+          path: "persons",
+          name: "Persons",
+          component: () => import("@/pages/persons.vue"),
+          meta: {
+            action: "show",
+            subject: "Persons",
+          },
+        },
         // stock
         {
           path: "stock",
