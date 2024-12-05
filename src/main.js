@@ -18,7 +18,7 @@ import Vue3Toastify from "vue3-toastify";
 loadFonts();
 
 // Create vue app
-const app = createApp(App);
+const app = createApp(App);w
 
 // global imports
 app.component("Can", Can);
