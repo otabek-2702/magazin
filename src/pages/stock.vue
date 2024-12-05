@@ -4,6 +4,8 @@ import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
 import AddNewWayBillToBranchDialog from "@/views/invoice-departure/AddNewDialog.vue";
 import { useFetch } from "@/hooks/useFetch";
+import axios from "@/plugins/axios";
+import { getPrettyDate } from "@/helpers";
 
 // Initialize useFetch hook with your configuration
 const {
@@ -30,6 +32,37 @@ const openBarcodeDialog = (id) => {
 };
 
 // end BarCode
+
+// EXCEL
+const isFetchingReport = ref(false);
+const downloadReport = async (endpoint, filename) => {
+  try {
+    isFetchingReport.value = true;
+    const response = await axios.post(
+      `/exports/${endpoint}`,
+      {},
+      {
+        responseType: "blob",
+        headers: {
+          Accept: "application/octet-stream",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } finally {
+    isFetchingReport.value = false;
+  }
+};
 
 const metaDatasList = computed(() => [
   {
@@ -80,7 +113,30 @@ const metaDatasList = computed(() => [
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
+        <VCard>
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle> Фильтры поиска </VCardTitle>
+              </VCol>
+
+              <VSpacer />
+
+
+              <VCol cols="auto">
+                <VBtn
+                  color="success"
+                  :disabled="isFetchingReport"
+                  :loading="isFetchingReport"
+                  prepend-icon="mdi-file-excel"
+                  class="font-weight-bold"
+                  @click="downloadReport('stock', 'Главный_склад')"
+                >
+                  EXCEL
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VCardItem>
           <VCardText>
             <VRow>
               <VCol cols="auto">

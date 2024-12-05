@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
-import { fetchOptions, transformPrice } from "@/helpers";
+import { fetchOptions, getPrettyDate } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 
 // Initialize branches state
@@ -56,20 +56,7 @@ onMounted(() => {
   fetchOptions("branches", branches_list, "branches");
 });
 
-const getPrettyDate = () => {
-  const now = new Date();
-
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
-  const day = String(now.getDate()).padStart(2, "0");
-
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};
-
+// EXCEL
 const isFetchingReport = ref(false);
 const downloadReport = async (endpoint, filename) => {
   try {
@@ -90,7 +77,7 @@ const downloadReport = async (endpoint, filename) => {
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
-    console.log(link);
+    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -190,7 +177,8 @@ const metaDatasList = computed(() => [
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
-                <th>
+                <th>ФИЛИАЛ</th>
+                <!-- <th>
                   <VSelect
                     v-model="selectedBranch"
                     label="ФИЛИАЛ"
@@ -200,7 +188,7 @@ const metaDatasList = computed(() => [
                     variant="plain"
                     :rules="[]"
                   />
-                </th>
+                </th> -->
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>

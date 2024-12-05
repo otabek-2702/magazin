@@ -2,7 +2,7 @@
 import {  onMounted, ref, watch } from "vue";
 import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import {  formatTimestamp, getFormattedToday } from "@/helpers";
+import {  formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
 import InfoDialog from "@/views/cash-register/InfoDialog.vue";
@@ -96,9 +96,10 @@ watch(dateValue, (newVal) => {
             <th style="width: 48px">ID</th>
             <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
-            <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
+            <th>К-ВО ТОВАРОВ</th>
             <th>КАССА</th>
             <th>ТИП ОПЛАТЫ</th>
+            <th>СУММА</th>
           </tr>
         </thead>
 
@@ -129,10 +130,11 @@ watch(dateValue, (newVal) => {
             <td>{{ invoice.full_qty }}</td>
             <td>{{ invoice.cashbox.name }}</td>
             <td>{{ invoice.payment_type }}</td>
+            <td>{{ transformPrice(invoice.total_amount) }}</td>
           </tr>
         </tbody>
 
-        <Skeleton :count="6" v-if="isFetching" />
+        <Skeleton :count="7" v-if="isFetching" />
 
         <tfoot v-show="!isFetching && !invoices?.length">
           <tr>
