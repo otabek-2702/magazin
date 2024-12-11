@@ -1,11 +1,12 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { Uzbek } from "flatpickr/dist/l10n/uz";
+// import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
-import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
+import AddNewDrawer from "@/views/branch/expense/AddNewDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
+import ChangeStateDialog from "@/views/branch/expense/ChangeStateDialog.vue";
 
 const route = useRoute();
 const {
@@ -19,72 +20,61 @@ const {
 } = useFetch({
   baseUrl: "cashbox_movements",
   params: {
-    cashbox_id: route?.params?.id,
-    from_date: getFormattedToday(),
+    cashbox_id: 1,
+    from_date: "2024-11-01",
     to_date: getFormattedToday(),
   },
 });
 
-const cashbox = computed(() => invoices.value[0]?.cashbox);
+const isAddNewDrawerVisible = ref(false);
 
 // cash data
 
-const resolveInvoiceStatus = (status) => {
-  const roleMap = {
-    Прибыль: { color: "success", prepend: "+" },
-    Убыток: { color: "error", prepend: "-" },
-    Инкассация: { color: "primary", prepend: "-" },
-  };
-
-  return roleMap[status] || { color: "primary" };
-};
-
 const invoicesListMeta = computed(() => [
-  {
-    icon: "mdi-cash-multiple",
-    color: "primary",
-    title: "Итоговая сумма в кассе",
-    stats: cashbox.value?.remains,
-  },
-  {
-    icon: "mdi-cash-plus",
-    color: "success",
-    title: "Доход",
-    stats: metaDatas.value.positive_sum,
-  },
   {
     icon: "mdi-cash-minus",
     color: "error",
-    title: "Расход",
+    title: "Общие затраты за месяц",
     stats: metaDatas.value.negative_sum,
-  },
-  {
-    icon: "mdi-bank",
-    color: "primary",
-    title: "Инкассация",
-    stats: metaDatas.value.clear_sum,
   },
 ]);
 
-const isAddNewOutputDrawerVisible = ref(false);
-
-const dateValue = ref();
-const resetDate = () => {
-  dateValue.value = getFormattedToday();
+const resolveInvoiceStatus = (status) => {
+  console.log(status);
+  return {
+    draft: {
+      color: "primary",
+      text: "Новый",
+    },
+    confirmed: {
+      color: "success",
+      text: "Подтверждён",
+    },
+    rejected: {
+      color: "secondary",
+      text: "Отменён",
+    },
+  }[status];
 };
-onMounted(() => {
-  resetDate();
-});
 
-watch(dateValue, (newVal) => {
-  const [from, to, ...other] = newVal.split(" — ");
+// Date period
+// const dateValue = ref();
+// const resetDate = () => {
+//   dateValue.value = getFormattedToday();
+// };
+// onMounted(() => {
+//   resetDate();
+// });
 
-  state.value.params = {
-    ...state.value.params,
-    from_date: from,
-    to_date: to || from,
-  };
-});
+// watch(dateValue, (newVal) => {
+//   const [from, to, ...other] = newVal.split(" — ");
+
+//   state.value.params = {
+//     ...state.value.params,
+//     from_date: from,
+//     to_date: to || from,
+//   };
+// });
 </script>
 
 <template>
@@ -119,10 +109,13 @@ watch(dateValue, (newVal) => {
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard :title="cashbox?.name ?? 'Kassa'">
+        <VCard>
           <VCardText>
             <VRow>
-              <VCol cols="12" sm="3">
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Фильтры поиска </VCardTitle>
+              </VCol>
+              <!-- <VCol cols="12" sm="3">
                 <AppDateTimePicker
                   v-model="dateValue"
                   :config="{ mode: 'range', locale: Uzbek }"
@@ -132,10 +125,20 @@ watch(dateValue, (newVal) => {
                   @click:clear="resetDate"
                   density="compact"
                 />
-              </VCol>
+              </VCol> -->
               <VSpacer />
+              <!-- 👉 Search  -->
+              <!-- <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск роли"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol> -->
               <VCol cols="auto">
-                <VBtn @click="isAddNewOutputDrawerVisible = true"
+                <VBtn @click="isAddNewDrawerVisible = true"
                   >Добавить Расход
                 </VBtn>
               </VCol>
@@ -151,9 +154,11 @@ watch(dateValue, (newVal) => {
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ВРЕМЯ СОЗДАНИЯ</th>
-                <th>К-ВО ТОВАРОВ</th>
-                <th>ТИП ОПЛАТЫ</th>
+                <th>ФИЛИАЛ</th>
+                <th>СУММА</th>
+                <th>СТАТУС</th>
                 <th>КОММЕНТАРИЙ</th>
+                <th class="text-center">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -167,19 +172,40 @@ watch(dateValue, (newVal) => {
               >
                 <td>{{ invoice.id }}</td>
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
+                <td>{{ invoice?.branch?.name ?? "Фергана" }}</td>
+                <td class="font-weight-black text-error">
+                  - {{ transformPrice(invoice.sum) }}
+                </td>
                 <td>
                   <VChip
-                    :color="resolveInvoiceStatus(invoice.type).color"
+                    :color="
+                      resolveInvoiceStatus(
+                        invoice?.status ?? invoice.sum > 1000000
+                          ? 'draft'
+                          : invoice.sum > 500000
+                          ? 'rejected'
+                          : 'confirmed'
+                      ).color
+                    "
                     density="compact"
                     label
-                    class="text-uppercase text-subtitle-1 font-weight-black"
+                    class="text-subtitle-1 font-weight-bold"
                   >
-                    {{ resolveInvoiceStatus(invoice.type).prepend }}
-                    {{ transformPrice(invoice.sum) }}
+                    {{
+                      resolveInvoiceStatus(
+                        invoice?.status ?? invoice.sum > 1000000
+                          ? "draft"
+                          : invoice.sum > 500000
+                          ? "rejected"
+                          : "confirmed"
+                      ).text
+                    }}
                   </VChip>
                 </td>
-                <td>{{ invoice.payment_type }}</td>
                 <td>{{ invoice.comment }}</td>
+                <td class="text-center">
+                  <ChangeStateDialog :id="invoice.id" v-if="invoice.status === 'draft' || invoice.sum > 1000000"  />
+                </td>
               </tr>
             </tbody>
 
@@ -205,15 +231,14 @@ watch(dateValue, (newVal) => {
             <VPagination
               v-if="invoices.length"
               v-model="state.currentPage"
-              
               :length="totalPage"
             />
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-    <AddNewOutputDrawer
-      v-model:isDrawerVisible="isAddNewOutputDrawerVisible"
+    <AddNewDrawer
+      v-model:isDrawerVisible="isAddNewDrawerVisible"
       @fetchDatas="() => fetchData(true)"
       :cashbox_id="parseInt(route?.params?.id)"
     />

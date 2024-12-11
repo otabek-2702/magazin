@@ -8,7 +8,6 @@ import boyWithRocketDark from '@images/illustrations/boy-with-rocket-dark.png';
 import boyWithRocketLight from '@images/illustrations/boy-with-rocket-light.png';
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
 import { themeConfig } from '@themeConfig';
-import { requiredValidator } from '@validators';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -53,7 +52,6 @@ const login = () => {
       localStorage.setItem('userAbilities', JSON.stringify(userAbilities));
       ability.update(userAbilities);
       localStorage.setItem('userData', JSON.stringify(datas));
-      // localStorage.setItem('accessToken', JSON.stringify(access_token))
       localStorage.setItem('accessToken', access_token);
 
       // Redirect to `to` query if exist or redirect to index route
@@ -103,7 +101,7 @@ const onSubmit = () => {
         </VCardItem>
 
         <VCardText style="width: 400px">
-          <VSnackbar
+          <!-- <VSnackbar
             v-model="error"
             location="top right"
             variant="flat"
@@ -111,7 +109,7 @@ const onSubmit = () => {
             color="error"
           >
             Логин или пароль не совпадают
-          </VSnackbar>
+          </VSnackbar> -->
 
           <VForm ref="refVForm" @submit.prevent="onSubmit">
             <VRow>

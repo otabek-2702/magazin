@@ -172,11 +172,20 @@ const router = createRouter({
             },
             {
               path: "showcase",
-              name: "Showcase",
+              name: "Showcases",
               component: () => import("@/pages/branches/showcase.vue"),
               meta: {
                 action: "show",
-                subject: "Showcase",
+                subject: "Showcases",
+              },
+            },
+            {
+              path: "expenses",
+              name: "Expenses",
+              component: () => import("@/pages/branches/expenses.vue"),
+              meta: {
+                action: "show",
+                subject: "Expenses",
               },
             },
           ],

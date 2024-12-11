@@ -32,8 +32,6 @@ interface FetchState<T> {
   isFetching: boolean;
   searchQuery: string;
   metaDatas: Record<any, string | number>;
-  totalQuantity: string | number;
-  totalPrice: string | number;
   params: Record<any, string | number>;
 }
 
@@ -48,8 +46,6 @@ export function useFetch<T = any>(config: UseFetchConfig) {
     isFetching: false,
     searchQuery: "",
     metaDatas: {},
-    totalQuantity: 0,
-    totalPrice: 0,
     params: config.params,
   });
 
@@ -140,8 +136,6 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       isFetching: false,
       searchQuery: "",
       metaDatas: {},
-      totalQuantity: 0,
-      totalPrice: 0,
       params: config.params,
     };
     finalSearch.value = "";

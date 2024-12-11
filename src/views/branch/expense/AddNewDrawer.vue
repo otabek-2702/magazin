@@ -20,12 +20,10 @@ const props = defineProps({
 
 const emit = defineEmits(["update:isDrawerVisible", "fetchDatas"]);
 
-const isPasswordVisible = ref(false);
 const isFetching = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
 const sum = ref();
-const password = ref();
 const comment = ref();
 
 const onSubmit = () => {
@@ -35,7 +33,6 @@ const onSubmit = () => {
       try {
         await axios.post(`/cashboxes/${props.cashbox_id}/outputs`, {
           sum: removeSpaces(sum.value),
-          password: password.value,
           comment: comment.value,
         });
         emit("fetchDatas");
@@ -92,17 +89,6 @@ const handleDrawerModelValueUpdate = (val) => {
                   autofocus
                   :value="transformPrice(sum, true)"
                   @focus="autoSelectInputValue"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextField
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  label="Пароль для подтверждения"
-                  v-model="password"
-                  autocomplete="new-password"
-                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
               </VCol>
 

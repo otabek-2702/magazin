@@ -40,8 +40,8 @@ const reLogIn = async () => {
       console.error(e);
     });
 };
-const full_name = ref(JSON.parse(localStorage.getItem('userData')).full_name);
-const role = ref(JSON.parse(localStorage.getItem('userData')).role.name_ru);
+const full_name = ref(JSON.parse(localStorage.getItem('userData'))?.full_name);
+const role = ref(JSON.parse(localStorage.getItem('userData'))?.role?.name_ru);
 </script>
 
 <template>

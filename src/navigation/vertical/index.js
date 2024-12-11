@@ -114,8 +114,14 @@ export default [
       },
       {
         title: 'Витрина',
-        to: { name: 'Showcase' },
-        subject: 'Showcase',
+        to: { name: 'Showcases' },
+        subject: 'Showcases',
+        action: 'show'
+      },
+      {
+        title: 'Расходы',
+        to: { name: 'Expenses' },
+        subject: 'Expenses',
         action: 'show'
       },
     ]

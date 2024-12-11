@@ -67,7 +67,7 @@ const resolveInvoiceStatus = (status) => {
             <th style="width: 48px">ID</th>
             <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
-            <th>ОБЩЕЕ КОЛИЧЕСТВО ТОВАРОВ</th>
+            <th>К-ВО ТОВАРОВ</th>
             <th>КАССА</th>
           </tr>
         </thead>
