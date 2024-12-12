@@ -40,7 +40,6 @@ const invoicesListMeta = computed(() => [
 ]);
 
 const resolveInvoiceStatus = (status) => {
-  console.log(status);
   return {
     draft: {
       color: "primary",
@@ -209,7 +208,7 @@ const resolveInvoiceStatus = (status) => {
               </tr>
             </tbody>
 
-            <Skeleton :count="5" v-if="isFetching" />
+            <Skeleton :count="7" v-if="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices?.length">
               <tr>
