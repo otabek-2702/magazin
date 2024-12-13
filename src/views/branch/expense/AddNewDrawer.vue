@@ -1,10 +1,15 @@
 <script setup>
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
-import { nextTick, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { autoSelectInputValue, removeSpaces, transformPrice } from "@/helpers";
+import {
+  autoSelectInputValue,
+  fetchOptions,
+  removeSpaces,
+  transformPrice,
+} from "@/helpers";
 import { requiredValidator } from "@/@core/utils/validators";
 
 const props = defineProps({
@@ -12,27 +17,27 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-  cashbox_id: {
-    type: Number,
-    required: true,
-  },
 });
 
 const emit = defineEmits(["update:isDrawerVisible", "fetchDatas"]);
 
+const isPasswordVisible = ref(false);
 const isFetching = ref(false);
-const isFormValid = ref(false);
 const refForm = ref();
-const sum = ref();
+const branch_id = ref(1);
+const amount = ref();
 const comment = ref();
+const password = ref();
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post(`/cashboxes/${props.cashbox_id}/outputs`, {
-          sum: removeSpaces(sum.value),
+        await axios.post(`/expenses`, {
+          branch_id: branch_id.value,
+          amount: removeSpaces(amount.value),
+          password: password.value,
           comment: comment.value,
         });
         emit("fetchDatas");
@@ -58,6 +63,18 @@ const handleDrawerModelValueUpdate = (val) => {
     });
   }
 };
+
+const branches_list = ref([]);
+onMounted(async () => {
+  await fetchOptions("/branches", branches_list, "branches");
+  branch_id.value = 1;
+});
+watch(
+  () => props.isDrawerVisible,
+  () => {
+    if (branches_list.value) branch_id.value = 1;
+  }
+);
 </script>
 
 <template>
@@ -79,16 +96,36 @@ const handleDrawerModelValueUpdate = (val) => {
       <VCard flat>
         <VCardText>
           <!-- 👉 Форма -->
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm ref="refForm" @submit.prevent="onSubmit" autocomplete="off">
             <VRow>
-              <!-- 👉 Полное имя -->
+              <VCol cols="12">
+                <VAutocomplete
+                  v-model="branch_id"
+                  label="Выберите филиал"
+                  :items="branches_list"
+                  item-title="name"
+                  item-value="id"
+                />
+              </VCol>
               <VCol cols="12">
                 <VTextField
-                  v-model="sum"
+                  v-model="amount"
                   label="Сумма"
                   autofocus
-                  :value="transformPrice(sum, true)"
+                  :value="transformPrice(amount, true)"
                   @focus="autoSelectInputValue"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VTextField
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  label="Пароль для подтверждения"
+                  v-model="password"
+                  autocomplete="off"
+                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  name="one-time-password"
                 />
               </VCol>
 

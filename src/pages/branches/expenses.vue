@@ -6,7 +6,6 @@ import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDrawer from "@/views/branch/expense/AddNewDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
-import ChangeStateDialog from "@/views/branch/expense/ChangeStateDialog.vue";
 
 const route = useRoute();
 const {
@@ -18,12 +17,7 @@ const {
   isFetching,
   metaDatas,
 } = useFetch({
-  baseUrl: "cashbox_movements",
-  params: {
-    cashbox_id: 1,
-    from_date: "2024-11-01",
-    to_date: getFormattedToday(),
-  },
+  baseUrl: "expenses"
 });
 
 const isAddNewDrawerVisible = ref(false);
@@ -34,27 +28,12 @@ const invoicesListMeta = computed(() => [
   {
     icon: "mdi-cash-minus",
     color: "error",
-    title: "Общие затраты за месяц",
-    stats: metaDatas.value.negative_sum,
+    title: "Общие затраты за период",
+    stats: metaDatas.value.total_sum,
   },
 ]);
 
-const resolveInvoiceStatus = (status) => {
-  return {
-    draft: {
-      color: "primary",
-      text: "Новый",
-    },
-    confirmed: {
-      color: "success",
-      text: "Подтверждён",
-    },
-    rejected: {
-      color: "secondary",
-      text: "Отменён",
-    },
-  }[status];
-};
+
 
 // Date period
 // const dateValue = ref();
@@ -155,9 +134,7 @@ const resolveInvoiceStatus = (status) => {
                 <th>ВРЕМЯ СОЗДАНИЯ</th>
                 <th>ФИЛИАЛ</th>
                 <th>СУММА</th>
-                <th>СТАТУС</th>
                 <th>КОММЕНТАРИЙ</th>
-                <th class="text-center">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -173,42 +150,15 @@ const resolveInvoiceStatus = (status) => {
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
                 <td>{{ invoice?.branch?.name ?? "Фергана" }}</td>
                 <td class="font-weight-black text-error">
-                  - {{ transformPrice(invoice.sum) }}
+                  - {{ transformPrice(invoice.amount) }}
                 </td>
-                <td>
-                  <VChip
-                    :color="
-                      resolveInvoiceStatus(
-                        invoice?.status ?? invoice.sum > 1000000
-                          ? 'draft'
-                          : invoice.sum > 500000
-                          ? 'rejected'
-                          : 'confirmed'
-                      ).color
-                    "
-                    density="compact"
-                    label
-                    class="text-subtitle-1 font-weight-bold"
-                  >
-                    {{
-                      resolveInvoiceStatus(
-                        invoice?.status ?? invoice.sum > 1000000
-                          ? "draft"
-                          : invoice.sum > 500000
-                          ? "rejected"
-                          : "confirmed"
-                      ).text
-                    }}
-                  </VChip>
-                </td>
+
                 <td>{{ invoice.comment }}</td>
-                <td class="text-center">
-                  <ChangeStateDialog :id="invoice.id" v-if="invoice.status === 'draft' || invoice.sum > 1000000"  />
-                </td>
+
               </tr>
             </tbody>
 
-            <Skeleton :count="7" v-if="isFetching" />
+            <Skeleton :count="5" v-if="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices?.length">
               <tr>
@@ -239,7 +189,6 @@ const resolveInvoiceStatus = (status) => {
     <AddNewDrawer
       v-model:isDrawerVisible="isAddNewDrawerVisible"
       @fetchDatas="() => fetchData(true)"
-      :cashbox_id="parseInt(route?.params?.id)"
     />
   </section>
 </template>
