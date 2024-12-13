@@ -12,6 +12,7 @@ const isDialogVisible = ref(false);
 const isConfirmDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
+const isFormValid = ref(false);
 const refForm = ref();
 const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
 const sku_ref = ref();
@@ -267,7 +268,7 @@ onMounted(() => {
         @click="handleDrawerModelValueUpdate(false)"
       />
       <VCardText>
-        <VForm ref="refForm">
+        <VForm ref="refForm" v-model="isFormValid">
           <VRow>
             <VCol cols="3">
               <VSelect
@@ -430,14 +431,14 @@ onMounted(() => {
                   ></VProgressCircular>
                 </VCol>
                 <VCardText class="d-flex justify-end gap-2 pt-2">
-                  <!-- <VBtn
+                  <VBtn
                     :loading="isFetching"
                     :disabled="isFetching"
                     type="button"
                     @click="onSubmit"
                   >
                     Оплатить
-                  </VBtn> -->
+                  </VBtn>
                 </VCardText>
               </VRow>
             </VCol>

@@ -1,4 +1,5 @@
 <script setup>
+import { requiredValidator } from "@/@core/utils/validators";
 import {
   autoSelectInputValue,
   fetchOptions,
@@ -38,7 +39,6 @@ const onFormCancel = () => {
   emit("update:isDialogOpen", false);
 };
 
-const isDialogVisible = ref(false);
 const refForm = ref();
 const isFetching = ref(false);
 const input_price = ref();
@@ -86,7 +86,7 @@ const calculate = computed(() => {
 });
 
 const handleDialogModelValueUpdate = (val) => {
-  isDialogVisible.value = val;
+  emit("update:isDialogOpen", val);
 
   if (!val) {
     nextTick(() => {
@@ -128,20 +128,15 @@ const totalPriceWithSale = computed(
 //    }
 //  }
 //);
-onMounted(() => fetchOptions("payment_types", payment_types_list, null));
+onMounted(() => fetchOptions('payment_types', payment_types_list, null))
 </script>
 
 <template>
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 500"
-    v-model="isDialogVisible"
+    :model-value="props.isDialogOpen"
     @update:model-value="handleDialogModelValueUpdate"
   >
-    <!-- Dialog Activator -->
-    <template #activator="{ props }">
-      <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props">Оплатить</VBtn>
-    </template>
-
     <VCard class="pa-sm-9 pa-5">
       <DialogCloseBtn variant="text" size="small" @click="onFormCancel" />
 
@@ -178,6 +173,7 @@ onMounted(() => fetchOptions("payment_types", payment_types_list, null));
                 :items="payment_types_list"
                 item-title="name"
                 item-value="id"
+                :rules="[requiredValidator]"
               />
             </VCol>
             <VCol cols="12">
