@@ -81,13 +81,7 @@ watch(
     }
   }
 );
-const calculateTotalCount = computed(
-  () =>
-    payment_invoice.value?.items?.reduce(
-      (prev, current) => prev + current.quantity,
-      0
-    ) || 0
-);
+
 
 const calculateTotalPriceWithSale = computed(() =>
   transformPrice(
@@ -159,7 +153,7 @@ const calculateTotalPriceWithSale = computed(() =>
                     :key="variant.product_variant_id"
                   >
                     <td>{{ i + 1 }}</td>
-                    <td>{{ variant.product_variant_name }}</td>
+                    <td>{{ variant.product_variant_name }} ({{ variant.product_variant_sku }})</td>
                     <td>{{ transformPrice(variant.original_price) }} so'm</td>
                     <td>{{ variant.quantity }}</td>
                     <td>{{ transformPrice(variant.sale, true) }}</td>
@@ -173,7 +167,7 @@ const calculateTotalPriceWithSale = computed(() =>
                   <tr>
                     <td colspan="4"></td>
                     <td class="text-body-1">
-                      Общая количество: {{ calculateTotalCount }}
+                      Общая количество: {{ payment_invoice?.total_count }}
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />

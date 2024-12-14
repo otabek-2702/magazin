@@ -32,7 +32,6 @@ const totalPriceWithSale = computed(() => {
 });
 
 const hasSaleProduct = (item) => Number(item.sale);
-watchEffect(() => console.log(checkSale.value, hasSale.value))
 </script>
 
 <template>
@@ -53,7 +52,7 @@ watchEffect(() => console.log(checkSale.value, hasSale.value))
           :key="index"
         >
           <div class="item">
-            <div class="item-name">{{ item.product_variant_name }}</div>
+            <div class="item-name">{{ item.product_variant_name }} ({{item.product_variant_sku}})</div>
             <div class="item-details">
               <span
                 >{{ item.quantity }}x

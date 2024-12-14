@@ -23,21 +23,18 @@ const seller_id = ref();
 const payment_invoice = ref({});
 
 const onReject = async (id) => {
-  isFetching.value = "reject";
   try {
-    await axios.post(`/payment_invoices/reject/${id}`);
+    axios.post(`/payment_invoices/reject/${id}`);
   } catch (error) {
     console.error(error);
-  } finally {
-    isFetching.value = "";
-  }
+  } 
 };
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      isFetching.value = true;
       try {
+        isFetching.value = true;
         const response = await axios.post("/payment_invoices", {
           cashbox_id: cashbox_id.value,
           items: product_variants.value,
@@ -61,7 +58,7 @@ const onSubmit = () => {
 const handleDialogModelValueUpdate = (val) => {
   isDialogVisible.value = val;
   payment_invoice.value = {};
-  
+
   if (val === false) {
     product_variant_sku.value = null;
     product_variant_data.value = null;
@@ -144,7 +141,7 @@ const findProductVariant = async (raw_sku) => {
 
 // Autofocus
 watch(isDialogVisible, () => {
-  if (isDialogVisible) sku_ref.value?.focus();
+  if (isDialogVisible) nextTick(() => sku_ref.value?.focus());
 });
 
 // Add

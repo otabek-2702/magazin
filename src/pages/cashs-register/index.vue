@@ -130,7 +130,7 @@ watch(dateValue, (newVal) => {
             <td>{{ invoice.full_qty }}</td>
             <td>{{ invoice.cashbox.name }}</td>
             <td>{{ invoice.payment_type }}</td>
-            <td>{{ transformPrice(invoice.total_amount) }}</td>
+            <td>{{ transformPrice(Number(invoice.total_amount) - Number(invoice.sale)) }}</td>
           </tr>
         </tbody>
 
