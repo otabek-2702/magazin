@@ -114,7 +114,7 @@ const totalProductsSale = computed(() =>
         </template>
         <div v-if="!hasSale" class="total-line discount-2">
           <span>Акция 2+1:</span><br />
-          <span>{{ totalProductsSale }} SO'M</span>
+          <span>-{{ totalProductsSale }} SO'M</span>
         </div>
 
         <div v-if="!hasSale" class="total-line final-total">
