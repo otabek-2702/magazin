@@ -13,7 +13,9 @@ const props = defineProps({
   },
 });
 
-const checkSale = computed(() => Number(props.paymentInvoice.sale) || props.salePrice);
+const checkSale = computed(
+  () => Number(props.paymentInvoice.sale) || props.salePrice
+);
 const hasSale = computed(() => checkSale.value > 0);
 
 const formatDate = (date) => {
@@ -33,6 +35,14 @@ const totalPriceWithSale = computed(() => {
 });
 
 const hasSaleProduct = (item) => Number(item.sale);
+const totalProductsSale = computed(() =>
+  transformPrice(
+    props.paymentInvoice?.items?.reduce(
+      (prev, current) => prev + Number(current.sale),
+      0
+    )
+  )
+);
 </script>
 
 <template>
@@ -56,7 +66,9 @@ const hasSaleProduct = (item) => Number(item.sale);
 
       <div class="items">
         <template
-          v-for="(item, index) in props.paymentInvoice?.items?.sort((a,b) => a.original_price - b.original_price)"
+          v-for="(item, index) in props.paymentInvoice?.items?.sort(
+            (a, b) => a.original_price - b.original_price
+          )"
           :key="index"
         >
           <div class="item">
@@ -65,9 +77,8 @@ const hasSaleProduct = (item) => Number(item.sale);
             </div>
             <div class="item-details">
               <span
-                >{{ item.quantity }}x
-                {{ transformPrice(item.original_price) }}</span
-              >
+                >{{ item.quantity }}x {{ transformPrice(item.original_price) }}
+              </span>
               <span v-if="hasSaleProduct(item)">
                 <del>{{
                   transformPrice(item.original_price * item.quantity)
@@ -92,12 +103,21 @@ const hasSaleProduct = (item) => Number(item.sale);
             <span>СКИДКА:</span>
             <span>-{{ transformPrice(checkSale) }} SO'M</span>
           </div>
+          <div class="total-line discount-2">
+            <span>Акция 2+1:</span><br />
+            <span>-{{ totalProductsSale }} SO'M</span>
+          </div>
           <div class="total-line final-total">
             <span>ИТОГО:</span>
             <span>{{ totalPriceWithSale }} SO'M</span>
           </div>
         </template>
-        <div v-else class="total-line final-total">
+        <div v-if="!hasSale" class="total-line discount-2">
+          <span>Акция 2+1:</span><br />
+          <span>{{ totalProductsSale }} SO'M</span>
+        </div>
+
+        <div v-if="!hasSale" class="total-line final-total">
           <span>ИТОГО:</span>
           <span
             >{{ transformPrice(props.paymentInvoice?.total_amount) }} SO'M</span
@@ -181,7 +201,7 @@ const hasSaleProduct = (item) => Number(item.sale);
   font-size: 10pt;
   margin-bottom: 1mm;
   word-wrap: break-word;
-  font-weight:400 ;
+  font-weight: 400;
 }
 
 .item-details {
@@ -191,13 +211,13 @@ const hasSaleProduct = (item) => Number(item.sale);
   gap: 2mm;
 }
 
-.item-details span:first-child{
+.item-details span:first-child {
   font-weight: 400;
 }
 
-.item-details del {
+/* .item-details del {
   font-weight: 400;
-}
+} */
 
 .summary {
   margin: 4mm 0;
@@ -214,6 +234,11 @@ const hasSaleProduct = (item) => Number(item.sale);
 }
 
 .discount {
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+.discount-2 {
   font-size: 12pt;
   font-weight: bold;
 }
