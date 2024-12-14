@@ -22,6 +22,7 @@ export const removeSpaces = (input) => {
 };
 
 export function formatTimestamp(isoString) {
+  if(!isoString) return ''
   const date = new Date(isoString);
 
   // Format each part with leading zeros

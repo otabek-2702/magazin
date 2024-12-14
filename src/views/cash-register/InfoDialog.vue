@@ -1,16 +1,8 @@
 <script setup>
-import { nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import {
-  autoSelectInputValue,
-  fetchOptions,
-  formatTimestamp,
-  removeSpaces,
-  transformPrice,
-} from "@/helpers";
-import Skeleton from "@/views/skeleton/Skeleton.vue";
-import CheckDialog from "./CheckDialog.vue";
+import { formatTimestamp, removeSpaces, transformPrice } from "@/helpers";
 import ConfirmDialog from "./ConfirmDialog.vue";
 
 const props = defineProps({
@@ -24,49 +16,30 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
 
-const isConfirmDialogVisible = ref(false);
-
 const isFetchingStart = ref(true);
 const isFetching = ref("");
-const isFormValid = ref(false);
 const refForm = ref();
-const cashbox_id = ref();
-const status = ref();
-const product_variant_sku = ref();
-const product_variant_data = ref();
-const product_variants = ref([]);
-const check_id = ref();
-const check_date = ref();
-const sale_price = ref();
-const seller_id = ref();
+const payment_invoice = ref({});
+const invoice_status = computed(() => ({
+  draft: payment_invoice.value?.status === "Не опачено",
+  confirmed: payment_invoice.value?.status === "Оплачено",
+  rejected: payment_invoice.value?.status === "Отклонено",
+}));
 
 const fetchDataById = async () => {
   isFetchingStart.value = true;
   try {
     const response = await axios.get(`/payment_invoices/${props.id}`);
     if (response.status === 200) {
-      const {
-        data: { payment_invoice },
-      } = response;
+      const { data } = response;
 
-      check_id.value = payment_invoice.id;
-      status.value = payment_invoice.status;
-      product_variants.value = payment_invoice.items;
-      check_id.value = payment_invoice.id;
-      check_date.value = formatTimestamp(payment_invoice.created_at);
-      cashbox_id.value = payment_invoice.cashbox.id;
-      sale_price.value = parseInt(payment_invoice.sale);
-      seller_id.value = payment_invoice.person?.id ?? 0;
+      payment_invoice.value = data.payment_invoice;
     }
   } catch (error) {
     console.error("Ошибка:", error);
   } finally {
     isFetchingStart.value = false;
   }
-};
-
-const onConfirm = async () => {
-  isConfirmDialogVisible.value = true;
 };
 
 const onReject = async () => {
@@ -93,17 +66,12 @@ const handleDialogModelValueUpdate = (val) => {
   emit("update:isDialogOpen", false);
   if (!val) {
     nextTick(() => {
-      product_variant_sku.value = null;
-      product_variant_data.value = null;
-      product_variants.value = [];
-      status.value = null;
+      payment_invoice.value = {};
       refForm.value?.reset();
       refForm.value?.resetValidation();
     });
   }
 };
-
-const cashboxes_list = ref([]);
 
 watch(
   () => props.isDialogOpen,
@@ -113,94 +81,58 @@ watch(
     }
   }
 );
-
-onMounted(() => {
-  fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
-});
-
-// Cash register
-const activeCashRLabel = computed(() => {
-  return (
-    cashboxes_list.value?.find((el) => el.id == cashbox_id.value)?.name ?? ""
-  );
-});
-
-const calculateCount = computed(() => {
-  if (!product_variants.value) return 0;
-  return transformPrice(
-    product_variants.value.reduce(
-      (accumulator, el) => accumulator + Number(el.quantity) ?? 0,
+const calculateTotalCount = computed(
+  () =>
+    payment_invoice.value?.items?.reduce(
+      (prev, current) => prev + current.quantity,
       0
-    )
-  );
-});
-const calculateTotalPrice = computed(() => {
-  if (!product_variants.value) return 0;
-  let quantity = (el) => (Number(el.quantity) == 0 ? 1 : Number(el.quantity));
-
-  return transformPrice(
-    product_variants.value.reduce(
-      (accumulator, el) =>
-        accumulator + Number(el.sell_price) * quantity(el) ?? 0,
-      0
-    )
-  );
-});
-
-const calculateTotalPriceWithSale = computed(
-  () => removeSpaces(calculateTotalPrice.value) - removeSpaces(sale_price.value)
+    ) || 0
 );
 
-const sellers_list = ref([]);
-const isFetchingSellers = ref(false);
-onMounted(() => {
-  fetchOptions("persons", sellers_list, "persons");
-});
+const calculateTotalPriceWithSale = computed(() =>
+  transformPrice(
+    payment_invoice.value.total_amount -
+      removeSpaces(payment_invoice.value.sale)
+  )
+);
 </script>
 
 <template>
-  <VDialog fullscreen v-model="props.isDialogOpen">
+  <VDialog
+    fullscreen
+    :model-value="props.isDialogOpen"
+    @update:model-value="handleDialogModelValueUpdate"
+  >
     <VCard title="Продажа">
       <DialogCloseBtn
         variant="text"
         size="small"
         @click="handleDialogModelValueUpdate(false)"
       />
-      <VCardText>
-        <VForm ref="refForm" v-model="isFormValid">
+      <VCardText v-show="!isFetchingStart">
+        <VForm ref="refForm">
           <VRow>
             <VCol cols="3">
               <VSelect
-                v-model="cashbox_id"
                 label="Выберите кассу"
-                :items="cashboxes_list"
-                item-title="name"
-                item-value="id"
-                :readonly="status !== 'Не опачено'"
-                :clearable="status == 'Не опачено'"
+                :model-value="payment_invoice?.cashbox?.name"
+                :readonly="true"
+                :clearable="false"
               />
             </VCol>
 
-            <VCol cols="4" class="d-flex align-center gap-6">
-              <h2>
-                Активный терминал:
-                {{ activeCashRLabel }}
-              </h2>
+            <VCol cols="6" class="d-flex align-center gap-6">
               <h2>
                 Время Создания :
-                {{ check_date }}
+                {{ formatTimestamp(payment_invoice?.created_at) }}
               </h2>
             </VCol>
 
             <VCol cols="3">
               <VAutocomplete
-                v-model="seller_id"
+                :model-value="payment_invoice?.person?.name"
                 label="Выберите продавца"
                 variant="filled"
-                :items="sellers_list"
-                item-title="name"
-                item-value="id"
-                :loading="isFetchingSellers"
                 readonly
                 :clearable="false"
               />
@@ -214,72 +146,49 @@ onMounted(() => {
                   <tr>
                     <th style="width: 48px">ID</th>
                     <th>ТОВАР</th>
-                    <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
-                    <th>ОБЩАЯ СТОИМОСТЬ</th>
-                    <th>КОЛИЧЕСТВО</th>
+                    <th>ЦЕНА</th>
+                    <th>КОЛ-ВО</th>
+                    <th>СКИДКА</th>
+                    <th>СУММА</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   <tr
-                    v-for="(variant, i) in product_variants"
+                    v-for="(variant, i) in payment_invoice?.items"
                     :key="variant.product_variant_id"
                   >
                     <td>{{ i + 1 }}</td>
+                    <td>{{ variant.product_variant_name }}</td>
+                    <td>{{ transformPrice(variant.original_price) }} so'm</td>
+                    <td>{{ variant.quantity }}</td>
+                    <td>{{ transformPrice(variant.sale, true) }}</td>
                     <td>
-                      {{ variant.product_variant_name }}
-                    </td>
-                    <td>{{ transformPrice(variant.sell_price) }} so'm</td>
-                    <td>
-                      <b>
-                        {{
-                          transformPrice(variant.sell_price * variant.quantity)
-                        }}
-                        so'm
-                      </b>
-                    </td>
-                    <td>
-                      <VTextField
-                        v-model="variant.quantity"
-                        :readonly="editingId !== variant.product_variant_id"
-                        :class="{
-                          'text-input':
-                            editingId !== variant.product_variant_id,
-                        }"
-                        @blur="hideEditInput(variant)"
-                        @keyup.enter="hideEditInput(variant)"
-                        @focus="autoSelectInputValue"
-                        class="custom-input"
-                        density="compact"
-                        type="number"
-                        :rules="[]"
-                      />
+                      <b> {{ transformPrice(variant.sell_price) }} so'm </b>
                     </td>
                   </tr>
                 </tbody>
 
-                <tfoot v-show="product_variants.length">
+                <tfoot v-show="payment_invoice?.items?.length">
                   <tr>
-                    <td colspan="3"></td>
+                    <td colspan="4"></td>
+                    <td class="text-body-1">
+                      Общая количество: {{ calculateTotalCount }}
+                    </td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b v-if="sale_price"
-                        >{{ calculateTotalPrice }} - {{ sale_price }} =
+                      <b v-if="transformPrice(payment_invoice?.sale, true)"
+                        >{{ transformPrice(payment_invoice?.total_amount) }}
+                        <span class="text-h5 font-weight-black">-</span>
+                        {{ transformPrice(payment_invoice?.sale, true) }} =
                         {{ calculateTotalPriceWithSale }}</b
                       >
-                      <b v-else>{{ calculateTotalPrice }} </b> SO'M
-                    </td>
-                    <td class="text-body-1">
-                      Общая количество: {{ calculateCount }}
+                      <b v-else
+                        >{{ transformPrice(payment_invoice?.total_amount) }}
+                      </b>
+                      SO'M
                     </td>
                     <td></td>
-                  </tr>
-                </tfoot>
-                <tfoot v-show="!product_variants.length">
-                  <tr>
-                    <td colspan="9" class="text-center text-body-1">
-                      Сканируйте штрих-код для добавления товара
-                    </td>
                   </tr>
                 </tfoot>
               </VTable>
@@ -288,27 +197,29 @@ onMounted(() => {
             <VDivider />
           </VRow>
           <VCardText class="d-flex justify-end align-center gap-4 pt-8">
-            <VBtn
-              :loading="isFetching == 'submit'"
-              :disabled="isFetching == 'submit'"
-              type="button"
-              @click="onConfirm"
-              v-if="status == 'Не опачено'"
-            >
-              Оплатить
-            </VBtn>
+            <ConfirmDialog
+              :payment-invoice="payment_invoice"
+              @fetchDatas="
+                () => {
+                  emit('fetchDatas');
+                  handleDialogModelValueUpdate(false);
+                }
+              "
+            />
             <VBtn
               :loading="isFetching == 'reject'"
               :disabled="isFetching == 'reject'"
               type="button"
               @click="onReject"
               color="secondary"
-              v-if="status == 'Не опачено'"
+              v-if="invoice_status.draft"
             >
               Отменить
               <VIcon end icon="bx-minus-circle" />
             </VBtn>
-            <template v-if="status && status !== 'Не опачено'">
+
+            <!-- Confirmed | Rejected -->
+            <template v-if="invoice_status.confirmed">
               <h2>Этот чек уже оплачен!</h2>
 
               <VBtn
@@ -321,59 +232,25 @@ onMounted(() => {
                 Печать чека
               </VBtn>
             </template>
+            <h2 v-else-if="invoice_status.rejected">
+              Этот чек отменён. Операция не завершена.
+            </h2>
           </VCardText>
         </VForm>
       </VCardText>
-    </VCard>
-    <CheckDialog
-      v-if="product_variants.length"
-      :items="product_variants"
-      :total-price="calculateTotalPrice"
-      :total-count="Number(calculateCount)"
-      :cash-register="activeCashRLabel"
-      :checkId="check_id"
-      :sale_price="sale_price"
-    />
 
-    <ConfirmDialog
-      v-model:isDialogOpen="isConfirmDialogVisible"
-      :total-price="calculateTotalPrice"
-      :id="props.id"
-      :status="status"
-      @fetchDatas="
-        () => {
-          emit('fetchDatas');
-          handleDialogModelValueUpdate(false);
-        }
-      "
-      v-model:sale_price="sale_price"
-    />
+      <!-- Loader -->
+      <div
+        v-if="isFetchingStart"
+        class="d-flex h-screen align-center justify-center"
+      >
+        <VProgressCircular color="primary" indeterminate></VProgressCircular>
+      </div>
+    </VCard>
   </VDialog>
 </template>
 
 <style scoped>
-.text-input {
-  background-color: transparent !important;
-}
-
-.text-input :deep(.v-field__outline) {
-  opacity: 0 !important;
-}
-
-/* .text-input :deep(.v-field__input) {
-  padding-inline-start: 0 !important;
-  padding-inline-end: 0 !important;
-} */
-
-.text-input :deep(.v-label) {
-  opacity: 0 !important;
-}
-
-.custom-input {
-  margin: 1px;
-  width: 100%;
-}
-
 thead th {
   font-size: 16px;
   font-weight: 600 !important;

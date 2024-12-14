@@ -19,9 +19,19 @@ const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
 const product_variants = ref([]);
-const check_id = ref();
-const sale_price = ref(0);
 const seller_id = ref();
+const payment_invoice = ref({});
+
+const onReject = async (id) => {
+  isFetching.value = "reject";
+  try {
+    await axios.post(`/payment_invoices/reject/${id}`);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isFetching.value = "";
+  }
+};
 
 const onSubmit = () => {
   refForm.value?.validate().then(async ({ valid }) => {
@@ -33,10 +43,12 @@ const onSubmit = () => {
           items: product_variants.value,
           person_id: seller_id.value,
         });
-        check_id.value = response?.data?.payment_invoice?.id;
+
+        if (payment_invoice.value?.id) onReject(payment_invoice.value?.id);
+
+        payment_invoice.value = response.data?.payment_invoice;
         emit("fetchDatas");
         isConfirmDialogVisible.value = true;
-        infoDialogItemId.value = response.data.payment_invoice.id;
       } catch (error) {
         console.error(error);
       } finally {
@@ -46,8 +58,10 @@ const onSubmit = () => {
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
+const handleDialogModelValueUpdate = (val) => {
   isDialogVisible.value = val;
+  payment_invoice.value = {};
+  
   if (val === false) {
     product_variant_sku.value = null;
     product_variant_data.value = null;
@@ -64,13 +78,13 @@ const handleDrawerModelValueUpdate = (val) => {
   }
 };
 
+// Cash register
 const cashboxes_list = ref([]);
 
 onMounted(() => {
   fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
 });
 
-// Cash register
 const activeCashRLabel = computed(() => {
   return (
     cashboxes_list.value.find((el) => el.id == cashbox_id.value)?.name ?? ""
@@ -86,6 +100,7 @@ watch(cashbox_id, (newVal) => {
     cashbox_id.value = storageCashboxId;
   }
 });
+// Cash register end
 
 // find Product
 const findProductVariant = async (raw_sku) => {
@@ -101,7 +116,7 @@ const findProductVariant = async (raw_sku) => {
       } = response.data?.showcase[0];
       product_variant_data.value = {
         product_variant_id: id,
-        product_variant_name: `${product.name} | ${color.name} | ${size.name}`,
+        product_variant_name: `${product.name} | ${color.name} | ${size.name} (${sku})`,
         amount_remainder: Number(quantity),
         sku,
         sell_price: Number(product.sell_price),
@@ -242,8 +257,6 @@ const calculateTotalPrice = computed(() => {
   );
 });
 
-const infoDialogItemId = ref(0);
-
 const sellers_list = ref([]);
 const isFetchingSellers = ref(false);
 onMounted(() => {
@@ -255,7 +268,7 @@ onMounted(() => {
   <VDialog fullscreen v-model="isDialogVisible">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="handleDrawerModelValueUpdate(true)" v-bind="props"
+      <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
         >Продажа товаров</VBtn
       >
     </template>
@@ -265,7 +278,7 @@ onMounted(() => {
       <DialogCloseBtn
         variant="text"
         size="small"
-        @click="handleDrawerModelValueUpdate(false)"
+        @click="handleDialogModelValueUpdate(false)"
       />
       <VCardText>
         <VForm ref="refForm" v-model="isFormValid">
@@ -280,7 +293,7 @@ onMounted(() => {
               />
             </VCol>
 
-            <VCol cols="4" class="d-flex align-center">
+            <VCol cols="6" class="d-flex align-center">
               <h2>
                 Активный терминал:
                 {{ activeCashRLabel }}
@@ -307,9 +320,9 @@ onMounted(() => {
                   <tr>
                     <th style="width: 48px">ID</th>
                     <th>ТОВАР</th>
-                    <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
-                    <th>ОБЩАЯ СТОИМОСТЬ</th>
-                    <th>КОЛИЧЕСТВО</th>
+                    <th>ЦЕНА</th>
+                    <th>СУММА</th>
+                    <th>КОЛ-ВО</th>
                     <th>ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
@@ -446,27 +459,15 @@ onMounted(() => {
         </VForm>
       </VCardText>
     </VCard>
-    <CheckDialog
-      v-if="product_variants.length"
-      :items="product_variants"
-      :total-price="calculateTotalPrice"
-      :total-count="Number(calculateCount)"
-      :cash-register="activeCashRLabel"
-      :checkId="check_id"
-      :sale_price="sale_price"
-    />
 
     <ConfirmDialog
-      v-model:isDialogOpen="isConfirmDialogVisible"
-      :total-price="calculateTotalPrice"
-      :id="infoDialogItemId"
+      :payment-invoice="payment_invoice"
       @fetchDatas="
         () => {
           emit('fetchDatas');
-          handleDrawerModelValueUpdate(false);
+          handleDialogModelValueUpdate(false);
         }
       "
-      v-model:sale_price="sale_price"
     />
   </VDialog>
 </template>

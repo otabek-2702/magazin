@@ -1,57 +1,20 @@
 <script setup>
 import { removeSpaces, transformPrice } from "@/helpers";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 
 const props = defineProps({
-  items: {
-    type: Array,
+  paymentInvoice: {
+    type: Object,
     required: true,
   },
-  totalPrice: {
+  salePrice: {
     type: String,
-    required: true,
+    required: false,
   },
-  totalCount: {
-    type: Number,
-    required: true,
-  },
-  cashRegister: {
-    type: String,
-    required: true,
-  },
-  checkId: {
-    type: Number,
-    required: true,
-  },
-  sale_price: {
-    type: String,
-    required: true,
-  },
-  reFetch: {
-    type: Boolean,
-    default: false,
-  }
 });
 
-const payment_invoice = ref({});
-const isFetchingStart = ref(false);
-
-const fetchDataById = async () => {
-  isFetchingStart.value = true;
-  try {
-    const response = await axios.get(`/payment_invoices/${props.checkId}`);
-    if (response.status === 200) {
-      const {
-        data: { payment_invoice: invoiceData },
-      } = response;
-      payment_invoice.value = invoiceData;
-    }
-  } catch (error) {
-    console.error("Ошибка:", error);
-  } finally {
-    isFetchingStart.value = false;
-  }
-};
+const checkSale = computed(() => Number(checkSale) || props.salePrice);
+const hasSale = computed(() => checkSale.value > 0);
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString("ru-RU", {
@@ -64,22 +27,12 @@ const formatDate = (date) => {
 };
 
 const totalPriceWithSale = computed(() => {
-  const total = removeSpaces(props.totalPrice) - removeSpaces(props.sale_price);
+  const total = removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value;
   return transformPrice(total);
 });
 
-const hasSale = computed(() => {
-  return removeSpaces(props.sale_price) > 0;
-});
-
-watch(
-  () => props.reFetch,
-  () => {
-    if (props.checkId) {
-      fetchDataById();
-    }
-  }
-);
+const hasSaleProduct = (item) => Number(item.sale);
+watchEffect(() => console.log(checkSale.value, hasSale.value))
 </script>
 
 <template>
@@ -88,35 +41,47 @@ watch(
       <div class="header">
         <h1>SOLUS</h1>
         <div class="check-data">
-          <p>Чек №{{ props.checkId }}</p>
+          <p>Чек №{{ props.paymentInvoice?.id }}</p>
           <p>{{ formatDate(new Date()) }}</p>
         </div>
-        <p>{{ props.cashRegister }}</p>
+        <p>{{ props.paymentInvoice?.cashbox?.name }}</p>
       </div>
 
       <div class="items">
-        <template v-for="(item, index) in items" :key="index">
+        <template
+          v-for="(item, index) in props.paymentInvoice?.items"
+          :key="index"
+        >
           <div class="item">
             <div class="item-name">{{ item.product_variant_name }}</div>
             <div class="item-details">
-              <span>{{ item.quantity }} x {{ transformPrice(item.sell_price) }}</span>
-              <span>{{ transformPrice(item.sell_price * item.quantity) }}</span>
+              <span
+                >{{ item.quantity }}x
+                {{ transformPrice(item.original_price) }}</span
+              >
+              <span v-if="hasSaleProduct(item)">
+                <del>{{
+                  transformPrice(item.original_price * item.quantity)
+                }}</del>
+                {{ transformPrice(item.sell_price) }}</span
+              >
+              <span v-else>{{ transformPrice(item.sell_price) }}</span>
             </div>
           </div>
         </template>
       </div>
 
       <div class="summary">
-        <div class="total-line">
-        </div>
-        <div class="total-line">
-          <span>Общая сумма:</span>
-          <span>{{ totalPrice }}</span>
-        </div>
         <template v-if="hasSale">
+          <div class="total-line">
+            <span>Общая сумма:</span>
+            <span>{{
+              transformPrice(props.paymentInvoice?.total_amount)
+            }}</span>
+          </div>
           <div class="total-line discount">
             <span>СКИДКА:</span>
-            <span>-{{ transformPrice(props.sale_price) }} SO'M</span>
+            <span>-{{ transformPrice(checkSale) }} SO'M</span>
           </div>
           <div class="total-line final-total">
             <span>ИТОГО:</span>
@@ -125,13 +90,15 @@ watch(
         </template>
         <div v-else class="total-line final-total">
           <span>ИТОГО:</span>
-          <span>{{ totalPrice }} SO'M</span>
+          <span
+            >{{ transformPrice(props.paymentInvoice?.total_amount) }} SO'M</span
+          >
         </div>
       </div>
 
       <div class="footer">
         <p>Спасибо за покупку!</p>
-        <p>Ждем вас снова!</p>
+        <p>Ждем вас снова</p>
       </div>
     </div>
   </div>
@@ -229,7 +196,6 @@ watch(
 .discount {
   font-size: 12pt;
 }
-
 
 .final-total {
   font-size: 15pt;
