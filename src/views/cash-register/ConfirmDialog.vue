@@ -15,17 +15,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  totalPrice: {
-    type: String,
-    required: true,
-  },
-  sale_price: {
-    type: String,
-    required: true,
-  },
 });
 
-const emit = defineEmits(["fetchDatas", "update:sale_price"]);
+const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
 const refForm = ref();

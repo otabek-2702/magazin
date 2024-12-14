@@ -13,7 +13,7 @@ const props = defineProps({
   },
 });
 
-const checkSale = computed(() => Number(checkSale) || props.salePrice);
+const checkSale = computed(() => Number(props.paymentInvoice.sale) || props.salePrice);
 const hasSale = computed(() => checkSale.value > 0);
 
 const formatDate = (date) => {
@@ -27,7 +27,8 @@ const formatDate = (date) => {
 };
 
 const totalPriceWithSale = computed(() => {
-  const total = removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value;
+  const total =
+    removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value;
   return transformPrice(total);
 });
 
@@ -40,19 +41,28 @@ const hasSaleProduct = (item) => Number(item.sale);
       <div class="header">
         <h1>SOLUS</h1>
         <div class="check-data">
-          <p>Чек №{{ props.paymentInvoice?.id }}</p>
-          <p>{{ formatDate(new Date()) }}</p>
+          <p><b>Дата:</b></p>
+          <p>{{ formatDate(props.paymentInvoice?.created_at) }}</p>
         </div>
-        <p>{{ props.paymentInvoice?.cashbox?.name }}</p>
+        <div class="check-data">
+          <p><b>Чек:</b> {{ props.paymentInvoice?.id }}</p>
+          <p>{{ props.paymentInvoice?.cashbox?.name }}</p>
+        </div>
+        <div class="check-data">
+          <p><b>Кассир:</b></p>
+          <p>{{ props.paymentInvoice?.user?.name }}</p>
+        </div>
       </div>
 
       <div class="items">
         <template
-          v-for="(item, index) in props.paymentInvoice?.items"
+          v-for="(item, index) in props.paymentInvoice?.items?.sort((a,b) => a.original_price - b.original_price)"
           :key="index"
         >
           <div class="item">
-            <div class="item-name">{{ item.product_variant_name }} ({{item.product_variant_sku}})</div>
+            <div class="item-name">
+              {{ item.product_variant_name }} ({{ item.product_variant_sku }})
+            </div>
             <div class="item-details">
               <span
                 >{{ item.quantity }}x
@@ -136,8 +146,7 @@ const hasSaleProduct = (item) => Number(item.sale);
 .header h1 {
   font-size: 32pt;
   font-weight: 900;
-  margin: 0;
-  padding: 0;
+  margin: 3mm 0 6mm 0;
   color: #000 !important;
 }
 
@@ -148,15 +157,17 @@ const hasSaleProduct = (item) => Number(item.sale);
 }
 
 .header p {
+  font-family: monospace;
   font-size: 13px;
-  margin: 2mm 0;
+  font-weight: 400;
+  margin: 0;
 }
 
 .items {
   text-align: left;
   margin: 4mm 0;
-  border-top: 1px dashed #000;
-  border-bottom: 1px dashed #000;
+  border-top: 4px double #000;
+  border-bottom: 4px double #000;
   padding: 2mm 0;
   width: 100%;
 }
@@ -170,6 +181,7 @@ const hasSaleProduct = (item) => Number(item.sale);
   font-size: 10pt;
   margin-bottom: 1mm;
   word-wrap: break-word;
+  font-weight:400 ;
 }
 
 .item-details {
@@ -177,6 +189,14 @@ const hasSaleProduct = (item) => Number(item.sale);
   justify-content: space-between;
   font-size: 11pt;
   gap: 2mm;
+}
+
+.item-details span:first-child{
+  font-weight: 400;
+}
+
+.item-details del {
+  font-weight: 400;
 }
 
 .summary {
@@ -190,10 +210,12 @@ const hasSaleProduct = (item) => Number(item.sale);
   justify-content: space-between;
   margin: 2mm 0;
   font-size: 10pt;
+  font-weight: 400;
 }
 
 .discount {
   font-size: 12pt;
+  font-weight: bold;
 }
 
 .final-total {

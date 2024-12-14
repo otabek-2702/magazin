@@ -3,16 +3,13 @@ import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
-import CheckDialog from "./CheckDialog.vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
 
 const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
-const isConfirmDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
-const isFormValid = ref(false);
 const refForm = ref();
 const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
 const sku_ref = ref();
@@ -45,7 +42,6 @@ const onSubmit = () => {
 
         payment_invoice.value = response.data?.payment_invoice;
         emit("fetchDatas");
-        isConfirmDialogVisible.value = true;
       } catch (error) {
         console.error(error);
       } finally {
@@ -278,7 +274,7 @@ onMounted(() => {
         @click="handleDialogModelValueUpdate(false)"
       />
       <VCardText>
-        <VForm ref="refForm" v-model="isFormValid">
+        <VForm ref="refForm">
           <VRow>
             <VCol cols="3">
               <VSelect
