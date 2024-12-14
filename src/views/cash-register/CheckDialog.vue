@@ -228,6 +228,7 @@ const totalProductsSale = computed(() =>
 .total-line {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: 2mm 0;
   font-size: 11pt;
 }
