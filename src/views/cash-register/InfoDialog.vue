@@ -82,13 +82,26 @@ watch(
   }
 );
 
+const calculateTotalPrice = computed(() => {
+  if (!payment_invoice.value?.items) return 0;
 
-const calculateTotalPriceWithSale = computed(() =>
-  transformPrice(
-    payment_invoice.value.total_amount -
-      removeSpaces(payment_invoice.value.sale)
-  )
-);
+  return transformPrice(
+    payment_invoice.value?.items.reduce(
+      (accumulator, el) => accumulator + el.original_price * el.quantity ?? 0,
+      0
+    )
+  );
+});
+const calculateTotalSale = computed(() => {
+  if (!payment_invoice.value?.items) return 0;
+
+  return transformPrice(
+    payment_invoice.value?.items.reduce(
+      (accumulator, el) => accumulator + Number(el.sale) ?? 0,
+      0
+    )
+  );
+});
 </script>
 
 <template>
@@ -142,6 +155,7 @@ const calculateTotalPriceWithSale = computed(() =>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
                     <th>КОЛ-ВО</th>
+                    <th>ФАКТИЧЕСКАЯ СУММА</th>
                     <th>СКИДКА</th>
                     <th>СУММА</th>
                   </tr>
@@ -153,10 +167,27 @@ const calculateTotalPriceWithSale = computed(() =>
                     :key="variant.product_variant_id"
                   >
                     <td>{{ i + 1 }}</td>
-                    <td>{{ variant.product_variant_name }} ({{ variant.product_variant_sku }})</td>
+                    <td>
+                      {{ variant.product_variant_name }} ({{
+                        variant.product_variant_sku
+                      }})
+                    </td>
                     <td>{{ transformPrice(variant.original_price) }} so'm</td>
                     <td>{{ variant.quantity }}</td>
-                    <td>{{ transformPrice(variant.sale, true) }}</td>
+                    <td>
+                      <b>
+                        {{
+                          transformPrice(
+                            Number(variant.original_price) * variant.quantity
+                          )
+                        }}
+                        so'm
+                      </b>
+                    </td>
+                    <td>
+                      {{ transformPrice(variant.sale, true) }}
+                      {{ Number(variant.sale) ? "so'm" : "" }}
+                    </td>
                     <td>
                       <b> {{ transformPrice(variant.sell_price) }} so'm </b>
                     </td>
@@ -165,21 +196,28 @@ const calculateTotalPriceWithSale = computed(() =>
 
                 <tfoot v-show="payment_invoice?.items?.length">
                   <tr>
-                    <td colspan="4"></td>
-                    <td class="text-body-1">
-                      Общая количество: {{ payment_invoice?.total_count }}
+                    <td colspan="2"></td>
+                    <td class="text-body-1 pt-3">
+                      Скидка на чек: <br />{{
+                        transformPrice(payment_invoice.sale)
+                      }}
+                      {{ Number(payment_invoice.sale) ? "so'm" : "" }}
+                    </td>
+                    <td class="text-body-1 pt-3">
+                      Общая к-во: <br />{{ payment_invoice.total_count }}
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b v-if="transformPrice(payment_invoice?.sale, true)"
-                        >{{ transformPrice(payment_invoice?.total_amount) }}
-                        <span class="text-h5 font-weight-black">-</span>
-                        {{ transformPrice(payment_invoice?.sale, true) }} =
-                        {{ calculateTotalPriceWithSale }}</b
-                      >
-                      <b v-else
-                        >{{ transformPrice(payment_invoice?.total_amount) }}
-                      </b>
+                      <b>{{ calculateTotalPrice }} </b> so'm
+                    </td>
+                    <td class="text-body-1 pt-3">
+                      Общая скидка: <br />
+                      <b>{{ calculateTotalSale }} </b>
+                      {{ removeSpaces(calculateTotalSale) ? "so'm" : "" }}
+                    </td>
+                    <td class="text-body-1 pt-3">
+                      Общая сумма: <br />
+                      <b>{{ transformPrice(payment_invoice.total_amount) }} </b>
                       SO'M
                     </td>
                     <td></td>
@@ -214,7 +252,10 @@ const calculateTotalPriceWithSale = computed(() =>
 
             <!-- Confirmed | Rejected -->
             <template v-if="invoice_status.confirmed">
-              <h2>Этот чек уже оплачен!</h2>
+              <h2>
+                Этот чек уже оплачен! Оплата произведена с помощью:
+                {{ payment_invoice.payment_type }}
+              </h2>
 
               <VBtn
                 color="info"

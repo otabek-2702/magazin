@@ -66,9 +66,7 @@ const totalProductsSale = computed(() =>
 
       <div class="items">
         <template
-          v-for="(item, index) in props.paymentInvoice?.items?.sort(
-            (a, b) => a.original_price - b.original_price
-          )"
+          v-for="(item, index) in props.paymentInvoice?.items"
           :key="index"
         >
           <div class="item">

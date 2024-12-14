@@ -24,7 +24,7 @@ const onReject = async (id) => {
     axios.post(`/payment_invoices/reject/${id}`);
   } catch (error) {
     console.error(error);
-  }
+  } 
 };
 
 const onSubmit = () => {
@@ -112,7 +112,6 @@ const findProductVariant = async (raw_sku) => {
         product_variant_name: `${product.name} | ${color.name} | ${size.name} (${sku})`,
         amount_remainder: Number(quantity),
         sku,
-        original_price: Number(product.sell_price),
         sell_price: Number(product.sell_price),
       };
     }
@@ -186,17 +185,12 @@ const addToList = () => {
     product_variants.value.push({
       ...product_variant_data.value,
       quantity: 1,
-      sale: 0,
     });
   }
 
   // reset
   product_variant_data.value = null;
   sku_ref.value.focus();
-  // product_variants.value = product_variants.value?.sort(
-  //   (a, b) => a.original_price - b.original_price
-  // );
-  reloadSales();
 };
 
 // Edit
@@ -225,7 +219,6 @@ const hideEditInput = async (variant) => {
   }
   variant.quantity = Number(variant.quantity);
   editingId.value = null;
-  reloadSales();
 };
 
 // Delete
@@ -233,7 +226,6 @@ const deleteListItem = (id) => {
   product_variants.value = product_variants.value.filter(
     (el) => el.product_variant_id != id
   );
-  reloadSales();
 };
 
 const calculateCount = computed(() => {
@@ -247,32 +239,12 @@ const calculateCount = computed(() => {
 });
 const calculateTotalPrice = computed(() => {
   if (!product_variants.value) return 0;
-
-  return transformPrice(
-    product_variants.value.reduce(
-      (accumulator, el) => accumulator + el.original_price * el.quantity ?? 0,
-      0
-    )
-  );
-});
-const calculateTotalSale = computed(() => {
-  if (!product_variants.value) return 0;
-
-  return transformPrice(
-    product_variants.value.reduce(
-      (accumulator, el) => accumulator + el.sale ?? 0,
-      0
-    )
-  );
-});
-
-const calculateTotalPriceWithSale = computed(() => {
-  if (!product_variants.value) return 0;
+  let quantity = (el) => (Number(el.quantity) == 0 ? 1 : Number(el.quantity));
 
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) =>
-        accumulator + (el.original_price * el.quantity - el.sale) ?? 0,
+        accumulator + Number(el.sell_price) * quantity(el) ?? 0,
       0
     )
   );
@@ -283,53 +255,10 @@ const isFetchingSellers = ref(false);
 onMounted(() => {
   fetchOptions("persons", sellers_list, "persons");
 });
-
-// Aksiya
-const reloadSales = () => {
-  if (calculateCount.value < 3) {
-    // Reset sales if total count is less than 3
-    product_variants.value.forEach((variant) => {
-      variant.sale = 0;
-    });
-    return;
-  }
-
-  // Calculate free products (total count divided by 3)
-  const freeProdCount = Math.floor(calculateCount.value / 3);
-
-  // Reset all sales first
-  product_variants.value.forEach((variant) => {
-    variant.sale = 0;
-  });
-
-  // Distribute free products sale based on lowest price items first
-  const sortedVariants = [...product_variants.value].sort(
-    (a, b) => a.original_price - b.original_price
-  );
-  let remainingFreeProds = freeProdCount;
-
-  for (let variant of sortedVariants) {
-    if (remainingFreeProds <= 0) break;
-
-    // Calculate how many free products can be taken from this variant
-    const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
-
-    // Calculate sale amount for these free products
-    variant.sale = availableFreeProds * variant.original_price;
-
-    // Reduce remaining free products
-    remainingFreeProds -= availableFreeProds;
-  }
-  product_variants.value = sortedVariants;
-};
 </script>
 
 <template>
-  <VDialog
-    fullscreen
-    v-model="isDialogVisible"
-    @update:model-value="handleDialogModelValueUpdate"
-  >
+  <VDialog fullscreen v-model="isDialogVisible" @update:model-value="handleDialogModelValueUpdate">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
       <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
@@ -385,10 +314,8 @@ const reloadSales = () => {
                     <th style="width: 48px">ID</th>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
-                    <th>КОЛ-ВО</th>
-                    <th>ФАКТИЧЕСКАЯ СУММА</th>
-                    <th>СКИДКА</th>
                     <th>СУММА</th>
+                    <th>КОЛ-ВО</th>
                     <th>ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
@@ -402,7 +329,15 @@ const reloadSales = () => {
                     <td>
                       {{ variant.product_variant_name }}
                     </td>
-                    <td>{{ transformPrice(variant.original_price) }} so'm</td>
+                    <td>{{ transformPrice(variant.sell_price) }} so'm</td>
+                    <td>
+                      <b>
+                        {{
+                          transformPrice(variant.sell_price * variant.quantity)
+                        }}
+                        so'm
+                      </b>
+                    </td>
                     <td>
                       <VTextField
                         v-model="variant.quantity"
@@ -419,31 +354,6 @@ const reloadSales = () => {
                         type="number"
                         :rules="[]"
                       />
-                    </td>
-                    <td>
-                      <b>
-                        {{
-                          transformPrice(
-                            variant.original_price * variant.quantity
-                          )
-                        }}
-                        so'm
-                      </b>
-                    </td>
-                    <td>
-                      {{ transformPrice(variant?.sale) }}
-                      {{ Number(variant.sale) ? "so'm" : "" }}
-                    </td>
-                    <td>
-                      <b
-                        >{{
-                          transformPrice(
-                            variant.original_price * variant.quantity -
-                              variant.sale
-                          )
-                        }}
-                        so'm</b
-                      >
                     </td>
                     <td
                       class="text-center"
@@ -479,19 +389,11 @@ const reloadSales = () => {
                   <tr>
                     <td colspan="3"></td>
                     <td class="text-body-1 pt-3">
-                      Общая к-во: <br />{{ Number(calculateCount) }}
-                    </td>
-                    <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
                       <b>{{ calculateTotalPrice }} </b> SO'M
                     </td>
-                    <td class="text-body-1 pt-3">
-                      Общая скидка: <br />
-                      <b>{{ calculateTotalSale }} </b> SO'M
-                    </td>
-                    <td class="text-body-1 pt-3">
-                      Общая сумма: <br />
-                      <b>{{ calculateTotalPriceWithSale }} </b> SO'M
+                    <td class="text-body-1">
+                      Общая количество: {{ Number(calculateCount) }}
                     </td>
                     <td></td>
                     <td></td>
