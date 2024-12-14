@@ -105,7 +105,7 @@ const totalProductsSale = computed(() =>
           </div>
           <div class="total-line discount-2">
             <span>Акция 2+1:</span><br />
-            <span>-{{ totalProductsSale }} SO'M</span>
+            <span><span class="minus">-</span> {{ totalProductsSale }} SO'M</span>
           </div>
           <div class="total-line final-total">
             <span>ИТОГО:</span>
@@ -114,7 +114,7 @@ const totalProductsSale = computed(() =>
         </template>
         <div v-if="!hasSale" class="total-line discount-2">
           <span>Акция 2+1:</span><br />
-          <span>-{{ totalProductsSale }} SO'M</span>
+          <span><span class="minus">-</span> {{ totalProductsSale }} SO'M</span>
         </div>
 
         <div v-if="!hasSale" class="total-line final-total">
@@ -138,10 +138,10 @@ const totalProductsSale = computed(() =>
   position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
+  /* width: 1px;
   height: 1px;
   overflow: hidden;
-  opacity: 0;
+  opacity: 0; */
 }
 
 .receipt {
@@ -229,8 +229,7 @@ const totalProductsSale = computed(() =>
   display: flex;
   justify-content: space-between;
   margin: 2mm 0;
-  font-size: 10pt;
-  font-weight: 400;
+  font-size: 11pt;
 }
 
 .discount {
@@ -241,6 +240,11 @@ const totalProductsSale = computed(() =>
 .discount-2 {
   font-size: 12pt;
   font-weight: bold;
+}
+
+.total-line .minus {
+  font-weight: bolder;
+  font-size: 16pt;
 }
 
 .final-total {
