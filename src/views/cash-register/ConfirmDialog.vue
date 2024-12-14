@@ -1,5 +1,4 @@
 <script setup>
-import { requiredValidator } from "@/@core/utils/validators";
 import {
   autoSelectInputValue,
   fetchOptions,
@@ -7,21 +6,18 @@ import {
   transformPrice,
 } from "@/helpers";
 import axios from "@/plugins/axios";
-import { computed, onMounted, provide } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { toast } from "vue3-toastify";
+import CheckDialog from "./CheckDialog.vue";
 
 const props = defineProps({
-  isDialogOpen: {
-    type: Boolean,
+  paymentInvoice: {
+    type: Object,
     required: true,
   },
   totalPrice: {
     type: String,
     required: true,
-  },
-  id: {
-    required: true,
-    type: String,
   },
   sale_price: {
     type: String,
@@ -29,22 +25,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits([
-  "update:isDialogOpen",
-  "fetchDatas",
-  "update:sale_price",
-]);
+const emit = defineEmits(["fetchDatas", "update:sale_price"]);
 
-const onFormCancel = () => {
-  emit("update:isDialogOpen", false);
-};
-
+const isDialogVisible = ref(false);
 const refForm = ref();
 const isFetching = ref(false);
+const invoice_status = computed(() => ({
+  draft: props.paymentInvoice?.status === "Не опачено",
+  confirmed: props.paymentInvoice?.status === "Оплачено",
+  rejected: props.paymentInvoice?.status === "Отклонено",
+}));
 const input_price = ref();
 const payment_type = ref();
-
-const payment_types_list = ref();
+const sale_price = ref(0);
+const payment_response = ref({});
 
 const onConfirm = async () => {
   const { valid } = await refForm.value?.validate();
@@ -52,12 +46,16 @@ const onConfirm = async () => {
 
   isFetching.value = true;
   try {
-    const reponse = await axios.post(`/payment_invoices/confirm/${props.id}`, {
-      payment_type_id: payment_type.value,
-      sale: removeSpaces(props.sale_price),
-    });
+    const response = await axios.post(
+      `/payment_invoices/confirm/${props.paymentInvoice?.id}`,
+      {
+        payment_type_id: payment_type.value,
+        sale: removeSpaces(sale_price.value),
+      }
+    );
 
-    if (reponse.status === 200) {
+    if (response.status === 200) {
+      payment_response.value = response.data?.payment_invoice;
       toast("Успешно", {
         theme: "auto",
         type: "success",
@@ -73,6 +71,7 @@ const onConfirm = async () => {
   }
 };
 
+// Calculator
 const calculate = computed(() => {
   const trimmedPrice = removeSpaces(totalPriceWithSale.value);
   const givenPrice = removeSpaces(input_price.value);
@@ -86,22 +85,22 @@ const calculate = computed(() => {
 });
 
 const handleDialogModelValueUpdate = (val) => {
-  emit("update:isDialogOpen", val);
+  isDialogVisible.value = !!val;
 
   if (!val) {
     nextTick(() => {
       input_price.value = null;
       payment_type.value = null;
+      payment_response.value = {};
+      sale_price.value = 0;
     });
     refForm.value?.reset();
     refForm.value?.resetValidation();
   }
-
-  emit("update:sale_price", 0);
 };
 
 const maxSale = (val) => {
-  const maxSalePrice = removeSpaces(props.totalPrice) / 10;
+  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 10;
   const numeredVal = removeSpaces(val);
   return (
     !(numeredVal > maxSalePrice) ||
@@ -111,34 +110,55 @@ const maxSale = (val) => {
   );
 };
 
-const updateSalePrice = (value) => {
-  emit("update:sale_price", value);
-};
-
 const totalPriceWithSale = computed(
-  () => removeSpaces(props.totalPrice) - removeSpaces(props.sale_price)
+  () =>
+    removeSpaces(props.paymentInvoice?.total_amount) -
+    removeSpaces(sale_price.value)
 );
 //watch(
 //  () => props.isDialogOpen,
 //  (newVal) => {
 //    if (newVal) {
-//      const saledPrice = removeSpaces(props.totalPrice) / 10;
+//      const saledPrice = removeSpaces(props.paymentInvoice?.total_amount) / 10;
 //
 //      emit("update:sale_price", saledPrice);
 //    }
 //  }
 //);
-onMounted(() => fetchOptions('payment_types', payment_types_list, null))
+const payment_types_list = ref();
+onMounted(() => fetchOptions("payment_types", payment_types_list, null));
+
+// Auto Open
+watch(
+  () => props.paymentInvoice,
+  () => {
+    invoice_status.value.draft && handleDialogModelValueUpdate(true);
+  }
+);
 </script>
 
 <template>
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 500"
-    :model-value="props.isDialogOpen"
-    @update:model-value="handleDialogModelValueUpdate"
+    v-model="isDialogVisible"
   >
+    <!-- Dialog Activator -->
+    <template #activator="{ props }">
+      <VBtn
+        v-if="invoice_status.draft"
+        @click="handleDialogModelValueUpdate(true)"
+        v-bind="props"
+      >
+        Оплатить</VBtn
+      >
+    </template>
+
     <VCard class="pa-sm-9 pa-5">
-      <DialogCloseBtn variant="text" size="small" @click="onFormCancel" />
+      <DialogCloseBtn
+        variant="text"
+        size="small"
+        @click="handleDialogModelValueUpdate(false)"
+      />
 
       <VCardItem class="text-center pb-3">
         <VCardTitle class="text-h5">Подтверждение</VCardTitle>
@@ -149,7 +169,8 @@ onMounted(() => fetchOptions('payment_types', payment_types_list, null))
           <VRow>
             <VCol cols="12">
               <h3 class="text-secondary">
-                Фактическая Сумма : {{ transformPrice(props.totalPrice) }} so'm
+                Фактическая Сумма :
+                {{ transformPrice(props.paymentInvoice?.total_amount) }} so'm
               </h3>
             </VCol>
             <VCol cols="12">
@@ -173,13 +194,12 @@ onMounted(() => fetchOptions('payment_types', payment_types_list, null))
                 :items="payment_types_list"
                 item-title="name"
                 item-value="id"
-                :rules="[requiredValidator]"
               />
             </VCol>
             <VCol cols="12">
               <VTextField
-                @update:modelValue="updateSalePrice"
-                :value="transformPrice(props.sale_price, true)"
+                v-model="sale_price"
+                :model-value="transformPrice(sale_price, true)"
                 label="Введите сумму для скидки"
                 :rules="[maxSale]"
                 class="text-field-error_size"
@@ -216,6 +236,18 @@ onMounted(() => fetchOptions('payment_types', payment_types_list, null))
       </VCardText>
     </VCard>
   </VDialog>
+  <!-- <CheckDialog
+    v-if="payment_response || props.paymentInvoice"
+    :salePrice="sale_price"
+    :paymentInvoice="
+      invoice_status.confirmed ? props.paymentInvoice : payment_response
+    "
+  /> -->
+  <CheckDialog
+    v-if="props.paymentInvoice"
+    :salePrice="removeSpaces(sale_price)"
+    :paymentInvoice="props.paymentInvoice"
+  />
 </template>
 
 <style scoped></style>
