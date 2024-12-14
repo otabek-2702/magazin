@@ -258,7 +258,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <VDialog fullscreen v-model="isDialogVisible">
+  <VDialog fullscreen v-model="isDialogVisible" @update:model-value="handleDialogModelValueUpdate">
     <!-- Dialog Activator -->
     <template #activator="{ props }">
       <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
