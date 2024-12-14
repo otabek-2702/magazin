@@ -101,11 +101,11 @@ const totalProductsSale = computed(() =>
           </div>
           <div class="total-line discount">
             <span>СКИДКА:</span>
-            <span>-{{ transformPrice(checkSale) }} SO'M</span>
+            <span>-{{ transformPrice(checkSale) }} so'm</span>
           </div>
           <div class="total-line discount-2">
             <span>Акция 2+1:</span><br />
-            <span><span class="minus">-</span> {{ totalProductsSale }} SO'M</span>
+            <span><span class="minus">-</span> {{ totalProductsSale }} so'm</span>
           </div>
           <div class="total-line final-total">
             <span>ИТОГО:</span>
@@ -114,7 +114,7 @@ const totalProductsSale = computed(() =>
         </template>
         <div v-if="!hasSale" class="total-line discount-2">
           <span>Акция 2+1:</span><br />
-          <span><span class="minus">-</span> {{ totalProductsSale }} SO'M</span>
+          <span><span class="minus">-</span> {{ totalProductsSale }} so'm</span>
         </div>
 
         <div v-if="!hasSale" class="total-line final-total">
