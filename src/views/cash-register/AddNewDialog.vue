@@ -193,9 +193,7 @@ const addToList = () => {
   // reset
   product_variant_data.value = null;
   sku_ref.value.focus();
-  // product_variants.value = product_variants.value?.sort(
-  //   (a, b) => a.original_price - b.original_price
-  // );
+
   reloadSales();
 };
 
@@ -286,6 +284,7 @@ onMounted(() => {
 
 // Aksiya
 const reloadSales = () => {
+  // return
   if (calculateCount.value < 3) {
     // Reset sales if total count is less than 3
     product_variants.value.forEach((variant) => {

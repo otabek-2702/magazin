@@ -1,6 +1,6 @@
 <script setup>
 import { removeSpaces, transformPrice } from "@/helpers";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   paymentInvoice: {
@@ -72,7 +72,9 @@ const freeProdTitle = computed(() => {
         >
           <div class="item">
             <div class="item-name">
-              {{ item.product_variant_name }} ({{ item.product_variant_sku }})
+              <b>{{ index + 1 }}.</b> {{ item.product_variant_name }} ({{
+                item.product_variant_sku
+              }})
             </div>
             <div class="item-details">
               <span
@@ -146,10 +148,10 @@ const freeProdTitle = computed(() => {
   position: fixed;
   top: 0;
   left: 0;
-  // width: 1px;
-  // height: 1px;
-  // overflow: hidden;
-  // opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
 }
 
 .receipt {
