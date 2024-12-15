@@ -1,5 +1,10 @@
 // Write your overrides
-
+@font-face {
+  font-family: 'Nunito';
+  src: url('@/assets/fonts/Nunito-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
 td:last-child:empty {
   display: none; /* Hide the empty last child <td> */
 }

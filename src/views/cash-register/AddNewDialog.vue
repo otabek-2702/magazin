@@ -284,7 +284,7 @@ onMounted(() => {
 
 // Aksiya
 const reloadSales = () => {
-  // return
+  return;
   if (calculateCount.value < 3) {
     // Reset sales if total count is less than 3
     product_variants.value.forEach((variant) => {

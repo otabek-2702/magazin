@@ -35,15 +35,6 @@ const totalPriceWithSales = computed(() =>
 );
 
 const hasSaleProduct = (item) => Number(item.sale);
-
-const freeProdCount = computed(() =>
-  Math.floor(props.paymentInvoice.total_count / 3)
-);
-
-const freeProdTitle = computed(() => {
-  const singleOrPlurar = freeProdCount.value > 1 ? " товара" : " товар";
-  return freeProdCount.value + singleOrPlurar;
-});
 </script>
 
 <template>
@@ -67,14 +58,15 @@ const freeProdTitle = computed(() => {
 
       <div class="items">
         <template
-          v-for="(item, index) in props.paymentInvoice?.items"
+          v-for="(item, index) in props.paymentInvoice?.items?.sort(
+            (a, b) => a.original_price - b.original_price
+          )"
           :key="index"
         >
           <div class="item">
             <div class="item-name">
-              <b>{{ index + 1 }}.</b> {{ item.product_variant_name }} ({{
-                item.product_variant_sku
-              }})
+              <b>{{ index + 1 }}.</b> <b>1{{ item.product_variant_id }}</b> |
+              {{ item.product_variant_name }}
             </div>
             <div class="item-details">
               <span
@@ -105,10 +97,6 @@ const freeProdTitle = computed(() => {
             so'm</span
           >
         </div>
-        <div v-if="hasSale" class="total-line discount">
-          <span>СКИДКА:</span>
-          <span>-{{ transformPrice(checkSale) }} so'm</span>
-        </div>
         <div
           v-if="+props.paymentInvoice?.items_sale"
           class="total-line discount"
@@ -117,11 +105,11 @@ const freeProdTitle = computed(() => {
           <span
             ><span class="minus">-</span>
             {{ transformPrice(props.paymentInvoice?.items_sale) }} so'm
-            <br />
-            <span class="subtitle"
-              ><span class="minus">-</span> {{ freeProdTitle }}</span
-            >
           </span>
+        </div>
+        <div v-if="hasSale" class="total-line discount">
+          <span>СКИДКА:</span>
+          <span>-{{ transformPrice(checkSale) }} so'm</span>
         </div>
 
         <div
@@ -148,10 +136,10 @@ const freeProdTitle = computed(() => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
+  // width: 1px;
+  // height: 1px;
+  // overflow: hidden;
+  // opacity: 0;
 }
 
 .receipt {
@@ -176,6 +164,7 @@ const freeProdTitle = computed(() => {
       font-weight: 900;
       margin: 3mm 0 6mm;
       color: #000 !important;
+      font-family: "Nunito", sans-serif;
     }
 
     p {
