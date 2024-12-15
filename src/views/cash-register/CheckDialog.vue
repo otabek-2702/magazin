@@ -91,21 +91,22 @@ const freeProdTitle = computed(() => {
       </div>
 
       <div class="summary">
-        <template v-if="hasSale">
-          <div class="total-line">
-            <span>Общая сумма:</span>
-            <span
-              >{{
-                transformPrice(props.paymentInvoice?.original_total_amount)
-              }}
-              so'm</span
-            >
-          </div>
-          <div class="total-line discount">
-            <span>СКИДКА:</span>
-            <span>-{{ transformPrice(checkSale) }} so'm</span>
-          </div>
-        </template>
+        <div
+          v-if="+props.paymentInvoice?.items_sale || hasSale"
+          class="total-line"
+        >
+          <span>Общая сумма:</span>
+          <span
+            >{{
+              transformPrice(props.paymentInvoice?.original_total_amount)
+            }}
+            so'm</span
+          >
+        </div>
+        <div v-if="hasSale" class="total-line discount">
+          <span>СКИДКА:</span>
+          <span>-{{ transformPrice(checkSale) }} so'm</span>
+        </div>
         <div
           v-if="+props.paymentInvoice?.items_sale"
           class="total-line discount"

@@ -82,26 +82,6 @@ watch(
   }
 );
 
-const calculateTotalPrice = computed(() => {
-  if (!payment_invoice.value?.items) return 0;
-
-  return transformPrice(
-    payment_invoice.value?.items.reduce(
-      (accumulator, el) => accumulator + el.original_price * el.quantity ?? 0,
-      0
-    )
-  );
-});
-const calculateTotalSale = computed(() => {
-  if (!payment_invoice.value?.items) return 0;
-
-  return transformPrice(
-    payment_invoice.value?.items.reduce(
-      (accumulator, el) => accumulator + Number(el.sale) ?? 0,
-      0
-    )
-  );
-});
 </script>
 
 <template>
@@ -208,12 +188,12 @@ const calculateTotalSale = computed(() => {
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b>{{ calculateTotalPrice }} </b> so'm
+                      <b>{{ transformPrice(payment_invoice.original_total_amount) }} </b> so'm
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая скидка: <br />
-                      <b>{{ calculateTotalSale }} </b>
-                      {{ removeSpaces(calculateTotalSale) ? "so'm" : "" }}
+                      <b>{{ transformPrice(payment_invoice.items_sale) }} </b>
+                      {{ removeSpaces(payment_invoice.items_sale) ? "so'm" : "" }}
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая сумма: <br />
