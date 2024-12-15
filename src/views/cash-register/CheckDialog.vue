@@ -28,21 +28,22 @@ const formatDate = (date) => {
   });
 };
 
-const totalPriceWithSale = computed(() => {
-  const total =
-    removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value;
-  return transformPrice(total);
-});
-
-const hasSaleProduct = (item) => Number(item.sale);
-const totalProductsSale = computed(() =>
+const totalPriceWithSales = computed(() =>
   transformPrice(
-    props.paymentInvoice?.items?.reduce(
-      (prev, current) => prev + Number(current.sale),
-      0
-    )
+    removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value
   )
 );
+
+const hasSaleProduct = (item) => Number(item.sale);
+
+const freeProdCount = computed(() =>
+  Math.floor(props.paymentInvoice.total_count / 3)
+);
+
+const freeProdTitle = computed(() => {
+  const singleOrPlurar = freeProdCount.value > 1 ? " товара" : " товар";
+  return freeProdCount.value + singleOrPlurar;
+});
 </script>
 
 <template>
@@ -93,33 +94,41 @@ const totalProductsSale = computed(() =>
         <template v-if="hasSale">
           <div class="total-line">
             <span>Общая сумма:</span>
-            <span>{{
-              transformPrice(props.paymentInvoice?.total_amount)
-            }}</span>
+            <span
+              >{{
+                transformPrice(props.paymentInvoice?.original_total_amount)
+              }}
+              so'm</span
+            >
           </div>
           <div class="total-line discount">
             <span>СКИДКА:</span>
             <span>-{{ transformPrice(checkSale) }} so'm</span>
           </div>
-          <div class="total-line discount-2">
-            <span>Акция 2+1:</span><br />
-            <span><span class="minus">-</span> {{ totalProductsSale }} so'm</span>
-          </div>
-          <div class="total-line final-total">
-            <span>ИТОГО:</span>
-            <span>{{ totalPriceWithSale }} SO'M</span>
-          </div>
         </template>
-        <div v-if="!hasSale" class="total-line discount-2">
+        <div
+          v-if="+props.paymentInvoice?.items_sale"
+          class="total-line discount"
+        >
           <span>Акция 2+1:</span><br />
-          <span><span class="minus">-</span> {{ totalProductsSale }} so'm</span>
+          <span
+            ><span class="minus">-</span>
+            {{ transformPrice(props.paymentInvoice?.items_sale) }} so'm
+            <br />
+            <span class="subtitle"
+              ><span class="minus">-</span> {{ freeProdTitle }}</span
+            >
+          </span>
         </div>
 
-        <div v-if="!hasSale" class="total-line final-total">
+        <div
+          class="total-line final-total"
+          :class="{
+            'final-total-border': +props.paymentInvoice?.items_sale || hasSale,
+          }"
+        >
           <span>ИТОГО:</span>
-          <span
-            >{{ transformPrice(props.paymentInvoice?.total_amount) }} SO'M</span
-          >
+          <span>{{ totalPriceWithSales }} SO'M</span>
         </div>
       </div>
 
@@ -131,15 +140,15 @@ const totalProductsSale = computed(() =>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .receipt-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
+  // width: 1px;
+  // height: 1px;
+  // overflow: hidden;
+  // opacity: 0;
 }
 
 .receipt {
@@ -154,115 +163,117 @@ const totalProductsSale = computed(() =>
   background: #fff;
   box-sizing: border-box;
   margin: 0 auto;
-}
 
-.header {
-  text-align: center;
-  margin-bottom: 3mm;
-}
+  .header {
+    text-align: center;
+    margin-bottom: 3mm;
 
-.header h1 {
-  font-size: 32pt;
-  font-weight: 900;
-  margin: 3mm 0 6mm 0;
-  color: #000 !important;
-}
+    h1 {
+      font-size: 32pt;
+      font-weight: 900;
+      margin: 3mm 0 6mm;
+      color: #000 !important;
+    }
 
-.check-data {
-  display: flex;
-  justify-content: space-between;
-  margin: 0;
-}
+    p {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 400;
+      margin: 0;
+    }
 
-.header p {
-  font-family: monospace;
-  font-size: 13px;
-  font-weight: 400;
-  margin: 0;
-}
+    .check-data {
+      display: flex;
+      justify-content: space-between;
+      margin: 0;
+    }
+  }
 
-.items {
-  text-align: left;
-  margin: 4mm 0;
-  border-top: 4px double #000;
-  border-bottom: 4px double #000;
-  padding: 2mm 0;
-  width: 100%;
-}
+  .items {
+    text-align: left;
+    margin: 4mm 0;
+    border-top: 4px double #000;
+    border-bottom: 4px double #000;
+    padding: 2mm 0;
+    width: 100%;
 
-.item {
-  margin: 2mm 0;
-  page-break-inside: avoid;
-}
+    .item {
+      margin: 2mm 0;
+      page-break-inside: avoid;
 
-.item-name {
-  font-size: 10pt;
-  margin-bottom: 1mm;
-  word-wrap: break-word;
-  font-weight: 400;
-}
+      .item-name {
+        font-size: 10pt;
+        margin-bottom: 1mm;
+        word-wrap: break-word;
+        font-weight: 400;
+      }
 
-.item-details {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11pt;
-  gap: 2mm;
-}
+      .item-details {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11pt;
+        gap: 2mm;
 
-.item-details span:first-child {
-  font-weight: 400;
-}
+        span:first-child {
+          font-weight: 400;
+        }
+      }
+    }
+  }
 
-/* .item-details del {
-  font-weight: 400;
-} */
+  .summary {
+    margin: 4mm 0;
+    text-align: right;
+    page-break-inside: avoid;
 
-.summary {
-  margin: 4mm 0;
-  text-align: right;
-  page-break-inside: avoid;
-}
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 2mm 0;
+      font-size: 11pt;
 
-.total-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 2mm 0;
-  font-size: 11pt;
-}
+      .minus {
+        font-weight: bolder;
+        font-size: 16pt;
+      }
 
-.discount {
-  font-size: 12pt;
-  font-weight: bold;
-}
+      .subtitle {
+        font-size: 10pt;
 
-.discount-2 {
-  font-size: 12pt;
-  font-weight: bold;
-}
+        .minus {
+          font-size: 14pt;
+        }
+      }
+    }
 
-.total-line .minus {
-  font-weight: bolder;
-  font-size: 16pt;
-}
+    .discount {
+      font-size: 12pt;
+      font-weight: bold;
+    }
 
-.final-total {
-  font-size: 15pt;
-  font-weight: bold;
-  border-top: 1px dashed #000;
-  padding-top: 2mm;
-  margin-top: 3mm;
-}
+    .final-total {
+      font-size: 15pt;
+      font-weight: bold;
+      padding-top: 2mm;
+      margin-top: 3mm;
 
-.footer {
-  text-align: center;
-  margin-top: 4mm;
-  font-size: 12pt;
-  page-break-inside: avoid;
-}
+      &-border {
+        border-top: 1px dashed #000;
+      }
+    }
+  }
 
-.footer p {
-  margin: 1mm 0;
+  .footer {
+    text-align: center;
+    margin-top: 4mm;
+    font-size: 12pt;
+    page-break-inside: avoid;
+
+    p {
+      margin: 1mm 0;
+    }
+  }
 }
 
 @media print {

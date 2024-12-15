@@ -217,7 +217,7 @@ const calculateTotalSale = computed(() => {
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая сумма: <br />
-                      <b>{{ transformPrice(payment_invoice.total_amount) }} </b>
+                      <b>{{ transformPrice(removeSpaces(payment_invoice.total_amount) - removeSpaces(payment_invoice.sale)) }} </b>
                       SO'M
                     </td>
                     <td></td>
