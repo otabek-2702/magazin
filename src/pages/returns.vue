@@ -13,8 +13,6 @@ const {
   totalPages: totalPage,
   paginationData,
   fetchData,
-  handleSearch,
-  searchQuery,
   isFetching,
 } = useFetch({
   baseUrl: "refunds",
@@ -37,13 +35,12 @@ const handleInfoDialogOpen = (id) => {
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
     Черновик: { color: "primary" },
-    Отклонено: { color: "secondary" },
+    Отклонено: { color: "warning" },
     Подтверждено: { color: "success" },
   };
 
   return roleMap[status] || { color: "primary" };
 };
-
 </script>
 
 <template>
@@ -89,11 +86,7 @@ const resolveInvoiceStatus = (status) => {
                 label
                 class="text-uppercase"
               >
-                {{
-                  invoice.status == "Не опачено"
-                    ? "Не оплачено"
-                    : invoice.status
-                }}
+                {{ invoice.status }}
               </VChip>
             </td>
             <td>{{ invoice.full_qty }}</td>
@@ -123,7 +116,6 @@ const resolveInvoiceStatus = (status) => {
         <VPagination
           v-if="invoices.length"
           v-model="state.currentPage"
-          
           :length="totalPage"
         />
       </VCardText>

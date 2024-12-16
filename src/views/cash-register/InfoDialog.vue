@@ -21,7 +21,7 @@ const isFetching = ref("");
 const refForm = ref();
 const payment_invoice = ref({});
 const invoice_status = computed(() => ({
-  draft: payment_invoice.value?.status === "Не опачено",
+  draft: payment_invoice.value?.status === "Не оплачено",
   confirmed: payment_invoice.value?.status === "Оплачено",
   rejected: payment_invoice.value?.status === "Отклонено",
 }));

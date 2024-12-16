@@ -1,8 +1,8 @@
 <script setup>
-import {  onMounted, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import {  formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
+import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
 import InfoDialog from "@/views/cash-register/InfoDialog.vue";
@@ -35,7 +35,7 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    "Не опачено": { color: "error" },
+    "Не оплачено": { color: "error" },
     Отклонено: { color: "warning" },
     Оплачено: { color: "success" },
   };
@@ -48,8 +48,7 @@ const resetDate = () => {
   dateValue.value = getFormattedToday();
 };
 
-
-watch(dateValue, (newVal,oldValue) => {
+watch(dateValue, (newVal, oldValue) => {
   if (newVal === oldValue) return;
   const [from, to, ...other] = newVal?.split(" — ");
 
@@ -119,17 +118,19 @@ watch(dateValue, (newVal,oldValue) => {
                 label
                 class="text-uppercase"
               >
-                {{
-                  invoice.status == "Не опачено"
-                    ? "Не оплачено"
-                    : invoice.status
-                }}
+                {{ invoice.status }}
               </VChip>
             </td>
             <td>{{ invoice.full_qty }}</td>
             <td>{{ invoice.cashbox.name }}</td>
             <td>{{ invoice.payment_type }}</td>
-            <td>{{ transformPrice(Number(invoice.total_amount) - Number(invoice.sale)) }}</td>
+            <td>
+              {{
+                transformPrice(
+                  Number(invoice.total_amount) - Number(invoice.sale)
+                )
+              }}
+            </td>
           </tr>
         </tbody>
 
@@ -155,7 +156,6 @@ watch(dateValue, (newVal,oldValue) => {
         <VPagination
           v-if="invoices.length"
           v-model="state.currentPage"
-          
           :length="totalPage"
         />
       </VCardText>

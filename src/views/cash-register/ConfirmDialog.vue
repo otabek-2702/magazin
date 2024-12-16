@@ -23,7 +23,7 @@ const isDialogVisible = ref(false);
 const refForm = ref();
 const isFetching = ref(false);
 const invoice_status = computed(() => ({
-  draft: props.paymentInvoice?.status === "Не опачено",
+  draft: props.paymentInvoice?.status === "Не оплачено",
   confirmed: props.paymentInvoice?.status === "Оплачено",
   rejected: props.paymentInvoice?.status === "Отклонено",
 }));

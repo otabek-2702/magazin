@@ -45,37 +45,36 @@ const resolveInvoiceStatus = (status) => {
   return roleMap[status] || { color: "primary" };
 };
 
-const safe_data = ref({});
-onMounted(() => {
-  fetchOptions(`/safes/${route?.params?.id}`, safe_data, "safe");
-});
-
 const invoicesListMeta = computed(() => [
   {
     icon: "mdi-cash-minus",
     color: "error",
-    title: "Общие затраты за период",
-    stats: metaDatas.value.negative_sum,
+    title: "Общие затраты (наличные)",
+    stats: metaDatas.value.negative_cash_sum,
+  },
+  {
+    icon: "bx-credit-card",
+    color: "error",
+    title: "Общие затраты (банк)",
+    stats: metaDatas.value.negative_bank_sum,
   },
   {
     icon: "mdi-cash-plus",
     color: "success",
     title: "Инкассации касс (наличные)",
     stats: metaDatas.value?.positive_cash_sum,
+    subtitle: "Текущий: ",
+    substats: metaDatas.value?.safe?.total_amount.cash
   },
   {
     icon: "bx-credit-card",
     color: "success",
     title: "Инкассации касс (банк)",
     stats: metaDatas.value?.positive_bank_sum,
+    subtitle: "Текущий: ",
+    substats: metaDatas.value?.safe?.total_amount.bank
   },
-  {
-    icon: "mdi-bank",
-    color: "primary",
-    title: "Общая инкассация",
-    stats:
-    Number(metaDatas.value?.positive_cash_sum) + Number(metaDatas.value?.positive_bank_sum),
-  },
+
 ]);
 
 // Date period
@@ -107,23 +106,28 @@ watch(dateValue, (newVal, oldValue) => {
         lg="3"
       >
         <VCard>
-          <VCardText class="d-flex justify-space-between">
-            <div>
-              <span>{{ meta.title }}</span>
-              <div class="d-flex align-center gap-2">
-                <h6 :class="`text-h6 text-${meta.color}`">
-                  <AnimatedNumber :number="meta.stats" /> so'm
-                </h6>
+          <VCardText>
+            <div class="d-flex justify-space-between">
+              <div>
+                <span>{{ meta.title }}</span>
+                <div class="d-flex align-center gap-2">
+                  <h6 :class="`text-h6 text-${meta.color}`">
+                    <AnimatedNumber :number="meta.stats" /> so'm
+                  </h6>
+                </div>
               </div>
-              <span class="text-sm">{{ meta.subtitle }}</span>
-            </div>
 
-            <VAvatar
-              rounded
-              variant="tonal"
-              :color="meta.color"
-              :icon="meta.icon"
-            />
+              <VAvatar
+                rounded
+                variant="tonal"
+                :color="meta.color"
+                :icon="meta.icon"
+              />
+            </div>
+            <span class="text-sm">{{ meta.subtitle }}</span>
+            <span class="text-sm" v-if="meta.substats">
+              <AnimatedNumber :number="meta.substats" /> so'm</span
+            >
           </VCardText>
         </VCard>
       </VCol>
@@ -133,7 +137,7 @@ watch(dateValue, (newVal, oldValue) => {
             <VRow>
               <VCol cols="auto">
                 <VCardTitle class="pa-0">
-                  {{ safe_data?.branch?.name ?? "Филиал" }}
+                  {{ metaDatas.safe?.branch?.name ?? "Филиал" }}
                 </VCardTitle>
               </VCol>
               <VCol cols="12" sm="3">
