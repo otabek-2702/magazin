@@ -1,10 +1,15 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-// import { Uzbek } from "flatpickr/dist/l10n/uz";
+import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
+import {
+  fetchOptions,
+  formatTimestamp,
+  getFormattedToday,
+  transformPrice,
+} from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
-import AddNewDrawer from "@/views/branch/expense/AddNewDrawer.vue";
+import AddNewDrawer from "@/views/branch/safes/AddNewDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 
 const route = useRoute();
@@ -12,47 +17,84 @@ const {
   state,
   items: invoices,
   totalPages: totalPage,
-  paginationData,
   fetchData,
+  paginationData,
   isFetching,
   metaDatas,
 } = useFetch({
-  baseUrl: "expenses"
+  baseUrl: `safes/${route?.params?.id}/movements`,
+  resourceKey: "safe_movements",
+  params: {
+    from_date: getFormattedToday(),
+    to_date: getFormattedToday(),
+  },
 });
 
 const isAddNewDrawerVisible = ref(false);
 
 // cash data
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    Прибыль: { color: "success", prepend: "+" },
+    Доход: { color: "success", prepend: "+" },
+    Убыток: { color: "error", prepend: "-" },
+    Расход: { color: "error", prepend: "-" },
+    Инкассация: { color: "primary", prepend: "-" },
+  };
+
+  return roleMap[status] || { color: "primary" };
+};
+
+const safe_data = ref({});
+onMounted(() => {
+  fetchOptions(`/safes/${route?.params?.id}`, safe_data, "safe");
+});
 
 const invoicesListMeta = computed(() => [
   {
     icon: "mdi-cash-minus",
     color: "error",
     title: "Общие затраты за период",
-    stats: metaDatas.value.total_sum,
+    stats: metaDatas.value.negative_sum,
+  },
+  {
+    icon: "mdi-cash-plus",
+    color: "success",
+    title: "Инкассации касс (наличные)",
+    stats: safe_data.value?.total_amount?.cash,
+  },
+  {
+    icon: "bx-credit-card",
+    color: "success",
+    title: "Инкассации касс (банк)",
+    stats: safe_data.value?.total_amount?.bank,
+  },
+  {
+    icon: "mdi-bank",
+    color: "primary",
+    title: "Общая инкассация",
+    stats: safe_data.value?.total_amount?.cash + safe_data.value?.total_amount?.bank,
   },
 ]);
 
-
-
 // Date period
-// const dateValue = ref();
-// const resetDate = () => {
-//   dateValue.value = getFormattedToday();
-// };
-// onMounted(() => {
-//   resetDate();
-// });
+const dateValue = ref();
+const resetDate = () => {
+  dateValue.value = getFormattedToday();
+};
+onMounted(() => {
+  resetDate();
+});
 
-// watch(dateValue, (newVal) => {
-//   const [from, to, ...other] = newVal.split(" — ");
+watch(dateValue, (newVal) => {
+  const [from, to, ...other] = newVal.split(" — ");
 
-//   state.value.params = {
-//     ...state.value.params,
-//     from_date: from,
-//     to_date: to || from,
-//   };
-// });
+  state.value.params = {
+    ...state.value.params,
+    from_date: from,
+    to_date: to || from,
+  };
+});
 </script>
 
 <template>
@@ -91,9 +133,11 @@ const invoicesListMeta = computed(() => [
           <VCardText>
             <VRow>
               <VCol cols="auto">
-                <VCardTitle class="pa-0"> Фильтры поиска </VCardTitle>
+                <VCardTitle class="pa-0">
+                  {{ safe_data?.branch?.name ?? "Филиал" }}
+                </VCardTitle>
               </VCol>
-              <!-- <VCol cols="12" sm="3">
+              <VCol cols="12" sm="3">
                 <AppDateTimePicker
                   v-model="dateValue"
                   :config="{ mode: 'range', locale: Uzbek }"
@@ -103,7 +147,7 @@ const invoicesListMeta = computed(() => [
                   @click:clear="resetDate"
                   density="compact"
                 />
-              </VCol> -->
+              </VCol>
               <VSpacer />
               <!-- 👉 Search  -->
               <!-- <VCol cols="12" sm="3">
@@ -132,9 +176,9 @@ const invoicesListMeta = computed(() => [
               <tr>
                 <th style="width: 48px">ID</th>
                 <th>ВРЕМЯ СОЗДАНИЯ</th>
-                <th>ФИЛИАЛ</th>
                 <th>СУММА</th>
                 <th>КОММЕНТАРИЙ</th>
+                <th>ТИП ТРАНЗАКЦИИ</th>
               </tr>
             </thead>
 
@@ -143,18 +187,26 @@ const invoicesListMeta = computed(() => [
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
-                @click="handleInfoDialogOpen(invoice.id)"
-                style="cursor: pointer"
               >
                 <td>{{ invoice.id }}</td>
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
-                <td>{{ invoice?.branch?.name ?? "Фергана" }}</td>
-                <td class="font-weight-black text-error">
-                  - {{ transformPrice(invoice.amount) }}
+                <td>
+                  <VChip
+                    :color="resolveInvoiceStatus(invoice.type).color"
+                    density="compact"
+                    label
+                    class="text-uppercase text-subtitle-1 font-weight-black"
+                  >
+                    {{ resolveInvoiceStatus(invoice.type).prepend }}
+                    {{ transformPrice(invoice.sum) }}
+                  </VChip>
                 </td>
 
                 <td>{{ invoice.comment }}</td>
-
+                <td>
+                  {{ invoice.payment_type ? `${invoice.payment_type} ➔ ` : ""
+                  }}{{ invoice.transaction_type?.translate }}
+                </td>
               </tr>
             </tbody>
 

@@ -52,19 +52,20 @@ const onSubmit = () => {
 };
 
 const handleDialogModelValueUpdate = (val) => {
+  sku_ref.value?.focus();
+  
   isDialogVisible.value = val;
-  payment_invoice.value = {};
-
+  
   if (val === false) {
     product_variant_sku.value = null;
     product_variant_data.value = null;
     product_variants.value = [];
-    refForm.value?.reset();
-    refForm.value?.resetValidation();
+    payment_invoice.value = {};
     nextTick(() => {
-      sku_ref.value?.focus();
+      refForm.value?.reset();
+      refForm.value?.resetValidation();
       const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
-      if (storageCashboxId) {
+      if (storageCashboxId && !cashbox_id.value) {
         cashbox_id.value = storageCashboxId;
       }
     });

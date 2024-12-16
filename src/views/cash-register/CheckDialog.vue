@@ -136,10 +136,10 @@ const hasSaleProduct = (item) => Number(item.sale);
   position: fixed;
   top: 0;
   left: 0;
-  // width: 1px;
-  // height: 1px;
-  // overflow: hidden;
-  // opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
 }
 
 .receipt {

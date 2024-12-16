@@ -32,7 +32,9 @@ const cashbox = computed(() => invoices.value[0]?.cashbox);
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
     Прибыль: { color: "success", prepend: "+" },
+    Доход: { color: "success", prepend: "+" },
     Убыток: { color: "error", prepend: "-" },
+    Расход: { color: "error", prepend: "-" },
     Инкассация: { color: "primary", prepend: "-" },
   };
 
@@ -42,7 +44,7 @@ const resolveInvoiceStatus = (status) => {
 const invoicesListMeta = computed(() => [
   {
     icon: "mdi-cash-multiple",
-    color: "primary",
+    color: "secondary",
     title: "Итоговая сумма в кассе",
     stats: cashbox.value?.remains,
   },
@@ -205,7 +207,6 @@ watch(dateValue, (newVal) => {
             <VPagination
               v-if="invoices.length"
               v-model="state.currentPage"
-              
               :length="totalPage"
             />
           </VCardText>

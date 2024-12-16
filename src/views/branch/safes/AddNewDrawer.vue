@@ -1,12 +1,11 @@
 <script setup>
+import { nextTick,  ref } from "vue";
+import { useRoute } from "vue-router";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
-import { nextTick, onMounted, ref } from "vue";
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import {
-  autoSelectInputValue,
-  fetchOptions,
   removeSpaces,
   transformPrice,
 } from "@/helpers";
@@ -20,12 +19,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:isDrawerVisible", "fetchDatas"]);
+const route = useRoute()
 
 const isPasswordVisible = ref(false);
 const isFetching = ref(false);
 const refForm = ref();
-const branch_id = ref(1);
 const amount = ref();
+const transaction_type = ref('cash')
 const comment = ref();
 const password = ref();
 
@@ -34,9 +34,9 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post(`/expenses`, {
-          branch_id: branch_id.value,
-          amount: removeSpaces(amount.value),
+        await axios.post(`/safes/${route?.params?.id}/outputs`, {
+          sum: removeSpaces(amount.value),
+          transaction_type: transaction_type.value,
           password: password.value,
           comment: comment.value,
         });
@@ -60,21 +60,12 @@ const handleDrawerModelValueUpdate = (val) => {
     nextTick(() => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
+      transaction_type.value = "cash"
     });
   }
 };
 
-const branches_list = ref([]);
-onMounted(async () => {
-  await fetchOptions("/branches", branches_list, "branches");
-  branch_id.value = 1;
-});
-watch(
-  () => props.isDrawerVisible,
-  () => {
-    if (branches_list.value) branch_id.value = 1;
-  }
-);
+
 </script>
 
 <template>
@@ -99,22 +90,16 @@ watch(
           <VForm ref="refForm" @submit.prevent="onSubmit" autocomplete="off">
             <VRow>
               <VCol cols="12">
-                <VAutocomplete
-                  v-model="branch_id"
-                  label="Выберите филиал"
-                  :items="branches_list"
-                  item-title="name"
-                  item-value="id"
-                />
-              </VCol>
-              <VCol cols="12">
                 <VTextField
                   v-model="amount"
                   label="Сумма"
+                  :model-value="transformPrice(amount, true)"
                   autofocus
-                  :value="transformPrice(amount, true)"
-                  @focus="autoSelectInputValue"
                 />
+                <VRadioGroup v-model="transaction_type" inline class="pt-2">
+                  <VRadio label="Наличные" value="cash" density="compact" />
+                  <VRadio label="Банк" value="bank" density="compact" />
+                </VRadioGroup>
               </VCol>
 
               <VCol cols="12">

@@ -120,8 +120,8 @@ export default [
       },
       {
         title: 'Расходы',
-        to: { name: 'Expenses' },
-        subject: 'Expenses',
+        to: { name: 'Safes' },
+        subject: 'Safes',
         action: 'show'
       },
     ]

@@ -99,7 +99,7 @@ watch(
       <VCardText v-show="!isFetchingStart">
         <VForm ref="refForm">
           <VRow>
-            <VCol cols="3">
+            <VCol cols="2">
               <VSelect
                 label="Выберите кассу"
                 :model-value="payment_invoice?.cashbox?.name"
@@ -112,6 +112,10 @@ watch(
               <h2>
                 Время Создания :
                 {{ formatTimestamp(payment_invoice?.created_at) }}
+              </h2>
+              <h2>
+                Кассир :
+                {{ payment_invoice?.user?.name }}
               </h2>
             </VCol>
 

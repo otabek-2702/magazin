@@ -180,13 +180,28 @@ const router = createRouter({
               },
             },
             {
-              path: "expenses",
-              name: "Expenses",
-              component: () => import("@/pages/branches/expenses.vue"),
-              meta: {
-                action: "show",
-                subject: "Expenses",
-              },
+              path: "safes",
+
+              children: [
+                {
+                  path: "",
+                  name: "Safes",
+                  component: () => import("@/pages/branches/safes/index.vue"),
+                  meta: {
+                    action: "show",
+                    subject: "Safes",
+                  },
+                },
+                {
+                  path: ":id",
+                  name: "SafeMovements",
+                  component: () => import("@/pages/branches/safes/[id].vue"),
+                  meta: {
+                    action: "show",
+                    subject: "Safes",
+                  },
+                },
+              ],
             },
           ],
         },
