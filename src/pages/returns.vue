@@ -62,10 +62,10 @@ const resolveInvoiceStatus = (status) => {
         <thead>
           <tr>
             <th style="width: 48px">ID</th>
+            <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
             <th>К-ВО ТОВАРОВ</th>
             <th>КАССА</th>
-            <th>ВРЕМЯ СОЗДАНИЯ</th>
           </tr>
         </thead>
 
@@ -78,19 +78,19 @@ const resolveInvoiceStatus = (status) => {
             style="cursor: pointer"
           >
             <td>{{ invoice.id }}</td>
+            <td>{{ formatTimestamp(invoice?.created_at) }}</td>
             <td>
               <VChip
-              :color="resolveInvoiceStatus(invoice.status).color"
-              density="compact"
-              label
-              class="text-uppercase"
+                :color="resolveInvoiceStatus(invoice.status).color"
+                density="compact"
+                label
+                class="text-uppercase"
               >
-              {{ invoice.status }}
-            </VChip>
-          </td>
-          <td>{{ invoice.full_qty }}</td>
-          <td>{{ invoice.cashbox.name }}</td>
-          <td>{{ formatTimestamp(invoice?.created_at) }}</td>
+                {{ invoice.status }}
+              </VChip>
+            </td>
+            <td>{{ invoice.full_qty }}</td>
+            <td>{{ invoice.cashbox.name }}</td>
           </tr>
         </tbody>
 
