@@ -43,16 +43,15 @@ const resolveInvoiceStatus = (status) => {
   return roleMap[status] || { color: "primary" };
 };
 
-const dateValue = ref();
+const dateValue = ref(getFormattedToday());
 const resetDate = () => {
   dateValue.value = getFormattedToday();
 };
-onMounted(() => {
-  resetDate();
-});
 
-watch(dateValue, (newVal) => {
-  const [from, to, ...other] = newVal.split(" — ");
+
+watch(dateValue, (newVal,oldValue) => {
+  if (newVal === oldValue) return;
+  const [from, to, ...other] = newVal?.split(" — ");
 
   state.value.params = {
     ...state.value.params,

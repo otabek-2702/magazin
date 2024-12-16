@@ -61,33 +61,32 @@ const invoicesListMeta = computed(() => [
     icon: "mdi-cash-plus",
     color: "success",
     title: "Инкассации касс (наличные)",
-    stats: safe_data.value?.total_amount?.cash,
+    stats: metaDatas.value?.positive_cash_sum,
   },
   {
     icon: "bx-credit-card",
     color: "success",
     title: "Инкассации касс (банк)",
-    stats: safe_data.value?.total_amount?.bank,
+    stats: metaDatas.value?.positive_bank_sum,
   },
   {
     icon: "mdi-bank",
     color: "primary",
     title: "Общая инкассация",
-    stats: safe_data.value?.total_amount?.cash + safe_data.value?.total_amount?.bank,
+    stats:
+    Number(metaDatas.value?.positive_cash_sum) + Number(metaDatas.value?.positive_bank_sum),
   },
 ]);
 
 // Date period
-const dateValue = ref();
+const dateValue = ref(getFormattedToday());
 const resetDate = () => {
   dateValue.value = getFormattedToday();
 };
-onMounted(() => {
-  resetDate();
-});
 
-watch(dateValue, (newVal) => {
-  const [from, to, ...other] = newVal.split(" — ");
+watch(dateValue, (newVal, oldValue) => {
+  if (newVal === oldValue) return;
+  const [from, to, ...other] = newVal?.split(" — ");
 
   state.value.params = {
     ...state.value.params,
@@ -184,10 +183,7 @@ watch(dateValue, (newVal) => {
 
             <!-- 👉 Table Body -->
             <tbody v-if="invoices?.length && !isFetching">
-              <tr
-                v-for="invoice in invoices"
-                :key="invoice.id"
-              >
+              <tr v-for="invoice in invoices" :key="invoice.id">
                 <td>{{ invoice.id }}</td>
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
                 <td>
