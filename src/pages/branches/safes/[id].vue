@@ -64,7 +64,7 @@ const invoicesListMeta = computed(() => [
     title: "Инкассации касс (наличные)",
     stats: metaDatas.value?.positive_cash_sum,
     subtitle: "Текущий: ",
-    substats: metaDatas.value?.safe?.total_amount.cash
+    substats: metaDatas.value?.safe?.total_amount.cash,
   },
   {
     icon: "bx-credit-card",
@@ -72,9 +72,8 @@ const invoicesListMeta = computed(() => [
     title: "Инкассации касс (банк)",
     stats: metaDatas.value?.positive_bank_sum,
     subtitle: "Текущий: ",
-    substats: metaDatas.value?.safe?.total_amount.bank
+    substats: metaDatas.value?.safe?.total_amount.bank,
   },
-
 ]);
 
 // Date period
@@ -178,10 +177,10 @@ watch(dateValue, (newVal, oldValue) => {
             <thead>
               <tr>
                 <th style="width: 48px">ID</th>
-                <th>ВРЕМЯ СОЗДАНИЯ</th>
                 <th>СУММА</th>
                 <th>КОММЕНТАРИЙ</th>
                 <th>ТИП ТРАНЗАКЦИИ</th>
+                <th>ВРЕМЯ СОЗДАНИЯ</th>
               </tr>
             </thead>
 
@@ -189,7 +188,6 @@ watch(dateValue, (newVal, oldValue) => {
             <tbody v-if="invoices?.length && !isFetching">
               <tr v-for="invoice in invoices" :key="invoice.id">
                 <td>{{ invoice.id }}</td>
-                <td>{{ formatTimestamp(invoice?.created_at) }}</td>
                 <td>
                   <VChip
                     :color="resolveInvoiceStatus(invoice.type).color"
@@ -207,6 +205,7 @@ watch(dateValue, (newVal, oldValue) => {
                   {{ invoice.payment_type ? `${invoice.payment_type} ➔ ` : ""
                   }}{{ invoice.transaction_type?.translate }}
                 </td>
+                <td>{{ formatTimestamp(invoice?.created_at) }}</td>
               </tr>
             </tbody>
 
