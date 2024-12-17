@@ -66,7 +66,7 @@ const hasSaleProduct = (item) => Number(item.sale);
           <div class="item">
             <div class="item-name">
               <b>{{ index + 1 }}.</b> <b>1{{ item.product_variant_id }}</b> |
-              {{ item.product_variant_name }}
+              {{ item.product_variant_name }} {{ item.is_promoted ? "*" : "" }}
             </div>
             <div class="item-details">
               <span

@@ -294,7 +294,7 @@ const reloadSales = () => {
     if (promoted_products_list.value?.includes(prod.product_variant_id)) {
       product_variants.value[index] = {
         ...product_variants.value[index],
-        promoted: true,
+        is_promoted: true,
       };
       promotedProductsCount += prod.quantity;
     }
@@ -319,9 +319,9 @@ const reloadSales = () => {
 
   // Distribute free products sale based on lowest price items first
   const sortedVariants = [...product_variants.value].sort((a, b) => {
-    if (a.promoted && !b.promoted) {
+    if (a.is_promoted && !b.is_promoted) {
       return -1;
-    } else if (!a.promoted && b.promoted) {
+    } else if (!a.is_promoted && b.is_promoted) {
       return 1;
     } else {
       // If both have the same promoted status, sort by original_price
@@ -332,7 +332,7 @@ const reloadSales = () => {
 
   for (let variant of sortedVariants) {
     if (remainingFreeProds <= 0) break;
-    if (!variant.promoted) continue;
+    if (!variant.is_promoted) continue;
 
     // Calculate how many free products can be taken from this variant
     const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
@@ -423,7 +423,7 @@ const reloadSales = () => {
                   >
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ variant.product_variant_name }}
+                      {{ variant.product_variant_name }} {{ variant.is_promoted ? "*" : "" }}
                     </td>
                     <td>{{ transformPrice(variant.original_price) }} so'm</td>
                     <td>
