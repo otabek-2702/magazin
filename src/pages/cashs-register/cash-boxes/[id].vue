@@ -6,6 +6,7 @@ import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
+import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
 
 const route = useRoute();
 const {
@@ -26,6 +27,8 @@ const {
 });
 
 const cashbox = computed(() => invoices.value[0]?.cashbox);
+
+const confirmId = ref(0);
 
 // cash data
 
@@ -75,7 +78,7 @@ const resetDate = () => {
   dateValue.value = getFormattedToday();
 };
 
-watch(dateValue, (newVal,oldValue) => {
+watch(dateValue, (newVal, oldValue) => {
   if (newVal === oldValue) return;
 
   const [from, to, ...other] = newVal?.split(" — ");
@@ -86,6 +89,8 @@ watch(dateValue, (newVal,oldValue) => {
     to_date: to || from,
   };
 });
+
+const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
 </script>
 
 <template>
@@ -120,9 +125,14 @@ watch(dateValue, (newVal,oldValue) => {
         </VCard>
       </VCol>
       <VCol cols="12">
-        <VCard :title="cashbox?.name ?? 'Kassa'">
+        <VCard>
           <VCardText>
             <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0">
+                  {{ cashbox?.name ?? "Касса №" }}
+                </VCardTitle>
+              </VCol>
               <VCol cols="12" sm="3">
                 <AppDateTimePicker
                   v-model="dateValue"
@@ -135,6 +145,16 @@ watch(dateValue, (newVal,oldValue) => {
                 />
               </VCol>
               <VSpacer />
+              <VCol cols="auto">
+                <VBtn
+                v-if="isVisible"
+                  color="success"
+                  prepend-icon="mdi-cash-multiple"
+                  class="font-weight-bold"
+                  @click="confirmId = route?.params?.id"
+                  >Инкассация
+                </VBtn>
+              </VCol>
               <VCol cols="auto">
                 <VBtn @click="isAddNewOutputDrawerVisible = true"
                   >Добавить Расход
@@ -217,6 +237,7 @@ watch(dateValue, (newVal,oldValue) => {
       @fetchDatas="() => fetchData(true)"
       :cashbox_id="parseInt(route?.params?.id)"
     />
+    <ConfirmDialog v-model:id="confirmId" @fetchDatas="() => fetchData(true)" />
   </section>
 </template>
 

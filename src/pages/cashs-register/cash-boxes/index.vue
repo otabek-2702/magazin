@@ -41,7 +41,7 @@ const openInfoPage = (id) => {
   });
 };
 
-const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
+const isVisible = localStorage.getItem("featuresAccessKey") == "Shadow_Key2024";
 </script>
 
 <template>
@@ -108,12 +108,12 @@ const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
                   }"
                 >
                   <VIcon
-                    @click.stop="confirmId = cash_box.id"
+                    v-if="isVisible"
                     size="30"
                     icon="mdi-cash-multiple"
                     color="success"
                     class="mx-2"
-                    v-if="isVisible"
+                    @click.stop="confirmId = cash_box.id"
                   ></VIcon>
                   <Can I="update" a="CashBoxes">
                     <VIcon
