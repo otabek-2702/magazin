@@ -66,7 +66,10 @@ const hasSaleProduct = (item) => Number(item.sale);
           <div class="item">
             <div class="item-name">
               <b>{{ index + 1 }}.</b> <b>1{{ item.product_variant_id }}</b> |
-              {{ item.product_variant_name }} {{ item.is_promoted ? "*" : "" }}
+              {{ item.product_variant_name }}
+              <span class="font-weight-black text-h5" style="color: #000;">{{
+                item.is_promoted ? "*" : ""
+              }}</span>
             </div>
             <div class="item-details">
               <span
@@ -136,10 +139,10 @@ const hasSaleProduct = (item) => Number(item.sale);
   position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
+  // width: 1px;
+  // height: 1px;
+  // overflow: hidden;
+  // opacity: 0;
 }
 
 .receipt {

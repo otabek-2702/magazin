@@ -423,7 +423,7 @@ const reloadSales = () => {
                   >
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ variant.product_variant_name }} {{ variant.is_promoted ? "*" : "" }}
+                      {{ variant.product_variant_name }} <span class="font-weight-black text-h5">{{ variant.is_promoted ? "*" : "" }}</span>
                     </td>
                     <td>{{ transformPrice(variant.original_price) }} so'm</td>
                     <td>

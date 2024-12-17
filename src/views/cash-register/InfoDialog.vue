@@ -154,7 +154,7 @@ watch(
                     <td>
                       {{ variant.product_variant_name }} ({{
                         variant.product_variant_sku
-                      }}) {{ variant.is_promoted ? "*" : "" }}
+                      }}) <span class="font-weight-black text-h5">{{ variant.is_promoted ? "*" : "" }}</span>
                     </td>
                     <td>{{ transformPrice(variant.original_price) }} so'm</td>
                     <td>{{ variant.quantity }}</td>
