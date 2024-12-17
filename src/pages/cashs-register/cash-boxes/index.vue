@@ -4,9 +4,9 @@ import AddNewDrawer from "@/views/cash-register/cash-box/AddNewDrawer.vue";
 import UpdateDrawer from "@/views/cash-register/cash-box/UpdateDrawer.vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import { useFetch } from "@/hooks/useFetch";
-import { transformPrice } from "@/helpers";
 import { useRouter } from "vue-router";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
+import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
 
 const router = useRouter();
 
@@ -25,6 +25,7 @@ const {
 
 const isAddNewDrawerVisible = ref(false);
 const isUpdateDrawerVisible = ref(false);
+const confirmId = ref(0);
 
 // Edit
 const updateID = ref(0);
@@ -32,29 +33,45 @@ const openEditDrawer = (id) => {
   updateID.value = id;
   isUpdateDrawerVisible.value = true;
 };
+
+const openInfoPage = (id) => {
+  router.push({
+    name: "CashBoxShow",
+    params: { id },
+  });
+};
+
+const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
 </script>
 
 <template>
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+        <VCard>
+          <VCardText>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Фильтры поиска </VCardTitle>
+              </VCol>
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="handleSearch"
-                :rules="[]"
-                placeholder="Поиск"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="CashBoxes">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить</VBtn>
-              </Can>
-            </VCol>
+              <VSpacer />
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="add" a="CashBoxes">
+                  <VBtn @click="isAddNewDrawerVisible = true">Добавить</VBtn>
+                </Can>
+              </VCol>
+            </VRow>
           </VCardText>
 
           <VDivider />
@@ -75,29 +92,32 @@ const openEditDrawer = (id) => {
                 :style="{ cursor: 'pointer' }"
                 v-for="cash_box in cash_boxes"
                 :key="cash_box.id"
-                @click="
-                  router.push({
-                    name: 'CashBoxShow',
-                    params: { id: cash_box.id },
-                  })
-                "
+                @click="openInfoPage(cash_box.id)"
               >
+                <template> </template>
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
                 <td class="overflow-hide">{{ cash_box.description }}</td>
-                <td><AnimatedNumber :number="(cash_box.remains)" /></td>
+                <td><AnimatedNumber :number="cash_box.remains" /></td>
                 <td
                   class="text-center"
-                  :style="{ width: '80px', zIndex: '10' }"
+                  :style="{
+                    width: '80px',
+                    position: 'relative',
+                    zIndex: '1000',
+                  }"
                 >
+                  <VIcon
+                    @click.stop="confirmId = cash_box.id"
+                    size="30"
+                    icon="mdi-cash-multiple"
+                    color="success"
+                    class="mx-2"
+                    v-if="isVisible"
+                  ></VIcon>
                   <Can I="update" a="CashBoxes">
                     <VIcon
-                      @click="
-                        (event) => {
-                          event.stopPropagation();
-                          openEditDrawer(cash_box.id);
-                        }
-                      "
+                      @click.stop="openEditDrawer(cash_box.id)"
                       size="30"
                       icon="bx-edit-alt"
                       style="color: rgb(var(--v-global-theme-primary))"
@@ -128,7 +148,6 @@ const openEditDrawer = (id) => {
             <VPagination
               v-if="cash_boxes.length"
               v-model="currentPage"
-              
               :length="totalPage"
             />
           </VCardText>
@@ -145,15 +164,8 @@ const openEditDrawer = (id) => {
       v-model:isDrawerOpen="isUpdateDrawerVisible"
       @fetchDatas="() => fetchData(true)"
     />
+    <ConfirmDialog v-model:id="confirmId" @fetchDatas="() => fetchData(true)" />
   </section>
 </template>
 
-<style lang="scss">
-.app-user-search-filter {
-  inline-size: 385px;
-}
-
-.text-capitalize {
-  text-transform: capitalize;
-}
-</style>
+<style lang="scss"></style>

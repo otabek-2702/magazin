@@ -59,7 +59,7 @@ const hasSaleProduct = (item) => Number(item.sale);
       <div class="items">
         <template
           v-for="(item, index) in props.paymentInvoice?.items?.sort(
-            (a, b) => a.original_price - b.original_price
+            (a, b) => a.price - b.price
           )"
           :key="index"
         >
@@ -67,18 +67,16 @@ const hasSaleProduct = (item) => Number(item.sale);
             <div class="item-name">
               <b>{{ index + 1 }}.</b> <b>1{{ item.product_variant_id }}</b> |
               {{ item.product_variant_name }}
-              <span class="font-weight-black text-h5" style="color: #000;">{{
+              <span class="font-weight-black text-h5" style="color: #000">{{
                 item.is_promoted ? "*" : ""
               }}</span>
             </div>
             <div class="item-details">
               <span
-                >{{ item.quantity }}x {{ transformPrice(item.original_price) }}
+                >{{ item.quantity }}x {{ transformPrice(item.price) }}
               </span>
               <span v-if="hasSaleProduct(item)">
-                <del>{{
-                  transformPrice(item.original_price * item.quantity)
-                }}</del>
+                <del>{{ transformPrice(item.original_full_price) }}</del>
                 {{ transformPrice(item.sell_price) }}</span
               >
               <span v-else>{{ transformPrice(item.sell_price) }}</span>
@@ -139,10 +137,10 @@ const hasSaleProduct = (item) => Number(item.sale);
   position: fixed;
   top: 0;
   left: 0;
-  // width: 1px;
-  // height: 1px;
-  // overflow: hidden;
-  // opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
 }
 
 .receipt {

@@ -113,7 +113,7 @@ const findProductVariant = async (raw_sku) => {
         product_variant_name: `${product.name} | ${color.name} | ${size.name} (${sku})`,
         amount_remainder: Number(quantity),
         sku,
-        original_price: Number(product.sell_price),
+        price: Number(product.sell_price),
         sell_price: Number(product.sell_price),
       };
     }
@@ -249,7 +249,7 @@ const calculateTotalPrice = computed(() => {
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) => accumulator + el.original_price * el.quantity ?? 0,
+      (accumulator, el) => accumulator + el.price * el.quantity ?? 0,
       0
     )
   );
@@ -271,7 +271,7 @@ const calculateTotalPriceWithSale = computed(() => {
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) =>
-        accumulator + (el.original_price * el.quantity - el.sale) ?? 0,
+        accumulator + (el.price * el.quantity - el.sale) ?? 0,
       0
     )
   );
@@ -324,8 +324,8 @@ const reloadSales = () => {
     } else if (!a.is_promoted && b.is_promoted) {
       return 1;
     } else {
-      // If both have the same promoted status, sort by original_price
-      return a.original_price - b.original_price;
+      // If both have the same promoted status, sort by price
+      return a.price - b.price;
     }
   });
   let remainingFreeProds = freeProdCount;
@@ -338,7 +338,7 @@ const reloadSales = () => {
     const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
 
     // Calculate sale amount for these free products
-    variant.sale = availableFreeProds * variant.original_price;
+    variant.sale = availableFreeProds * variant.price;
 
     // Reduce remaining free products
     remainingFreeProds -= availableFreeProds;
@@ -425,7 +425,7 @@ const reloadSales = () => {
                     <td>
                       {{ variant.product_variant_name }} <span class="font-weight-black text-h5">{{ variant.is_promoted ? "*" : "" }}</span>
                     </td>
-                    <td>{{ transformPrice(variant.original_price) }} so'm</td>
+                    <td>{{ transformPrice(variant.price) }} so'm</td>
                     <td>
                       <VTextField
                         v-model="variant.quantity"
@@ -447,7 +447,7 @@ const reloadSales = () => {
                       <b>
                         {{
                           transformPrice(
-                            variant.original_price * variant.quantity
+                            variant.price * variant.quantity
                           )
                         }}
                         so'm
@@ -461,7 +461,7 @@ const reloadSales = () => {
                       <b
                         >{{
                           transformPrice(
-                            variant.original_price * variant.quantity -
+                            variant.price * variant.quantity -
                               variant.sale
                           )
                         }}

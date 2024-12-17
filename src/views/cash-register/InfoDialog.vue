@@ -81,7 +81,6 @@ watch(
     }
   }
 );
-
 </script>
 
 <template>
@@ -154,17 +153,16 @@ watch(
                     <td>
                       {{ variant.product_variant_name }} ({{
                         variant.product_variant_sku
-                      }}) <span class="font-weight-black text-h5">{{ variant.is_promoted ? "*" : "" }}</span>
+                      }})
+                      <span class="font-weight-black text-h5">{{
+                        variant.is_promoted ? "*" : ""
+                      }}</span>
                     </td>
-                    <td>{{ transformPrice(variant.original_price) }} so'm</td>
+                    <td>{{ transformPrice(variant.price) }} so'm</td>
                     <td>{{ variant.quantity }}</td>
                     <td>
                       <b>
-                        {{
-                          transformPrice(
-                            Number(variant.original_price) * variant.quantity
-                          )
-                        }}
+                        {{ transformPrice(variant.original_full_price) }}
                         so'm
                       </b>
                     </td>
@@ -192,16 +190,30 @@ watch(
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая стоимость: <br />
-                      <b>{{ transformPrice(payment_invoice.original_total_amount) }} </b> so'm
+                      <b
+                        >{{
+                          transformPrice(payment_invoice.original_total_amount)
+                        }}
+                      </b>
+                      so'm
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая скидка: <br />
                       <b>{{ transformPrice(payment_invoice.items_sale) }} </b>
-                      {{ removeSpaces(payment_invoice.items_sale) ? "so'm" : "" }}
+                      {{
+                        removeSpaces(payment_invoice.items_sale) ? "so'm" : ""
+                      }}
                     </td>
                     <td class="text-body-1 pt-3">
                       Общая сумма: <br />
-                      <b>{{ transformPrice(removeSpaces(payment_invoice.total_amount) - removeSpaces(payment_invoice.sale)) }} </b>
+                      <b
+                        >{{
+                          transformPrice(
+                            removeSpaces(payment_invoice.total_amount) -
+                              removeSpaces(payment_invoice.sale)
+                          )
+                        }}
+                      </b>
                       SO'M
                     </td>
                     <td></td>

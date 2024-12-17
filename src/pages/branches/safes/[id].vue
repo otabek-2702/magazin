@@ -53,7 +53,7 @@ const invoicesListMeta = computed(() => [
     stats: metaDatas.value.negative_cash_sum,
   },
   {
-    icon: "bx-credit-card",
+    icon: "bx-credit-card-front",
     color: "error",
     title: "Общие затраты (банк)",
     stats: metaDatas.value.negative_bank_sum,
@@ -67,7 +67,7 @@ const invoicesListMeta = computed(() => [
     substats: metaDatas.value?.safe?.total_amount.cash,
   },
   {
-    icon: "bx-credit-card",
+    icon: "bx-credit-card-front",
     color: "success",
     title: "Инкассации касс (банк)",
     stats: metaDatas.value?.positive_bank_sum,

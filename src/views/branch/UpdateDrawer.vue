@@ -1,10 +1,10 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, ref, watch } from 'vue';
-import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
-import { VProgressCircular } from 'vuetify/components';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, ref, watch } from "vue";
+import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
+import { VProgressCircular } from "vuetify/components";
 
 const props = defineProps({
   isDrawerOpen: {
@@ -17,7 +17,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
+const emit = defineEmits(["update:isDrawerOpen", "fetchDatas"]);
 const isFetching = ref(false);
 const isFetchingStart = ref(true);
 const isFormValid = ref(false);
@@ -35,16 +35,14 @@ const onSubmit = () => {
           address: address.value,
         });
         if (response.status == 200) {
-          emit('fetchDatas');
-          toast('Успешно', {
-            
-            type: 'success',
-            
+          emit("fetchDatas");
+          toast("Успешно", {
+            type: "success",
           });
           handleDrawerUpdate(false);
         }
       } catch (error) {
-        console.error('Ошибка:', error);
+        console.error("Ошибка:", error);
       } finally {
         isFetching.value = false;
       }
@@ -53,7 +51,7 @@ const onSubmit = () => {
 };
 
 const handleDrawerUpdate = (val) => {
-  emit('update:isDrawerOpen', val);
+  emit("update:isDrawerOpen", val);
   if (!val) {
     nextTick(() => {
       refForm.value?.reset();
@@ -72,7 +70,7 @@ const fetchDataById = async () => {
     name.value = branch.name;
     address.value = branch.address;
   } catch (error) {
-    console.error('Ошибка:', error);
+    console.error("Ошибка:", error);
   } finally {
     isFetchingStart.value = false;
   }
@@ -80,7 +78,7 @@ const fetchDataById = async () => {
 
 watch(
   () => props.isDrawerOpen,
-  (newVal) => newVal && fetchDataById(),
+  (newVal) => newVal && fetchDataById()
 );
 </script>
 
@@ -121,7 +119,12 @@ watch(
               </VCol>
               <!-- 👉 Кнопки отправки и отмены -->
               <VCol cols="12">
-                <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
+                <VBtn
+                  :loading="isFetching"
+                  :disabled="isFetching"
+                  type="submit"
+                  class="me-3"
+                >
                   Отправить
                 </VBtn>
                 <VBtn
@@ -136,8 +139,14 @@ watch(
             </VRow>
           </VForm>
 
-          <div v-if="isFetchingStart" class="d-flex h-screen align-center justify-center">
-            <VProgressCircular color="primary" indeterminate></VProgressCircular>
+          <div
+            v-if="isFetchingStart"
+            class="d-flex h-screen align-center justify-center"
+          >
+            <VProgressCircular
+              color="primary"
+              indeterminate
+            ></VProgressCircular>
           </div>
         </VCardText>
       </VCard>
