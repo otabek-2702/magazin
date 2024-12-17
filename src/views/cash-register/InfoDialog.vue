@@ -108,7 +108,7 @@ watch(
               />
             </VCol>
 
-            <VCol cols="6" class="d-flex align-center gap-6">
+            <VCol cols="7" class="d-flex align-center gap-6">
               <h2>
                 Время Создания :
                 {{ formatTimestamp(payment_invoice?.created_at) }}

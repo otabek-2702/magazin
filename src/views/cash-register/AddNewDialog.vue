@@ -53,9 +53,9 @@ const onSubmit = () => {
 
 const handleDialogModelValueUpdate = (val) => {
   sku_ref.value?.focus();
-  
+
   isDialogVisible.value = val;
-  
+
   if (val === false) {
     product_variant_sku.value = null;
     product_variant_data.value = null;
@@ -278,15 +278,30 @@ const calculateTotalPriceWithSale = computed(() => {
 });
 
 const sellers_list = ref([]);
+const promoted_products_list = ref([]);
 const isFetchingSellers = ref(false);
 onMounted(() => {
+  fetchOptions("product_variants/promotions", promoted_products_list, null);
   fetchOptions("persons", sellers_list, "persons");
 });
 
 // Aksiya
 const reloadSales = () => {
-  return;
-  if (calculateCount.value < 3) {
+  // return;
+  let promotedProductsCount = 0;
+
+  product_variants.value?.forEach((prod, index) => {
+    if (promoted_products_list.value?.includes(prod.product_variant_id)) {
+      product_variants.value[index] = {
+        ...product_variants.value[index],
+        promoted: true,
+      };
+      promotedProductsCount += prod.quantity;
+    }
+  });
+
+  // return;
+  if (promotedProductsCount < 3) {
     // Reset sales if total count is less than 3
     product_variants.value.forEach((variant) => {
       variant.sale = 0;
@@ -295,7 +310,7 @@ const reloadSales = () => {
   }
 
   // Calculate free products (total count divided by 3)
-  const freeProdCount = Math.floor(calculateCount.value / 3);
+  const freeProdCount = Math.floor(promotedProductsCount / 3);
 
   // Reset all sales first
   product_variants.value.forEach((variant) => {
@@ -303,13 +318,21 @@ const reloadSales = () => {
   });
 
   // Distribute free products sale based on lowest price items first
-  const sortedVariants = [...product_variants.value].sort(
-    (a, b) => a.original_price - b.original_price
-  );
+  const sortedVariants = [...product_variants.value].sort((a, b) => {
+    if (a.promoted && !b.promoted) {
+      return -1;
+    } else if (!a.promoted && b.promoted) {
+      return 1;
+    } else {
+      // If both have the same promoted status, sort by original_price
+      return a.original_price - b.original_price;
+    }
+  });
   let remainingFreeProds = freeProdCount;
 
   for (let variant of sortedVariants) {
     if (remainingFreeProds <= 0) break;
+    if (!variant.promoted) continue;
 
     // Calculate how many free products can be taken from this variant
     const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
