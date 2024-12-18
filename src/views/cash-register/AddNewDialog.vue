@@ -286,7 +286,7 @@ onMounted(() => {
 
 // Aksiya
 const reloadSales = () => {
-  // return;
+  return;
   let promotedProductsCount = 0;
 
   product_variants.value?.forEach((prod, index) => {
