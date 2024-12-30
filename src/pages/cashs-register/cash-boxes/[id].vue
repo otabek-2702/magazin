@@ -7,10 +7,8 @@ import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
-import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
 const route = useRoute();
-const { can } = useAppAbility();
 
 const {
   state,
@@ -93,7 +91,8 @@ watch(dateValue, (newVal, oldValue) => {
   };
 });
 const isVisible =
-  !!localStorage.getItem("featureAccess") || can("manage", "all");
+  !!localStorage.getItem("featureAccess") ||
+  JSON.parse(localStorage.getItem("userData"))?.user_id === 1;
 </script>
 
 <template>

@@ -7,10 +7,9 @@ import { useFetch } from "@/hooks/useFetch";
 import { useRouter } from "vue-router";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
-import { useAppAbility } from "@/plugins/casl/useAppAbility";
+import { watchEffect } from "vue";
 
 const router = useRouter();
-const { can } = useAppAbility();
 
 const {
   items: cash_boxes,
@@ -44,7 +43,8 @@ const openInfoPage = (id) => {
 };
 
 const isVisible =
-  !!localStorage.getItem("featureAccess") || can("manage", "all");
+  !!localStorage.getItem("featureAccess") ||
+  JSON.parse(localStorage.getItem("userData"))?.user_id === 1;
 </script>
 
 <template>
