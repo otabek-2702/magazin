@@ -7,8 +7,11 @@ import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
 const route = useRoute();
+const { can } = useAppAbility();
+
 const {
   state,
   items: invoices,
@@ -89,8 +92,8 @@ watch(dateValue, (newVal, oldValue) => {
     to_date: to || from,
   };
 });
-
-const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
+const isVisible =
+  !!localStorage.getItem("featureAccess") || can("manage", "all");
 </script>
 
 <template>
@@ -147,7 +150,7 @@ const isVisible = localStorage.getItem('featuresAccessKey') == 'Shadow_Key2024'
               <VSpacer />
               <VCol cols="auto">
                 <VBtn
-                v-if="isVisible"
+                  v-if="isVisible"
                   color="success"
                   prepend-icon="mdi-cash-multiple"
                   class="font-weight-bold"
