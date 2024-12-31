@@ -35,7 +35,7 @@ const isAddNewDrawerVisible = ref(false);
 // cash data
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    Прибыль: { color: "success", prepend: "+" },
+    Прибыл: { color: "success", prepend: "+" },
     Доход: { color: "success", prepend: "+" },
     Убыток: { color: "error", prepend: "-" },
     Расход: { color: "error", prepend: "-" },
