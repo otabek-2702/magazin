@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
@@ -287,7 +287,7 @@ onMounted(() => {
 
 // Aksiya
 const reloadSales = () => {
-  return;
+  // return;
   let promotedProductsCount = 0;
 
   product_variants.value?.forEach((prod, index) => {
