@@ -5,6 +5,3 @@ dist/
 *.lock
 *.log
 *.lockb
-
-# local datas
-src/assets/data/*.data.json
