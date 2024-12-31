@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
