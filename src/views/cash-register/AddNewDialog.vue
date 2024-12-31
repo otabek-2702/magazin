@@ -1,9 +1,10 @@
 <script setup>
-import { nextTick, onMounted, ref, watch, watchEffect } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import ConfirmDialog from "./ConfirmDialog.vue";
+import promoted_products_list from "@/assets/data/promoted_products_list.data.json";
 
 const emit = defineEmits(["fetchDatas"]);
 
@@ -278,10 +279,8 @@ const calculateTotalPriceWithSale = computed(() => {
 });
 
 const sellers_list = ref([]);
-const promoted_products_list = ref([]);
 const isFetchingSellers = ref(false);
 onMounted(() => {
-  fetchOptions("product_variants/promotions", promoted_products_list, null);
   fetchOptions("persons", sellers_list, "persons");
 });
 
@@ -291,7 +290,7 @@ const reloadSales = () => {
   let promotedProductsCount = 0;
 
   product_variants.value?.forEach((prod, index) => {
-    if (promoted_products_list.value?.includes(prod.product_variant_id)) {
+    if (promoted_products_list?.includes(prod.product_variant_id)) {
       product_variants.value[index] = {
         ...product_variants.value[index],
         is_promoted: true,
@@ -423,7 +422,10 @@ const reloadSales = () => {
                   >
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ variant.product_variant_name }} <span class="font-weight-black text-h5">{{ variant.is_promoted ? "*" : "" }}</span>
+                      {{ variant.product_variant_name }}
+                      <span class="font-weight-black text-h5">{{
+                        variant.is_promoted ? "*" : ""
+                      }}</span>
                     </td>
                     <td>{{ transformPrice(variant.price) }} so'm</td>
                     <td>
@@ -445,11 +447,7 @@ const reloadSales = () => {
                     </td>
                     <td>
                       <b>
-                        {{
-                          transformPrice(
-                            variant.price * variant.quantity
-                          )
-                        }}
+                        {{ transformPrice(variant.price * variant.quantity) }}
                         so'm
                       </b>
                     </td>
@@ -461,8 +459,7 @@ const reloadSales = () => {
                       <b
                         >{{
                           transformPrice(
-                            variant.price * variant.quantity -
-                              variant.sale
+                            variant.price * variant.quantity - variant.sale
                           )
                         }}
                         so'm</b
