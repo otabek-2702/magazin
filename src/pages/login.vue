@@ -1,20 +1,17 @@
 <script setup>
-import { VForm } from "vuetify/components/VForm";
-import { useGenerateImageVariant } from "@/@core/composable/useGenerateImageVariant";
-import { useAppAbility } from "@/plugins/casl/useAppAbility";
+import { VForm } from 'vuetify/components/VForm';
+import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant';
+import { useAppAbility } from '@/plugins/casl/useAppAbility';
 // eslint-disable-next-line import/no-duplicates
-import axios from "@axios";
-import boyWithRocketDark from "@images/illustrations/boy-with-rocket-dark.png";
-import boyWithRocketLight from "@images/illustrations/boy-with-rocket-light.png";
-import { VNodeRenderer } from "@layouts/components/VNodeRenderer";
-import { themeConfig } from "@themeConfig";
-import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import axios from '@axios';
+import boyWithRocketDark from '@images/illustrations/boy-with-rocket-dark.png';
+import boyWithRocketLight from '@images/illustrations/boy-with-rocket-light.png';
+import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
+import { themeConfig } from '@themeConfig';
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-const boyWithRocket = useGenerateImageVariant(
-  boyWithRocketLight,
-  boyWithRocketDark
-);
+const boyWithRocket = useGenerateImageVariant(boyWithRocketLight, boyWithRocketDark);
 const isPasswordVisible = ref(false);
 const route = useRoute();
 const router = useRouter();
@@ -32,37 +29,33 @@ const error = ref(false);
 
 const login = () => {
   axios
-    .post("/auth/login", {
+    .post('/auth/login', {
       login: username.value,
       password: password.value,
     })
-    .then(async (r) => {
+    .then((r) => {
       const { access_token, permissions, role, full_name } = r.data;
-      const response = await axios.post("/auth/me", null, {
-        headers: { Authorization: `Bearer ${access_token}` },
-      });
 
       const datas = {
         role: role,
         full_name: full_name,
-        user_id: response.data?.id,
       };
 
       let userAbilities = permissions.map((item) => {
-        const [action, subject] = item.split("-");
+        const [action, subject] = item.split('-');
         return {
           action: action,
           subject: subject,
         };
       });
 
-      localStorage.setItem("userAbilities", JSON.stringify(userAbilities));
+      localStorage.setItem('userAbilities', JSON.stringify(userAbilities));
       ability.update(userAbilities);
-      localStorage.setItem("userData", JSON.stringify(datas));
-      localStorage.setItem("accessToken", access_token);
+      localStorage.setItem('userData', JSON.stringify(datas));
+      localStorage.setItem('accessToken', access_token);
 
       // Redirect to `to` query if exist or redirect to index route
-      router.replace(route.query.to ? String(route.query.to) : "/");
+      router.replace(route.query.to ? String(route.query.to) : '/');
     })
     .catch((e) => {
       error.value = true;
@@ -83,11 +76,7 @@ const onSubmit = () => {
       <!-- иллюстрация -->
       <div class="position-relative w-100 pa-8">
         <div class="d-flex align-center justify-center w-100 h-100">
-          <VImg
-            max-width="700"
-            :src="boyWithRocket"
-            class="auth-illustration"
-          />
+          <VImg max-width="700" :src="boyWithRocket" class="auth-illustration" />
         </div>
       </div>
     </VCol>
@@ -156,7 +145,7 @@ const onSubmit = () => {
 </template>
 
 <style lang="scss">
-@use "@core/scss/template/pages/page-auth.scss";
+@use '@core/scss/template/pages/page-auth.scss';
 </style>
 
 <route lang="yaml">
