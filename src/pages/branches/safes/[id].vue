@@ -36,7 +36,7 @@ const isAddNewDrawerVisible = ref(false);
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
     Прибыл: { color: "success", prepend: "+" },
-    Доход: { color: "success", prepend: "+" },
+    Приход: { color: "success", prepend: "+" },
     Убыток: { color: "error", prepend: "-" },
     Расход: { color: "error", prepend: "-" },
     Инкассация: { color: "primary", prepend: "-" },
