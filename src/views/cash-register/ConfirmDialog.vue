@@ -10,6 +10,8 @@ import { computed, onMounted, watch } from "vue";
 import { toast } from "vue3-toastify";
 import CheckDialog from "./CheckDialog.vue";
 import { nextTick } from "vue";
+import { ref } from "vue";
+import { requiredValidator } from "@/@core/utils/validators";
 
 const props = defineProps({
   paymentInvoice: {
@@ -43,7 +45,7 @@ const onConfirm = async () => {
       `/payment_invoices/confirm/${props.paymentInvoice?.id}`,
       {
         payments: multi_prices.value.map((el) => ({
-          ...el,
+          type_id: el.type_id,
           price: removeSpaces(el.price),
         })),
         sale: removeSpaces(sale_price.value),
@@ -157,10 +159,22 @@ const totalAmountEquality = computed(() => {
   return false;
 });
 
+const duplicatePaymentType = computed(() => {
+  const typeIds = multi_prices.value.map((el) => el.type_id).filter((el) => el);
+  return new Set(typeIds).size !== typeIds.length;
+});
+
+const reValidate = () => {
+  nextTick(() => {
+    refForm.value?.validate();
+  });
+};
+watch([duplicatePaymentType, totalAmountEquality], () => reValidate());
+
 const addMultiPrice = () => {
   if (maxMultiPrice.value) return;
 
-  multi_prices.value.push({ type_id: null, price: null });
+  multi_prices.value.push({ type_id: null, price: "" });
   nextTick(() => {
     refForm.value.validate();
   });
@@ -172,20 +186,39 @@ const deleteMultiPrice = (index) => {
   multi_prices.value?.splice(index, 1);
 };
 
-// helper with multi price
-watch(
-  multi_prices,
-  (newVal) => {
+const calculateSecondPrice = (index) => {
+  if (payment_types_list.value?.length === index + 1) return;
+  let price = transformPrice(
+    removeSpaces(totalPriceWithSale.value) -
+      multi_prices.value.reduce(
+        (accumulator, el, i) =>
+          accumulator + (i <= index ? removeSpaces(el.price) : 0),
+        0
+      )
+  );
+
+  if (!multi_prices.value[index + 1]) {
+    multi_prices.value.push({
+      type_id: null,
+      price,
+    });
     refForm.value?.validate();
-    if (multi_prices.value?.length === 2) {
-      multi_prices.value[1].price = transformPrice(
-        removeSpaces(totalPriceWithSale.value) -
-          removeSpaces(multi_prices.value[0].price)
-      );
-    }
-  },
-  { deep: true }
-);
+    return;
+  }
+  multi_prices.value[index + 1].price = price;
+  refForm.value?.validate();
+};
+
+const resetValidation = (e) => {
+  nextTick(() => {
+    refForm.value?.validate();
+  });
+};
+watch(duplicatePaymentType, () => resetValidation());
+
+watch(totalPriceWithSale, (newVal) => {
+  if ((multi_prices.value.length = 1)) multi_prices.value[0].price = transformPrice(newVal);
+});
 </script>
 
 <template>
@@ -226,33 +259,38 @@ watch(
             </VCol>
 
             <template v-for="(multi_price, index) in multi_prices">
-              <VCol cols="4">
+              <VCol cols="5">
                 <VSelect
                   v-model="multi_price.type_id"
                   label="Способ оплаты"
                   :items="payment_types_list"
                   item-title="name"
                   item-value="id"
+                  :rules="[
+                    () => !duplicatePaymentType || 'Дублирование типов оплаты',
+                    (v) => !!v || 'Заполните поле',
+                  ]"
                 />
               </VCol>
-              <VCol cols="7">
+              <VCol cols="6">
                 <VTextField
                   v-model="multi_price.price"
+                  :ref="multi_price.ref"
                   @update:model-value="
                     multi_price.price = transformPrice(multi_price.price, true)
                   "
                   label="Введите сумму "
                   @focus="autoSelectInputValue"
                   :rules="[() => !totalAmountEquality || '']"
-                  @keydown.enter.prevent="addMultiPrice"
+                  @keydown.enter.prevent="calculateSecondPrice(index)"
                 />
               </VCol>
               <VCol
                 cols="1"
-                class="d-flex justify-center align-center pa-0 cursor-pointer flex-wrap"
+                class="d-flex justify-center pa-0 pt-5 cursor-pointer"
               >
                 <VIcon
-                  size="40"
+                  size="35"
                   icon="bx-x"
                   :color="multi_prices?.length > 1 ? 'error' : 'secondary'"
                   :class="{ 'disabled-opacity': !multi_prices?.length }"
@@ -340,5 +378,10 @@ watch(
 <style lang="scss" scoped>
 .disabled-opacity {
   opacity: 0.6;
+}
+
+.clickable-icon {
+  cursor: pointer;
+  color: var(--v-primary-base); /* Use primary theme color */
 }
 </style>
