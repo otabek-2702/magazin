@@ -9,6 +9,7 @@ import axios from "@/plugins/axios";
 import { computed, onMounted, watch } from "vue";
 import { toast } from "vue3-toastify";
 import CheckDialog from "./CheckDialog.vue";
+import { nextTick } from "vue";
 
 const props = defineProps({
   paymentInvoice: {
@@ -41,7 +42,10 @@ const onConfirm = async () => {
     const response = await axios.post(
       `/payment_invoices/confirm/${props.paymentInvoice?.id}`,
       {
-        payment_type_id: payment_type.value,
+        payments: multi_prices.value.map((el) => ({
+          ...el,
+          price: removeSpaces(el.price),
+        })),
         sale: removeSpaces(sale_price.value),
       }
     );
@@ -66,7 +70,7 @@ const onConfirm = async () => {
 // Calculator
 const calculate = computed(() => {
   const trimmedPrice = removeSpaces(totalPriceWithSale.value);
-  const givenPrice = removeSpaces(input_price.value);
+  const givenPrice = removeSpaces(totalMultiPrice.value);
 
   return {
     sdacha:
@@ -78,6 +82,10 @@ const calculate = computed(() => {
 
 const handleDialogModelValueUpdate = (val) => {
   isDialogVisible.value = !!val;
+
+  if (val) {
+    multi_prices.value[0].price = transformPrice(totalPriceWithSale.value);
+  }
 
   if (!val) {
     nextTick(() => {
@@ -124,14 +132,65 @@ onMounted(() => fetchOptions("payment_types", payment_types_list, null));
 watch(
   () => props.paymentInvoice,
   () => {
-    invoice_status.value.draft && handleDialogModelValueUpdate(true);
+    if (invoice_status.value?.draft) {
+      handleDialogModelValueUpdate(true);
+    }
   }
+);
+
+// Multi Price
+const multi_prices = ref([{ type_id: null, price: null }]);
+
+const maxMultiPrice = computed(
+  () => multi_prices.value.length >= payment_types_list.value?.length
+);
+
+const totalMultiPrice = computed(() =>
+  multi_prices.value.reduce(
+    (accumulator, el) => accumulator + removeSpaces(el.price),
+    0
+  )
+);
+const totalAmountEquality = computed(() => {
+  if (totalMultiPrice.value > totalPriceWithSale.value) return "больше";
+  if (totalMultiPrice.value < totalPriceWithSale.value) return "меньше";
+  return false;
+});
+
+const addMultiPrice = () => {
+  if (maxMultiPrice.value) return;
+
+  multi_prices.value.push({ type_id: null, price: null });
+  nextTick(() => {
+    refForm.value.validate();
+  });
+};
+
+const deleteMultiPrice = (index) => {
+  if (multi_prices.value.length === 1) return;
+
+  multi_prices.value?.splice(index, 1);
+};
+
+// helper with multi price
+watch(
+  multi_prices,
+  (newVal) => {
+    refForm.value?.validate();
+    if (multi_prices.value?.length === 2) {
+      multi_prices.value[1].price = transformPrice(
+        removeSpaces(totalPriceWithSale.value) -
+          removeSpaces(multi_prices.value[0].price)
+      );
+    }
+  },
+  { deep: true }
 );
 </script>
 
 <template>
   <VDialog
-    :width="$vuetify.display.smAndDown ? 'auto' : 500"
+    :width="$vuetify.display.smAndDown ? 'auto' : 600"
     v-model="isDialogVisible"
   >
     <!-- Dialog Activator -->
@@ -156,8 +215,8 @@ watch(
         <VCardTitle class="text-h5">Подтверждение</VCardTitle>
       </VCardItem>
 
-      <VCardText>
-        <VForm ref="refForm">
+      <VCardText class="px-0">
+        <VForm ref="refForm" @submit.prevent="onConfirm">
           <VRow>
             <VCol cols="12">
               <h3 class="text-secondary">
@@ -165,28 +224,65 @@ watch(
                 {{ transformPrice(props.paymentInvoice?.total_amount) }} so'm
               </h3>
             </VCol>
-            <VCol cols="12">
-              <VTextField
-                v-model="input_price"
-                :value="transformPrice(input_price, true)"
-                label="Введите сумму "
-                :rules="[]"
-                autofocus
+
+            <template v-for="(multi_price, index) in multi_prices">
+              <VCol cols="4">
+                <VSelect
+                  v-model="multi_price.type_id"
+                  label="Способ оплаты"
+                  :items="payment_types_list"
+                  item-title="name"
+                  item-value="id"
+                />
+              </VCol>
+              <VCol cols="7">
+                <VTextField
+                  v-model="multi_price.price"
+                  @update:model-value="
+                    multi_price.price = transformPrice(multi_price.price, true)
+                  "
+                  label="Введите сумму "
+                  @focus="autoSelectInputValue"
+                  :rules="[() => !totalAmountEquality || '']"
+                  @keydown.enter.prevent="addMultiPrice"
+                />
+              </VCol>
+              <VCol
+                cols="1"
+                class="d-flex justify-center align-center pa-0 cursor-pointer flex-wrap"
+              >
+                <VIcon
+                  size="40"
+                  icon="bx-x"
+                  :color="multi_prices?.length > 1 ? 'error' : 'secondary'"
+                  :class="{ 'disabled-opacity': !multi_prices?.length }"
+                  @click="deleteMultiPrice(index)"
+                />
+              </VCol>
+            </template>
+            <VCol cols="12" class="py-0" v-if="totalAmountEquality">
+              <p class="text-error mb-0">
+                Общая сумма оплаты <b>{{ totalAmountEquality }}</b> суммы по
+                выбранным методам оплаты. Проверьте суммы!
+              </p>
+            </VCol>
+            <VCol
+              cols="12"
+              class="d-flex align-center pa-0 pr-1"
+              v-if="!maxMultiPrice"
+            >
+              <VSpacer />
+
+              <VIcon
+                size="40"
+                icon="mdi-chevron-down"
+                color="success"
+                @click="addMultiPrice"
               />
             </VCol>
-
             <VCol cols="12">
               <h3>Сдача: {{ calculate.sdacha }} so'm</h3>
               <h3>Доплата: {{ calculate.doljen }} so'm</h3>
-            </VCol>
-            <VCol cols="12">
-              <VSelect
-                v-model="payment_type"
-                label="Выберите способ оплаты"
-                :items="payment_types_list"
-                item-title="name"
-                item-value="id"
-              />
             </VCol>
             <VCol cols="12">
               <VTextField
@@ -215,7 +311,6 @@ watch(
               </VBtn>
               <VBtn
                 color="success"
-                @click="onConfirm"
                 type="submit"
                 :disabled="isFetching"
                 :loading="isFetching"
@@ -237,9 +332,13 @@ watch(
   /> -->
   <CheckDialog
     v-if="props.paymentInvoice"
-    :salePrice="removeSpaces(sale_price)"
+    :salePrice="removeSpaces(sale_price).toString()"
     :paymentInvoice="props.paymentInvoice"
   />
 </template>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.disabled-opacity {
+  opacity: 0.6;
+}
+</style>

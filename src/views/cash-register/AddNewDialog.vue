@@ -51,8 +51,14 @@ const onSubmit = () => {
 };
 
 const handleDialogModelValueUpdate = (val) => {
-  sku_ref.value?.focus();
-
+  if (val) {
+    // Multiple attempts to focus with increasing delays
+    setTimeout(() => {
+      nextTick(() => {
+        sku_ref.value?.focus();
+      });
+    }, 300);
+  }
   isDialogVisible.value = val;
 
   if (val === false) {
@@ -135,11 +141,6 @@ const findProductVariant = async (raw_sku) => {
   addToList();
   product_variant_sku.value = null;
 };
-
-// Autofocus
-watch(isDialogVisible, () => {
-  if (isDialogVisible) nextTick(() => sku_ref.value?.focus());
-});
 
 // Add
 const addToList = () => {

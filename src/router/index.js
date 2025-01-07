@@ -289,7 +289,8 @@ router.beforeEach((to, from, next) => {
 
     if (!isLoggedIn) {
       // Если пользователь не аутентифицирован, перенаправляем на страницу входа
-      return next({ name: "Login" });
+
+      return next({ name: "Login", query: { to: to.path.slice(1) ?? "" } });
     }
   }
 
