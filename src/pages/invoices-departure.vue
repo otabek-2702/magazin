@@ -1,12 +1,13 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/invoice-departure/InfoDialog.vue';
-import AddNewDialog from '@/views/invoice-departure/AddNewDialog.vue';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import InfoDialog from "@/views/invoice-departure/InfoDialog.vue";
+import AddNewDialog from "@/views/invoice-departure/AddNewDialog.vue";
+import { formatTimestamp } from "@/helpers";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -21,7 +22,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -29,19 +31,19 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/stock_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/stock_movement_invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    invoices.value = data['stock_movement_invoices'];
+    invoices.value = data["stock_movement_invoices"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки :', error);
+    console.error("Ошибка загрузки :", error);
   } finally {
     isFetching.value = false;
   }
@@ -56,12 +58,11 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
 });
-
 
 onMounted(() => {
   fetchData();
@@ -85,8 +86,11 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = invoices.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = invoices.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -103,12 +107,12 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    Черновик: { color: 'primary' },
-    Отклонено: { color: 'secondary' },
-    Подтверждено: { color: 'success' },
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
   };
 
-  return roleMap[status] || { color: 'primary' };
+  return roleMap[status] || { color: "primary" };
 };
 </script>
 
@@ -144,6 +148,7 @@ const resolveInvoiceStatus = (status) => {
                 <th>СТАТУС</th>
                 <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
                 <th>К-ВО ТОВАРОВ</th>
+                <th>ДАТА СОЗДАНИЯ</th>
               </tr>
             </thead>
 
@@ -168,13 +173,16 @@ const resolveInvoiceStatus = (status) => {
                 </td>
                 <td>{{ invoice.to_branch.name }}</td>
                 <td>{{ invoice.full_qty }}</td>
+                <td>{{ formatTimestamp(invoice.updated_at) }}</td>
               </tr>
             </tbody>
-            <Skeleton :count="4" v-show="isFetching" />
+            <Skeleton :count="5" v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>
-                <td colspan="15" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="15" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -189,7 +197,6 @@ const resolveInvoiceStatus = (status) => {
             <VPagination
               v-if="invoices.length"
               v-model="currentPage"
-              
               :length="totalPage"
             />
           </VCardText>

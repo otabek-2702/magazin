@@ -1,13 +1,13 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import InfoDialog from '@/views/invoice/InfoDialog.vue';
-import AddNewDialog from '@/views/invoice/AddNewDialog.vue';
-import { transformPrice } from '@/helpers';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import InfoDialog from "@/views/invoice/InfoDialog.vue";
+import AddNewDialog from "@/views/invoice/AddNewDialog.vue";
+import { formatTimestamp, transformPrice } from "@/helpers";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -22,7 +22,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -30,26 +31,25 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/invoices?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    invoices.value = data['invoices'];
+    invoices.value = data["invoices"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки :', error);
+    console.error("Ошибка загрузки :", error);
   } finally {
     isFetching.value = false;
   }
 };
 
 // Get main datas end
-
 
 // search
 const searchElements = () => {
@@ -60,12 +60,11 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
 });
-
 
 onMounted(() => {
   fetchData();
@@ -89,14 +88,16 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = invoices.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = invoices.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    invoices.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
 
 // Pages end
-
 
 // Show one
 const infoDialogItemId = ref(0);
@@ -108,12 +109,12 @@ const handleInfoDialogOpen = (id) => {
 
 const resolveInvoiceStatus = (status) => {
   const roleMap = {
-    'Черновик': { color: 'primary' },
-    'Отклонено': { color: 'secondary' },
-    'Подтверждено': { color: 'success' },
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
   };
 
-  return roleMap[status] || { color: 'primary' };
+  return roleMap[status] || { color: "primary" };
 };
 </script>
 
@@ -123,7 +124,6 @@ const resolveInvoiceStatus = (status) => {
       <VCol cols="12">
         <VCard title="Фильтры поиска">
           <VCardText class="d-flex flex-wrap">
-           
             <VSpacer />
 
             <VCol cols="6" class="app-user-search-filter d-flex align-center">
@@ -151,16 +151,24 @@ const resolveInvoiceStatus = (status) => {
                 <th>КУРС</th>
                 <th>СТАТУС</th>
                 <th>ОБЩАЯ СУММА</th>
+                <th>ДАТА СОЗДАНИЯ</th>
                 <!-- <th>ДЕЙСТВИЯ</th> -->
               </tr>
             </thead>
 
             <tbody v-if="!isFetching">
-              <tr v-for="invoice in invoices" :key="invoice.id" @click="handleInfoDialogOpen(invoice.id)" style="cursor: pointer">
+              <tr
+                v-for="invoice in invoices"
+                :key="invoice.id"
+                @click="handleInfoDialogOpen(invoice.id)"
+                style="cursor: pointer"
+              >
                 <td>{{ invoice.id }}</td>
-
                 <td>{{ invoice.batch.name }}</td>
-                <td>{{ transformPrice(invoice.exchange_rate) }} {{ invoice.currency.symbol }}</td>
+                <td>
+                  {{ transformPrice(invoice.exchange_rate) }}
+                  {{ invoice.currency.symbol }}
+                </td>
                 <td>
                   <VChip
                     :color="resolveInvoiceStatus(invoice.status).color"
@@ -171,16 +179,20 @@ const resolveInvoiceStatus = (status) => {
                     {{ invoice.status }}
                   </VChip>
                 </td>
-                <td>{{ transformPrice(invoice.total_amount) }}{{ invoice.currency.symbol }}</td>
-
-                
+                <td>
+                  {{ transformPrice(invoice.total_amount)
+                  }}{{ invoice.currency.symbol }}
+                </td>
+                <td>{{ formatTimestamp(invoice.updated_at) }}</td>
               </tr>
             </tbody>
-            <Skeleton :count="5" v-show="isFetching" />
+            <Skeleton :count="6" v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>
-                <td colspan="15" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="15" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -195,7 +207,6 @@ const resolveInvoiceStatus = (status) => {
             <VPagination
               v-if="invoices.length"
               v-model="currentPage"
-              
               :length="totalPage"
             />
           </VCardText>
@@ -208,7 +219,6 @@ const resolveInvoiceStatus = (status) => {
       :id="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     />
-
   </section>
 </template>
 
