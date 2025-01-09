@@ -187,9 +187,29 @@ const deleteMultiPrice = (index) => {
 };
 
 const calculateSecondPrice = (index) => {
-  if (payment_types_list.value?.length === index + 1) return;
+  let total_price_with_sale = removeSpaces(totalPriceWithSale.value);
+  let total_multi_price = removeSpaces(totalMultiPrice.value);
+  let multi_prices_length = multi_prices.value?.length;
+
+  if (multi_prices_length === payment_types_list.value.length) return;
+
+  // if NOT have the element after it and total multi is bigger than total
+  if (
+    !multi_prices.value[index + 1] &&
+    total_multi_price >= total_price_with_sale
+  ) {
+    // if the last element
+    if (multi_prices_length > 1 && multi_prices_length === index + 1) {
+      multi_prices.value[index].price = transformPrice(
+        total_price_with_sale -
+          (total_multi_price - removeSpaces(multi_prices.value[index].price))
+      );
+    }
+    return;
+  }
+
   let price = transformPrice(
-    removeSpaces(totalPriceWithSale.value) -
+    total_price_with_sale -
       multi_prices.value.reduce(
         (accumulator, el, i) =>
           accumulator + (i <= index ? removeSpaces(el.price) : 0),
@@ -197,6 +217,7 @@ const calculateSecondPrice = (index) => {
       )
   );
 
+  // if after it no element
   if (!multi_prices.value[index + 1]) {
     multi_prices.value.push({
       type_id: null,
@@ -205,6 +226,8 @@ const calculateSecondPrice = (index) => {
     refForm.value?.validate();
     return;
   }
+
+  // if after it an element
   multi_prices.value[index + 1].price = price;
   refForm.value?.validate();
 };
@@ -217,7 +240,8 @@ const resetValidation = (e) => {
 watch(duplicatePaymentType, () => resetValidation());
 
 watch(totalPriceWithSale, (newVal) => {
-  if ((multi_prices.value.length = 1)) multi_prices.value[0].price = transformPrice(newVal);
+  if (multi_prices.value.length === 1)
+    multi_prices.value[0].price = transformPrice(newVal);
 });
 </script>
 
