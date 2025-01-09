@@ -191,8 +191,6 @@ const calculateSecondPrice = (index) => {
   let total_multi_price = removeSpaces(totalMultiPrice.value);
   let multi_prices_length = multi_prices.value?.length;
 
-  if (multi_prices_length === payment_types_list.value.length) return;
-
   // if NOT have the element after it and total multi is bigger than total
   if (
     !multi_prices.value[index + 1] &&
@@ -207,6 +205,8 @@ const calculateSecondPrice = (index) => {
     }
     return;
   }
+
+  if (multi_prices_length === payment_types_list.value.length) return;
 
   let price = transformPrice(
     total_price_with_sale -
