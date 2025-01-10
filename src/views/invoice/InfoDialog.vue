@@ -80,7 +80,6 @@ const onSubmit = async (reject_or_submit = false) => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       handleDialogModelValueUpdate(false);
     }
@@ -93,7 +92,6 @@ const onSubmit = async (reject_or_submit = false) => {
   }
 };
 
-
 const onConfirm = async () => {
   isFetching.value = "confirm";
   try {
@@ -102,7 +100,6 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -123,7 +120,6 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -284,7 +280,6 @@ const addToList = () => {
     toast("Заполните все поля формы", {
       theme: "auto",
       type: "error",
-      
     });
   }
 };
@@ -327,6 +322,16 @@ const calculateCount = computed(() => {
     )
   );
 });
+
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
+  };
+
+  return roleMap[status] || { color: "primary" };
+};
 </script>
 
 <template>
@@ -355,7 +360,7 @@ const calculateCount = computed(() => {
                 :clearable="status == 'Черновик'"
               />
             </VCol>
-            <VCol cols="4">
+            <VCol cols="2">
               <VSelect
                 v-model="currency_id"
                 label="Валюта"
@@ -366,7 +371,7 @@ const calculateCount = computed(() => {
                 :clearable="status == 'Черновик'"
               />
             </VCol>
-            <VCol cols="4">
+            <VCol cols="3">
               <VTextField
                 v-model="exchange_rate"
                 :readonly="currency_id == 3 || status != 'Черновик'"
@@ -375,6 +380,20 @@ const calculateCount = computed(() => {
                 :prefix="rate_symbol"
                 type="number"
               />
+            </VCol>
+            <VCol cols="3" class="d-flex align-center">
+              <h3>
+                Статус:
+                <VChip
+                  :color="resolveInvoiceStatus(status).color"
+                  density="comfortable"
+                  label
+                  class="text-uppercase font-weight-bold text-body-1"
+                  v-if="status"
+                >
+                  {{ status }}
+                </VChip>
+              </h3>
             </VCol>
 
             <VDivider />

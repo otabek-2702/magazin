@@ -81,6 +81,16 @@ watch(
     }
   }
 );
+
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    "Не оплачено": { color: "error" },
+    Отклонено: { color: "warning" },
+    Оплачено: { color: "success" },
+  };
+
+  return roleMap[status] || { color: "primary" };
+};
 </script>
 
 <template>
@@ -116,6 +126,15 @@ watch(
                 Кассир :
                 {{ payment_invoice?.user?.name }}
               </h2>
+              <VChip
+                :color="resolveInvoiceStatus(payment_invoice?.status).color"
+                density="comfortable"
+                label
+                class="text-uppercase font-weight-bold text-body-1"
+                v-if="payment_invoice?.status"
+              >
+                {{ payment_invoice?.status }}
+              </VChip>
             </VCol>
 
             <VCol cols="3">

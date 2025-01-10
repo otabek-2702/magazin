@@ -26,28 +26,27 @@ const onReject = async (id) => {
   }
 };
 
-const onSubmit = () => {
-  refForm.value?.validate().then(async ({ valid }) => {
-    if (valid) {
-      try {
-        isFetching.value = true;
-        const response = await axios.post("/payment_invoices", {
-          cashbox_id: cashbox_id.value,
-          items: product_variants.value,
-          person_id: seller_id.value,
-        });
+const onSubmit = async () => {
+  const { valid } = refForm.value?.validate();
+  if (valid) return;
 
-        if (payment_invoice.value?.id) onReject(payment_invoice.value?.id);
+  try {
+    isFetching.value = true;
+    const response = await axios.post("/payment_invoices", {
+      cashbox_id: cashbox_id.value,
+      items: product_variants.value,
+      person_id: seller_id.value,
+    });
 
-        payment_invoice.value = response.data?.payment_invoice;
-        emit("fetchDatas");
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isFetching.value = false;
-      }
-    }
-  });
+    if (payment_invoice.value?.id) onReject(payment_invoice.value?.id);
+
+    payment_invoice.value = response.data?.payment_invoice;
+    emit("fetchDatas");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isFetching.value = false;
+  }
 };
 
 const handleDialogModelValueUpdate = (val) => {
@@ -120,6 +119,7 @@ const findProductVariant = async (raw_sku) => {
         sku,
         price: Number(product.sell_price),
         sell_price: Number(product.sell_price),
+        sale: product.sale,
       };
     }
   } catch (error) {
@@ -187,7 +187,6 @@ const addToList = () => {
     product_variants.value.push({
       ...product_variant_data.value,
       quantity: 1,
-      sale: 0,
     });
   }
 
@@ -259,7 +258,8 @@ const calculateTotalSale = computed(() => {
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) => accumulator + el.sale ?? 0,
+      (accumulator, el) =>
+        accumulator + (el.is_promoted ? el.sale : el.sale * el.quantity) ?? 0,
       0
     )
   );
@@ -271,7 +271,9 @@ const calculateTotalPriceWithSale = computed(() => {
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) =>
-        accumulator + (el.price * el.quantity - el.sale) ?? 0,
+        accumulator +
+          (el.price * el.quantity -
+            (el.is_promoted ? el.sale : el.quantity * el.sale)) ?? 0,
       0
     )
   );
@@ -304,7 +306,9 @@ const reloadSales = () => {
   if (promotedProductsCount < 3) {
     // Reset sales if total count is less than 3
     product_variants.value.forEach((variant) => {
-      variant.sale = 0;
+      if (variant.is_promoted) {
+        variant.sale = 0;
+      }
     });
     return;
   }
@@ -314,7 +318,9 @@ const reloadSales = () => {
 
   // Reset all sales first
   product_variants.value.forEach((variant) => {
-    variant.sale = 0;
+    if (variant.is_promoted) {
+      variant.sale = 0;
+    }
   });
 
   // Distribute free products sale based on lowest price items first
@@ -453,14 +459,25 @@ const reloadSales = () => {
                       </b>
                     </td>
                     <td>
-                      {{ transformPrice(variant?.sale) }}
-                      {{ Number(variant.sale) ? "so'm" : "" }}
+                      <b>
+                        {{
+                          transformPrice(
+                            variant.is_promoted
+                              ? variant.sale
+                              : variant.sale * variant.quantity
+                          )
+                        }}
+                        {{ Number(variant.sale) ? "so'm" : "" }}
+                      </b>
                     </td>
                     <td>
                       <b
                         >{{
                           transformPrice(
-                            variant.price * variant.quantity - variant.sale
+                            variant.price * variant.quantity -
+                              (variant.is_promoted
+                                ? variant.sale
+                                : variant.sale * variant.quantity)
                           )
                         }}
                         so'm</b
@@ -562,7 +579,7 @@ const reloadSales = () => {
                     type="button"
                     @click="onSubmit"
                   >
-                    Оплатить
+                    СОЗДАТЬ
                   </VBtn>
                 </VCardText>
               </VRow>

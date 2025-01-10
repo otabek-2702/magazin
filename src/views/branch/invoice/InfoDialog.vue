@@ -68,7 +68,6 @@ const onSubmit = async (reject_or_submit = false) => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       handleDialogModelValueUpdate(false);
     }
@@ -91,7 +90,6 @@ const onConfirm = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -114,7 +112,6 @@ const onReject = async () => {
       toast("Успешно", {
         theme: "auto",
         type: "success",
-        
       });
       emit("fetchDatas");
 
@@ -199,7 +196,6 @@ const findProductVariant = async (raw_sku) => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      
     });
     return;
   }
@@ -216,7 +212,6 @@ const addToList = () => {
       toast("На складе отсутствует этот товар.", {
         theme: "auto",
         type: "warning",
-        
       });
       sku_ref.value.focus();
       return;
@@ -235,7 +230,6 @@ const addToList = () => {
       toast("Доступное количество на складе не может быть превышено.", {
         theme: "auto",
         type: "warning",
-        
       });
       quantity_ref.value.focus();
       return;
@@ -261,7 +255,6 @@ const addToList = () => {
     toast("Товар не найден", {
       theme: "auto",
       type: "error",
-      
     });
   }
 
@@ -283,7 +276,6 @@ const hideEditInput = async (variant) => {
     toast("Количество товара должно быть больше нуля.", {
       theme: "auto",
       type: "warning",
-      
     });
     return;
   } else if (variant.quantity > variant.quantity) {
@@ -292,7 +284,6 @@ const hideEditInput = async (variant) => {
       {
         theme: "auto",
         type: "warning",
-        
       }
     );
     return;
@@ -317,6 +308,16 @@ const calculateCount = computed(() => {
     )
   );
 });
+
+const resolveInvoiceStatus = (status) => {
+  if (!status) return { color: "primary" };
+  const roleMap = {
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
+  };
+  return roleMap[status];
+};
 </script>
 
 <template>
@@ -344,6 +345,20 @@ const calculateCount = computed(() => {
                 :readonly="status != 'Черновик'"
                 :clearable="status == 'Черновик'"
               />
+            </VCol>
+            <VCol cols="6" class="d-flex align-center">
+              <h3>
+                Статус:
+                <VChip
+                  :color="resolveInvoiceStatus(status).color"
+                  density="comfortable"
+                  label
+                  class="text-uppercase font-weight-bold text-body-1"
+                  v-if="status"
+                >
+                  {{ status }}
+                </VChip>
+              </h3>
             </VCol>
 
             <VDivider />

@@ -6,7 +6,7 @@ import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
 import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { removeSpaces, transformPrice } from "@/helpers";
-import { requiredValidator } from "@/@core/utils/validators";
+import { computed } from "vue";
 
 const props = defineProps({
   isDrawerVisible: {
@@ -22,32 +22,35 @@ const isPasswordVisible = ref(false);
 const isFetching = ref(false);
 const refForm = ref();
 const amount = ref();
-const transaction_type = ref("cash");
-const comment = ref();
+const transform_from = ref("bank");
+const transform_to = ref("cash");
+const comission = ref();
 const password = ref();
 
-const onSubmit = async () => {
-  const { valid } = refForm.value?.validate();
-  if (valid) return;
-
-  isFetching.value = true;
-  try {
-    await axios.post(`/safes/${route?.params?.id}/outputs`, {
-      sum: removeSpaces(amount.value),
-      transaction_type: transaction_type.value,
-      password: password.value,
-      comment: comment.value,
-    });
-    emit("fetchDatas");
-    toast("Успешно добавлено", {
-      type: "success",
-    });
-    handleDrawerModelValueUpdate(false);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    isFetching.value = false;
-  }
+const onSubmit = () => {
+  refForm.value?.validate().then(async ({ valid }) => {
+    if (valid) {
+      isFetching.value = true;
+      try {
+        await axios.post(`/safes/${route?.params?.id}/transform-payment-type`, {
+          from: transform_from.value,
+          to: transform_to.value,
+          sum: removeSpaces(amount.value),
+          comission: removeSpaces(comission.value),
+          password: password.value,
+        });
+        emit("fetchDatas");
+        toast("Успешно добавлено", {
+          type: "success",
+        });
+        handleDrawerModelValueUpdate(false);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isFetching.value = false;
+      }
+    }
+  });
 };
 
 const handleDrawerModelValueUpdate = (val) => {
@@ -59,6 +62,20 @@ const handleDrawerModelValueUpdate = (val) => {
       transaction_type.value = "cash";
     });
   }
+};
+
+const transformLabel = computed(() => {
+  let translates = { cash: "Налычные", bank: "Банк" };
+  return {
+    from: translates[transform_from.value],
+    to: translates[transform_to.value],
+  };
+});
+
+const swapTransformType = () => {
+  let beforeChange = transform_from.value;
+  transform_from.value = transform_to.value;
+  transform_to.value = beforeChange;
 };
 </script>
 
@@ -83,6 +100,21 @@ const handleDrawerModelValueUpdate = (val) => {
           <!-- 👉 Форма -->
           <VForm ref="refForm" @submit.prevent="onSubmit" autocomplete="off">
             <VRow>
+              <VCol cols="5" class="d-flex align-center">
+                <h3>{{ transformLabel.from }}</h3>
+              </VCol>
+              <VCol cols="1">
+                <VIcon
+                  icon="mdi-swap-horizontal"
+                  size="32"
+                  class="cursor-pointer"
+                  @click="swapTransformType"
+                />
+              </VCol>
+              <VCol cols="6" class="d-flex align-center justify-end">
+                <h3>{{ transformLabel.to }}</h3>
+              </VCol>
+
               <VCol cols="12">
                 <VTextField
                   v-model="amount"
@@ -90,10 +122,16 @@ const handleDrawerModelValueUpdate = (val) => {
                   :model-value="transformPrice(amount, true)"
                   autofocus
                 />
-                <VRadioGroup v-model="transaction_type" inline class="pt-2">
-                  <VRadio label="Наличные" value="cash" density="compact" />
-                  <VRadio label="Банк" value="bank" density="compact" />
-                </VRadioGroup>
+              </VCol>
+
+              <VCol cols="12">
+                <VTextField
+                  v-model="comission"
+                  label="Комиссия"
+                  :model-value="transformPrice(comission, true)"
+                  autofocus
+                  autocomplete="off"
+                />
               </VCol>
 
               <VCol cols="12">
@@ -101,18 +139,10 @@ const handleDrawerModelValueUpdate = (val) => {
                   :type="isPasswordVisible ? 'text' : 'password'"
                   label="Пароль для подтверждения"
                   v-model="password"
-                  autocomplete="off"
                   :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  autocomplete="off"
                   name="one-time-password"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VTextarea
-                  label="Комментарий"
-                  v-model="comment"
-                  :rules="[requiredValidator]"
                 />
               </VCol>
 
