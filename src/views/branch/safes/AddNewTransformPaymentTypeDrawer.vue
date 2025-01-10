@@ -32,11 +32,11 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post(`/safes/${route?.params?.id}/transform-payment-type`, {
+        await axios.post(`/safes/${route?.params?.id}/exchange`, {
           from: transform_from.value,
           to: transform_to.value,
           sum: removeSpaces(amount.value),
-          comission: removeSpaces(comission.value),
+          expense: removeSpaces(comission.value),
           password: password.value,
         });
         emit("fetchDatas");
@@ -55,13 +55,11 @@ const onSubmit = () => {
 
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isDrawerVisible", val);
-  if (!val) {
-    nextTick(() => {
-      refForm.value?.reset();
-      refForm.value?.resetValidation();
-      transaction_type.value = "cash";
-    });
-  }
+  nextTick(() => {
+    refForm.value?.reset();
+    refForm.value?.resetValidation();
+    transaction_type.value = "cash";
+  });
 };
 
 const transformLabel = computed(() => {
