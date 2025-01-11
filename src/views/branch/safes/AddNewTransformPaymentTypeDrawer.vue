@@ -7,6 +7,7 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { removeSpaces, transformPrice } from "@/helpers";
 import { computed } from "vue";
+import { watch } from "vue";
 
 const props = defineProps({
   isDrawerVisible: {
@@ -21,6 +22,7 @@ const route = useRoute();
 const isPasswordVisible = ref(false);
 const isFetching = ref(false);
 const refForm = ref();
+const amount_ref = ref();
 const amount = ref();
 const transform_from = ref("bank");
 const transform_to = ref("cash");
@@ -32,11 +34,11 @@ const onSubmit = () => {
     if (valid) {
       isFetching.value = true;
       try {
-        await axios.post(`/safes/${route?.params?.id}/transform-payment-type`, {
+        await axios.post(`/safes/${route?.params?.id}/exchange`, {
           from: transform_from.value,
           to: transform_to.value,
           sum: removeSpaces(amount.value),
-          comission: removeSpaces(comission.value),
+          expense: removeSpaces(comission.value),
           password: password.value,
         });
         emit("fetchDatas");
@@ -56,10 +58,11 @@ const onSubmit = () => {
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isDrawerVisible", val);
   if (!val) {
+    transform_from.value = "bank";
+    transform_to.value = "cash";
+    refForm.value?.reset();
     nextTick(() => {
-      refForm.value?.reset();
       refForm.value?.resetValidation();
-      transaction_type.value = "cash";
     });
   }
 };
@@ -77,6 +80,11 @@ const swapTransformType = () => {
   transform_from.value = transform_to.value;
   transform_to.value = beforeChange;
 };
+
+watch(
+  () => props.isDrawerVisible,
+  (newVal) => newVal && nextTick(() => amount_ref.value?.focus())
+);
 </script>
 
 <template>
@@ -120,6 +128,7 @@ const swapTransformType = () => {
                   v-model="amount"
                   label="Сумма"
                   :model-value="transformPrice(amount, true)"
+                  ref="amount_ref"
                   autofocus
                 />
               </VCol>

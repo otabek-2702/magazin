@@ -11,6 +11,7 @@ import {
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDrawer from "@/views/branch/safes/AddNewDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
+import AddNewTransformPaymentTypeDrawer from "@/views/branch/safes/AddNewTransformPaymentTypeDrawer.vue";
 
 const route = useRoute();
 const {
@@ -31,6 +32,7 @@ const {
 });
 
 const isAddNewDrawerVisible = ref(false);
+const isAddNewTransformDrawerVisible = ref(false);
 
 // cash data
 const resolveInvoiceStatus = (status) => {
@@ -161,6 +163,15 @@ watch(dateValue, (newVal, oldValue) => {
                   density="compact"
                 />
               </VCol> -->
+
+              <VCol cols="auto">
+                <VBtn
+                  @click="isAddNewTransformDrawerVisible = true"
+                  prepend-icon="mdi-swap-horizontal"
+                  >Обмен средств
+                </VBtn>
+              </VCol>
+
               <VCol cols="auto">
                 <VBtn @click="isAddNewDrawerVisible = true"
                   >Добавить Расход
@@ -239,6 +250,10 @@ watch(dateValue, (newVal, oldValue) => {
     </VRow>
     <AddNewDrawer
       v-model:isDrawerVisible="isAddNewDrawerVisible"
+      @fetchDatas="() => fetchData(true)"
+    />
+    <AddNewTransformPaymentTypeDrawer
+      v-model:isDrawerVisible="isAddNewTransformDrawerVisible"
       @fetchDatas="() => fetchData(true)"
     />
   </section>
