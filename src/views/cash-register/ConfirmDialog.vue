@@ -305,7 +305,10 @@ watch(totalPriceWithSale, (newVal) => {
                   "
                   label="Введите сумму "
                   @focus="autoSelectInputValue"
-                  :rules="[() => !totalAmountEquality || '']"
+                  :rules="[
+                    () => !totalAmountEquality || '',
+                    (v) => !!removeSpaces(v) || '',
+                  ]"
                   @keydown.enter.prevent="calculateSecondPrice(index)"
                 />
               </VCol>

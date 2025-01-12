@@ -10,6 +10,7 @@ import {
 } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewDrawer from "@/views/branch/safes/AddNewDrawer.vue";
+import AddNewTransformPaymentTypeDrawer from "@/views/branch/safes/AddNewTransformPaymentTypeDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import AddNewTransformPaymentTypeDrawer from "@/views/branch/safes/AddNewTransformPaymentTypeDrawer.vue";
 

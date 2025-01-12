@@ -25,29 +25,29 @@ const transaction_type = ref("cash");
 const comment = ref();
 const password = ref();
 
-const onSubmit = () => {
-  refForm.value?.validate().then(async ({ valid }) => {
-    if (valid) {
-      isFetching.value = true;
-      try {
-        await axios.post(`/safes/${branch_id.value}/outputs`, {
-          sum: removeSpaces(amount.value),
-          transaction_type:transaction_type.value,
-          password: password.value,
-          comment: comment.value,
-        });
-        emit("fetchDatas");
-        toast("Успешно добавлено", {
-          type: "success",
-        });
-        handleDrawerModelValueUpdate(false);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isFetching.value = false;
-      }
-    }
-  });
+const onSubmit = async () => {
+    const { valid } = await refForm.value?.validate();
+();
+  if (!valid) return;
+
+  isFetching.value = true;
+  try {
+    await axios.post(`/safes/${branch_id.value}/outputs`, {
+      sum: removeSpaces(amount.value),
+      transaction_type: transaction_type.value,
+      password: password.value,
+      comment: comment.value,
+    });
+    emit("fetchDatas");
+    toast("Успешно добавлено", {
+      type: "success",
+    });
+    handleDrawerModelValueUpdate(false);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isFetching.value = false;
+  }
 };
 
 const handleDrawerModelValueUpdate = (val) => {
@@ -56,7 +56,7 @@ const handleDrawerModelValueUpdate = (val) => {
     nextTick(() => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
-      transaction_type.value = "cash"
+      transaction_type.value = "cash";
     });
   }
 };

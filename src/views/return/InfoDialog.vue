@@ -147,6 +147,16 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
+
+const resolveInvoiceStatus = (status) => {
+  const roleMap = {
+    Черновик: { color: "primary" },
+    Отклонено: { color: "secondary" },
+    Подтверждено: { color: "success" },
+  };
+
+  return roleMap[status] || { color: "primary" };
+};
 </script>
 
 <template>
@@ -177,6 +187,20 @@ const calculateTotalPrice = computed(() => {
                 Время Создания :
                 {{ check_date }}
               </h2>
+            </VCol>
+            <VCol cols="6" class="d-flex align-center">
+              <h3>
+                Статус:
+                <VChip
+                  :color="resolveInvoiceStatus(status).color"
+                  density="comfortable"
+                  label
+                  class="text-uppercase font-weight-bold text-body-1"
+                  v-if="status"
+                >
+                  {{ status }}
+                </VChip>
+              </h3>
             </VCol>
 
             <VDivider />

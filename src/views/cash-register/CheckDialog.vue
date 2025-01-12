@@ -102,7 +102,7 @@ const hasSaleProduct = (item) => Number(item.sale);
           v-if="+props.paymentInvoice?.items_sale"
           class="total-line discount"
         >
-          <span>Акция 2+1:</span><br />
+          <span>Акция:</span><br />
           <span
             ><span class="minus">-</span>
             {{ transformPrice(props.paymentInvoice?.items_sale) }} so'm

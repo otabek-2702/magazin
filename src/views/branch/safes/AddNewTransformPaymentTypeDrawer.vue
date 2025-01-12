@@ -57,14 +57,12 @@ const onSubmit = () => {
 
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isDrawerVisible", val);
-  if (!val) {
-    transform_from.value = "bank";
-    transform_to.value = "cash";
-    refForm.value?.reset();
-    nextTick(() => {
-      refForm.value?.resetValidation();
-    });
-  }
+  transform_from.value = "bank";
+  transform_to.value = "cash";
+  refForm.value?.reset();
+  nextTick(() => {
+    refForm.value?.resetValidation();
+  });
 };
 
 const transformLabel = computed(() => {

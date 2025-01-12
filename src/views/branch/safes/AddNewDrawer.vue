@@ -1,14 +1,11 @@
 <script setup>
-import { nextTick,  ref } from "vue";
+import { nextTick, ref } from "vue";
 import { useRoute } from "vue-router";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import {
-  removeSpaces,
-  transformPrice,
-} from "@/helpers";
+import { removeSpaces, transformPrice } from "@/helpers";
 import { requiredValidator } from "@/@core/utils/validators";
 
 const props = defineProps({
@@ -19,39 +16,39 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:isDrawerVisible", "fetchDatas"]);
-const route = useRoute()
+const route = useRoute();
 
 const isPasswordVisible = ref(false);
 const isFetching = ref(false);
 const refForm = ref();
 const amount = ref();
-const transaction_type = ref('cash')
+const transaction_type = ref("cash");
 const comment = ref();
 const password = ref();
 
-const onSubmit = () => {
-  refForm.value?.validate().then(async ({ valid }) => {
-    if (valid) {
-      isFetching.value = true;
-      try {
-        await axios.post(`/safes/${route?.params?.id}/outputs`, {
-          sum: removeSpaces(amount.value),
-          transaction_type: transaction_type.value,
-          password: password.value,
-          comment: comment.value,
-        });
-        emit("fetchDatas");
-        toast("Успешно добавлено", {
-          type: "success",
-        });
-        handleDrawerModelValueUpdate(false);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isFetching.value = false;
-      }
-    }
-  });
+const onSubmit = async () => {
+    const { valid } = await refForm.value?.validate();
+();
+  if (!valid) return;
+
+  isFetching.value = true;
+  try {
+    await axios.post(`/safes/${route?.params?.id}/outputs`, {
+      sum: removeSpaces(amount.value),
+      transaction_type: transaction_type.value,
+      password: password.value,
+      comment: comment.value,
+    });
+    emit("fetchDatas");
+    toast("Успешно добавлено", {
+      type: "success",
+    });
+    handleDrawerModelValueUpdate(false);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isFetching.value = false;
+  }
 };
 
 const handleDrawerModelValueUpdate = (val) => {
@@ -60,12 +57,10 @@ const handleDrawerModelValueUpdate = (val) => {
     nextTick(() => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
-      transaction_type.value = "cash"
+      transaction_type.value = "cash";
     });
   }
 };
-
-
 </script>
 
 <template>
