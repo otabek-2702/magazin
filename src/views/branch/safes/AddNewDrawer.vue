@@ -27,8 +27,8 @@ const comment = ref();
 const password = ref();
 
 const onSubmit = async () => {
-    const { valid } = await refForm.value?.validate();
-();
+  const { valid } = await refForm.value?.validate();
+
   if (!valid) return;
 
   isFetching.value = true;

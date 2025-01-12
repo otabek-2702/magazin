@@ -29,7 +29,6 @@ const onReject = async (id) => {
 const onSubmit = async () => {
   const { valid } = await refForm.value?.validate();
   if (!valid) return;
-  console.log("cvald");
 
   try {
     isFetching.value = true;
