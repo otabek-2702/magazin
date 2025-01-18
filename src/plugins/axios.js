@@ -8,7 +8,7 @@ axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
 // Create an Axios instance
 const axiosIns = axios.create({
   baseURL: import.meta.env.VITE_DEV_MODE
-    ? import.meta.env.VITE_BASE_URL_DEV
+    ? import.meta.env.VITE_BASE_URL_DEV ?? import.meta.env.VITE_BASE_URL
     : import.meta.env.VITE_BASE_URL,
 });
 

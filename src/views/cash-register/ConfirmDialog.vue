@@ -12,6 +12,7 @@ import CheckDialog from "./CheckDialog.vue";
 import { nextTick } from "vue";
 import { ref } from "vue";
 import { requiredValidator } from "@/@core/utils/validators";
+import PhoneTextField from "@/components/PhoneTextField.vue";
 
 const props = defineProps({
   paymentInvoice: {
@@ -33,6 +34,7 @@ const invoice_status = computed(() => ({
 const input_price = ref();
 const payment_type = ref();
 const sale_price = ref(0);
+const phone_number = ref();
 const payment_response = ref({});
 
 const onConfirm = async () => {
@@ -360,6 +362,11 @@ watch(totalPriceWithSale, (newVal) => {
                 persistent-placeholder
               />
             </VCol>
+
+            <VCol cols="12">
+              <PhoneTextField label="Номер клиента" v-model="phone_number"  />
+            </VCol>
+
             <h2 class="ps-3 py-3">
               Общая сумма : {{ transformPrice(totalPriceWithSale) }} so'm
             </h2>
