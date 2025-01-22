@@ -43,8 +43,8 @@ const onConfirm = async () => {
 
   isFetching.value = true;
   try {
-    const clear_phone = phone_number.value?.replace(/\s+/g, "");
-
+    const clear_phone = phone_number.value?.toString().replace(/\s+/g, "");
+console.log(clear_phone)
     let params = {
       payments: multi_prices.value.map((el) => ({
         type_id: el.type_id,
