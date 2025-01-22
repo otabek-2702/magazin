@@ -4,7 +4,7 @@ import { nextTick, ref, watchEffect } from "vue";
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
 import axios from "@axios";
 import { toast } from "vue3-toastify";
-import { fetchOptions } from "@/helpers";
+import { fetchOptions, transformPrice } from "@/helpers";
 
 const props = defineProps({
   isDrawerOpen: {
@@ -32,8 +32,8 @@ const sale = ref(0);
 // 👉 drawer close
 const closeNavigationDrawer = () => {
   emit("update:isDrawerOpen", false);
+  refForm.value?.reset();
   nextTick(() => {
-    refForm.value?.reset();
     refForm.value?.resetValidation();
     season.value = "fall";
     gender.value = "man";
@@ -63,9 +63,8 @@ const onSubmit = () => {
         toast("Успешно добавлено", {
           theme: "auto",
           type: "success",
-          
         });
-        handleDrawerModelValueUpdate(false);
+        closeNavigationDrawer();
       } catch (error) {
         console.error(error);
       } finally {
@@ -75,21 +74,12 @@ const onSubmit = () => {
   });
 };
 
-const handleDrawerModelValueUpdate = (val) => {
-  emit("update:isDrawerOpen", val);
-  if (!val) {
-    nextTick(() => {
-      refForm.value?.reset();
-      refForm.value?.resetValidation();
-    });
-  }
-};
+
 
 const categories_list = ref([]);
 const suppliers_list = ref([]);
 const colors_list = ref([]);
 const sizes_list = ref([]);
-
 
 watch(
   () => props.isDrawerOpen,
@@ -112,7 +102,7 @@ watch(
     location="end"
     class="scrollable-content"
     :model-value="props.isDrawerOpen"
-    @update:model-value="handleDrawerModelValueUpdate"
+    @update:model-value="closeNavigationDrawer"
   >
     <!-- 👉 Заголовок -->
     <AppDrawerHeaderSection title="Добавить" @cancel="closeNavigationDrawer" />
@@ -226,8 +216,8 @@ watch(
               <VCol cols="12">
                 <VTextField
                   v-model="sale"
-                  label="Скидка в процентах"
-                  type="number"
+                  :model-value="transformPrice(sale, true)"
+                  label="Скидка (UZS)"
                 />
               </VCol>
 
