@@ -1,6 +1,5 @@
 <script setup>
 import axios from "@/plugins/axios";
-import { computed, nextTick, watch } from "vue";
 import { toast } from "vue3-toastify";
 
 const props = defineProps({
@@ -8,17 +7,17 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-  endpoint: {
+  endpointTo: {
     type: String,
     required: true,
   },
-  invoiceType: {
+  endpointFrom: {
     type: String,
     required: true,
   },
 });
 
-const emit = defineEmits(["fetchDatas", "update:id", "openInfoDialog"]);
+const emit = defineEmits(["fetchDatas", "update:id"]);
 
 const isFetching = ref(false);
 
@@ -32,7 +31,10 @@ const onConfirmation = async () => {
   try {
     isFetching.value = true;
     const response = await axios.post(
-      `${props.invoiceType}_movement_invoices/${props.id}/${props.endpoint}`
+      `${props.endpointFrom}/${props.id}/${props.endpointTo}`,
+      {
+        to_branch_id: 1,
+      }
     );
 
     if (response.status === 200) {
@@ -40,7 +42,6 @@ const onConfirmation = async () => {
         type: "success",
       });
       emit("fetchDatas");
-      emit("openInfoDialog", response.data?.invoice?.id);
       updateModelValue(0);
     }
   } catch (error) {
@@ -68,7 +69,7 @@ const onConfirmation = async () => {
           type="button"
           variant="elevated"
           color="success"
-          @click="  "
+          @click="onConfirmation"
           :loading="isFetching"
         >
           Подтвердить

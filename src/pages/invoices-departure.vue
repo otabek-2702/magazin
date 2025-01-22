@@ -5,6 +5,7 @@ import Skeleton from "@/views/skeleton/Skeleton.vue";
 import InfoDialog from "@/views/invoice-departure/InfoDialog.vue";
 import AddNewDialog from "@/views/invoice-departure/AddNewDialog.vue";
 import { formatTimestamp } from "@/helpers";
+import ConfirmCopyInvoiceDialog from "@/components/ConfirmCopyInvoiceDialog.vue";
 
 const searchQuery = ref("");
 const finalSearch = ref("");
@@ -114,6 +115,9 @@ const resolveInvoiceStatus = (status) => {
 
   return roleMap[status] || { color: "primary" };
 };
+
+// Copy Invoice
+const copyInvoiceDialogId = ref(0);
 </script>
 
 <template>
@@ -149,6 +153,7 @@ const resolveInvoiceStatus = (status) => {
                 <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
                 <th>К-ВО ТОВАРОВ</th>
                 <th>ДАТА СОЗДАНИЯ</th>
+                <th>ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -157,7 +162,7 @@ const resolveInvoiceStatus = (status) => {
                 v-for="invoice in invoices"
                 :key="invoice.id"
                 @click="handleInfoDialogOpen(invoice.id)"
-                style="cursor: pointer"
+                class="cursor-pointer"
               >
                 <td>{{ invoice.id }}</td>
 
@@ -174,9 +179,19 @@ const resolveInvoiceStatus = (status) => {
                 <td>{{ invoice.to_branch.name }}</td>
                 <td>{{ invoice.full_qty }}</td>
                 <td>{{ formatTimestamp(invoice.updated_at) }}</td>
+                <td>
+                  <VIcon
+                    @click.stop="copyInvoiceDialogId = invoice.id"
+                    size="26"
+                    icon="mdi-content-copy"
+                    color="primary"
+                    v-if="invoice.status === 'Подтверждено'"
+                  ></VIcon>
+                  <span v-else></span>
+                </td>
               </tr>
             </tbody>
-            <Skeleton :count="5" v-show="isFetching" />
+            <Skeleton :count="6" v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>
@@ -209,15 +224,12 @@ const resolveInvoiceStatus = (status) => {
       :id="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     />
+    <ConfirmCopyInvoiceDialog
+      v-model:id="copyInvoiceDialogId"
+      endpoint-from="stock_movement_invoices"
+      endpoint-to="copy_invoice_for_showcase"
+    />
   </section>
 </template>
 
-<style lang="scss">
-.app-user-search-filter {
-  inline-size: 385px;
-}
-
-.text-capitalize {
-  text-transform: capitalize;
-}
-</style>
+<style lang="scss"></style>

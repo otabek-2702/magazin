@@ -119,7 +119,7 @@ const resolveInvoiceStatus = (status) => {
 };
 
 // Copy Invoice
-const copyInvoiceDialogId = ref(1);
+const copyInvoiceDialogId = ref(0);
 </script>
 
 <template>
@@ -194,7 +194,9 @@ const copyInvoiceDialogId = ref(1);
                     size="26"
                     icon="mdi-content-copy"
                     color="primary"
+                    v-if="invoice.status === 'Подтверждено'"
                   ></VIcon>
+                  <span v-else></span>
                 </td>
               </tr>
             </tbody>
@@ -234,9 +236,8 @@ const copyInvoiceDialogId = ref(1);
 
     <ConfirmCopyInvoiceDialog
       v-model:id="copyInvoiceDialogId"
-      invoice-type="stock"
-      endpoint="copy_invoice_for_  _____"
-      @openInfoDialog="(id) => handleInfoDialogOpen(id)"
+      endpoint-from="invoices"
+      endpoint-to="copy_invoice_for_warehouse"
     />
   </section>
 </template>
