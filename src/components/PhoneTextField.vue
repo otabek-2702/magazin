@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from 'vue';
+
 const props = defineProps(["modelValue"]);
 const emit = defineEmits(["update:modelValue"]);
 
@@ -25,8 +27,10 @@ const validatePhone = (value) => {
   return phonePattern.test(value) || "Неправильный формат номера телефона";
 };
 
-const rules = ref([]);
 const validationError = ref("");
+  const rules = computed(() => [
+    () => !validationError.value || validationError.value
+  ])
 
 const handleBlur = () => {
   validationError.value =
@@ -42,13 +46,13 @@ const handleInput = (value) => {
 </script>
 
 <template>
+  <!-- :error="!!validationError"
+:error-messages="validationError" -->
   <VTextField
     label="Номер телефона"
     :value="formatPhone(modelValue)"
     @input="(e) => handleInput(e.target.value)"
     @blur="handleBlur"
-    :error="!!validationError"
-    :error-messages="validationError"
     :rules="rules"
     clearable
   >
