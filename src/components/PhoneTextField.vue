@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { watch } from "vue";
 
 const props = defineProps(["modelValue"]);
 const emit = defineEmits(["update:modelValue"]);
@@ -22,27 +22,26 @@ const formatPhone = (value) => {
 };
 
 const validatePhone = (value) => {
-  if (!value) return true;
   const phonePattern = /^\d{2} \d{3} \d{2} \d{2}$/;
   return phonePattern.test(value) || "Неправильный формат номера телефона";
-};
-
-const validationError = ref("");
-  const rules = computed(() => [
-    () => !validationError.value || validationError.value
-  ])
-
-const handleBlur = () => {
-  validationError.value =
-    validatePhone(props.modelValue) === true
-      ? ""
-      : validatePhone(props.modelValue);
 };
 
 const handleInput = (value) => {
   const formatted = formatPhone(value);
   emit("update:modelValue", formatted);
 };
+
+const phone_number = ref();
+
+watch(
+  phone_number,
+  (newVal) => {
+    const formatted = formatPhone(newVal);
+    emit("update:modelValue", formatted);
+    phone_number.value = formatted;
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -50,10 +49,9 @@ const handleInput = (value) => {
 :error-messages="validationError" -->
   <VTextField
     label="Номер телефона"
-    :value="formatPhone(modelValue)"
-    @input="(e) => handleInput(e.target.value)"
-    @blur="handleBlur"
-    :rules="rules"
+    v-model="phone_number"
+    :rules="[validatePhone]"
+    mask="### ## ##"
     clearable
   >
     <template #prepend>+998</template>

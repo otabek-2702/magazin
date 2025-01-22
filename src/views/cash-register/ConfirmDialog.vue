@@ -43,22 +43,18 @@ const onConfirm = async () => {
 
   isFetching.value = true;
   try {
-    const clear_phone = phone_number.value?.toString().replace(/\s+/g, "");
-    let params = {
-      payments: multi_prices.value.map((el) => ({
-        type_id: el.type_id,
-        price: removeSpaces(el.price),
-      })),
-      sale: removeSpaces(sale_price.value),
-    };
-
-    if (clear_phone) {
-      params.phone = "+998" + clear_phone;
-    }
+    const clear_phone = phone_number.value?.replace(/\s+/g, "");
 
     const response = await axios.post(
       `/payment_invoices/confirm/${props.paymentInvoice?.id}`,
-      params
+      {
+        payments: multi_prices.value.map((el) => ({
+          type_id: el.type_id,
+          price: removeSpaces(el.price),
+        })),
+        sale: removeSpaces(sale_price.value),
+        phone: "+998" + clear_phone,
+      }
     );
 
     if (response.status === 200) {
