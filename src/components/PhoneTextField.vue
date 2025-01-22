@@ -3,9 +3,7 @@ const props = defineProps(["modelValue"]);
 const emit = defineEmits(["update:modelValue"]);
 
 const formatPhone = (value) => {
-  // Remove all non-numeric characters
   const cleaned = value?.toString().replace(/\D/g, "") ?? "";
-  // Limit to `p` digits
   return cleaned
     .substring(0, 9)
     .replace(
@@ -21,15 +19,40 @@ const formatPhone = (value) => {
     .trim();
 };
 
-console.log(formatPhone("4564"));
+const validatePhone = (value) => {
+  if (!value) return true;
+  const phonePattern = /^\d{2} \d{3} \d{2} \d{2}$/;
+  return phonePattern.test(value) || "Неправильный формат номера телефона";
+};
+
+const rules = ref([]);
+const validationError = ref("");
+
+const handleBlur = () => {
+  validationError.value =
+    validatePhone(props.modelValue) === true
+      ? ""
+      : validatePhone(props.modelValue);
+};
+
+const handleInput = (value) => {
+  const formatted = formatPhone(value);
+  emit("update:modelValue", formatted);
+};
 </script>
 
 <template>
   <VTextField
-    @input="(e) => emit('update:modelValue', formatPhone(e.target.value))"
-    :value="formatPhone(props.modelValue)"
+    label="Номер телефона"
+    :value="formatPhone(modelValue)"
+    @input="(e) => handleInput(e.target.value)"
+    @blur="handleBlur"
+    :error="!!validationError"
+    :error-messages="validationError"
+    :rules="rules"
+    clearable
   >
-    <template #prepend> +998 </template>
+    <template #prepend>+998</template>
   </VTextField>
 </template>
 

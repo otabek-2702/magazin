@@ -51,6 +51,7 @@ const onConfirm = async () => {
           price: removeSpaces(el.price),
         })),
         sale: removeSpaces(sale_price.value),
+        phone_number: removeSpaces(phone_number.value),
       }
     );
 
@@ -364,7 +365,7 @@ watch(totalPriceWithSale, (newVal) => {
             </VCol>
 
             <VCol cols="12">
-              <PhoneTextField label="Номер клиента" v-model="phone_number"  />
+              <PhoneTextField label="Номер клиента" v-model="phone_number" />
             </VCol>
 
             <h2 class="ps-3 py-3">
