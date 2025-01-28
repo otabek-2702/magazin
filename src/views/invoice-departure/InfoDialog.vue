@@ -130,10 +130,10 @@ const onConfirmSubmit = async () => {
 };
 
 const onRejectSubmit = async () => {
-  let isSubmitted = await onSubmit(true);
-  if (isSubmitted === true) {
-    await onReject();
-  }
+  // let isSubmitted = await onSubmit(true);
+  // if (isSubmitted === true) {
+  await onReject();
+  // }
 };
 
 const handleDialogModelValueUpdate = (val) => {
