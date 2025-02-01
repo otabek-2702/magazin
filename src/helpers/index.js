@@ -15,11 +15,36 @@ export const transformPrice = (price, nullable = false) => {
   return formattedPrice ?? "";
 };
 
+export const transformDecimalPrice = (price, nullable = false) => {
+  if (price == null || price === "") return nullable ? "" : "0";
+
+  let formattedPrice = price
+    .toString()
+    .replace(/[^\d.]/g, "") // Keep only digits and decimal
+    .replace(/(\..*?)\./g, "$1"); // Keep only first decimal point
+
+  // Handle decimal places
+  const parts = formattedPrice.split(".");
+  if (parts[1]) {
+    // If all decimal digits are zeros, remove decimal part completely
+    if (!/[1-9]/.test(parts[1])) {
+      parts.length = 1; // Remove decimal part
+    } else if (parts[1].length > 2) {
+      parts[1] = parts[1].slice(0, 2);
+    }
+  }
+
+  // Add spaces for thousands separator in the integer part
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return parts.join(".").trim();
+};
+
 export const removeSpaces = (input) => {
   // Remove spaces, thousands separators, and handle decimal points
-  const newVal = input?.toString()
-      .replace(/\s+/g, "")               // Remove spaces
-      .replace(/[^\d.-]/g, "")           // Remove anything that isn't a digit, dot, or minus
+  const newVal = input
+    ?.toString()
+    .replace(/\s+/g, "") // Remove spaces
+    .replace(/[^\d.-]/g, ""); // Remove anything that isn't a digit, dot, or minus
   // .replace(/(\..*?)\./g, "$1");      // Ensure only one decimal point
 
   const parsedValue = Number(newVal);
@@ -28,7 +53,7 @@ export const removeSpaces = (input) => {
 };
 
 export function formatTimestamp(isoString) {
-  if(!isoString) return ''
+  if (!isoString) return "";
   const date = new Date(isoString);
 
   // Format each part with leading zeros
@@ -55,7 +80,9 @@ export const fetchOptions = async (
       if (customization.is) {
         dataState.value = response.data[resourceKey].map(customization.method);
       } else {
-        dataState.value = resourceKey ? response.data[resourceKey] : response.data;
+        dataState.value = resourceKey
+          ? response.data[resourceKey]
+          : response.data;
       }
     }
   } catch (error) {
@@ -110,4 +137,21 @@ export const getPrettyDate = () => {
   const seconds = String(now.getSeconds()).padStart(2, "0");
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+export const formatPhone = (value) => {
+  const cleaned = value?.toString().replace(/\D/g, "") ?? "";
+  return cleaned
+    .substring(0, 9)
+    .replace(
+      /(\d{2})(\d{1,3})?(\d{1,2})?(\d{1,2})?/,
+      (match, p1, p2, p3, p4) => {
+        let formatted = p1;
+        if (p2) formatted += ` ${p2}`;
+        if (p3) formatted += ` ${p3}`;
+        if (p4) formatted += ` ${p4}`;
+        return formatted;
+      }
+    )
+    .trim();
 };

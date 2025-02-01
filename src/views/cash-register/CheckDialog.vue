@@ -11,12 +11,22 @@ const props = defineProps({
     type: String,
     required: false,
   },
+  cashbackSale: {
+    type: Number,
+    required: false,
+  },
 });
 
 const checkSale = computed(
   () => Number(props.paymentInvoice.sale) || props.salePrice
 );
+
+const cashbackSale = computed(
+  () => Number(props.paymentInvoice.cashback_discount_price) || props.cashbackSale
+);
+
 const hasSale = computed(() => checkSale.value > 0);
+const hasCashbackSale = computed(() => cashbackSale.value > 0);
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString("ru-RU", {
@@ -113,6 +123,10 @@ const hasSaleProduct = (item) => Number(item.sale);
           <span>-{{ transformPrice(checkSale) }} so'm</span>
         </div>
 
+        <div v-if="hasCashbackSale" class="total-line discount">
+          <span>Скидка с кешбека:</span>
+          <span>-{{ transformPrice(cashbackSale) }} so'm</span>
+        </div>
         <div
           class="total-line final-total"
           :class="{
@@ -237,6 +251,9 @@ const hasSaleProduct = (item) => Number(item.sale);
         .minus {
           font-size: 14pt;
         }
+      }
+      span:first-child{
+        text-align: left;
       }
     }
 

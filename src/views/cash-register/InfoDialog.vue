@@ -197,7 +197,8 @@ const resolveInvoiceStatus = (status) => {
 
                 <tfoot v-show="payment_invoice?.items?.length">
                   <tr>
-                    <td colspan="2"></td>
+                    <td colspan=""></td>
+                    <td>Скидка с кэшбэк счёта: <b>{{transformPrice(payment_invoice.cashback_discount_price)}}</b></td>
                     <td class="text-body-1 pt-3">
                       Скидка на чек: <br />{{
                         transformPrice(payment_invoice.sale)

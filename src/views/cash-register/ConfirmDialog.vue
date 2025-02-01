@@ -2,8 +2,10 @@
 import {
   autoSelectInputValue,
   fetchOptions,
+  formatPhone,
   removeSpaces,
   transformPrice,
+  transformDecimalPrice,
 } from "@/helpers";
 import axios from "@/plugins/axios";
 import { computed, onMounted, watch } from "vue";
@@ -11,7 +13,6 @@ import { toast } from "vue3-toastify";
 import CheckDialog from "./CheckDialog.vue";
 import { nextTick } from "vue";
 import { ref } from "vue";
-import { requiredValidator } from "@/@core/utils/validators";
 import PhoneTextField from "@/components/PhoneTextField.vue";
 
 const props = defineProps({
@@ -34,6 +35,7 @@ const invoice_status = computed(() => ({
 const input_price = ref();
 const payment_type = ref();
 const sale_price = ref(0);
+const sale_price_from_cashback = ref(0);
 const phone_number = ref();
 const payment_response = ref({});
 
@@ -53,6 +55,7 @@ const onConfirm = async () => {
           price: removeSpaces(el.price),
         })),
         sale: removeSpaces(sale_price.value),
+        cashback_discount_price: removeSpaces(sale_price_from_cashback.value),
         phone: "+998" + clear_phone,
       }
     );
@@ -100,6 +103,7 @@ const handleDialogModelValueUpdate = (val) => {
       payment_type.value = null;
       payment_response.value = {};
       sale_price.value = 0;
+      sale_price_from_cashback.value = 0;
     });
     refForm.value?.reset();
     refForm.value?.resetValidation();
@@ -107,11 +111,11 @@ const handleDialogModelValueUpdate = (val) => {
 };
 
 const maxSale = (val) => {
-  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 10;
+  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 20;
   const numeredVal = removeSpaces(val);
   return (
     !(numeredVal > maxSalePrice) ||
-    `Невозможно применить скидку ${val} сум — превышен лимит 10%. Максимум — ${transformPrice(
+    `Невозможно применить скидку ${val} сум — превышен лимит 20%. Максимум — ${transformPrice(
       maxSalePrice
     )} сум`
   );
@@ -120,7 +124,8 @@ const maxSale = (val) => {
 const totalPriceWithSale = computed(
   () =>
     removeSpaces(props.paymentInvoice?.total_amount) -
-    removeSpaces(sale_price.value)
+    removeSpaces(sale_price.value) -
+    removeSpaces(sale_price_from_cashback.value)
 );
 //watch(
 //  () => props.isDialogOpen,
@@ -248,6 +253,41 @@ watch(totalPriceWithSale, (newVal) => {
   if (multi_prices.value.length === 1)
     multi_prices.value[0].price = transformPrice(newVal);
 });
+
+// Client
+const client_identify_by_qrcode = ref(false);
+const client_qrcode = ref();
+const client_qrcode_ref = ref();
+const isFetchingClient = ref(false);
+const clientData = ref({});
+
+const findClientData = async () => {
+  try {
+    isFetchingClient.value = true;
+    const response = await axios.get("clients/search", {
+      params: { search: client_qrcode.value },
+    });
+
+    clientData.value = response.data.client;
+    phone_number.value = formatPhone(
+      response.data.client.phone.replace(/^\+998/, "")
+    );
+    client_identify_by_qrcode.value = false;
+    client_qrcode.value = null;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isFetchingClient.value = false;
+  }
+};
+
+const changeClientIdentification = () => {
+  client_identify_by_qrcode.value = !client_identify_by_qrcode.value;
+  if (client_identify_by_qrcode.value) {
+    client_qrcode.value = null;
+    nextTick(() => client_qrcode_ref.value?.focus());
+  }
+};
 </script>
 
 <template>
@@ -336,13 +376,35 @@ watch(totalPriceWithSale, (newVal) => {
                 выбранным методам оплаты. Проверьте суммы!
               </p>
             </VCol>
-            <VCol
-              cols="12"
-              class="d-flex align-center pa-0 pr-1"
-              v-if="!maxMultiPrice"
-            >
-              <VSpacer />
 
+            <template v-if="clientData.id">
+              <VCol cols="5">
+                <VSelect
+                  :items="[{ title: 'Кэшбэк счёт', value: 0 }]"
+                  :model-value="0"
+                  readonly
+                  :clearable="false"
+                  append-inner-icon="mdi-chevron-right"
+                />
+              </VCol>
+              <VCol cols="6">
+                <VTextField
+                  v-model="sale_price_from_cashback"
+                  :model-value="transformPrice(sale_price_from_cashback, true)"
+                  :rules="[
+                    (v) =>
+                      !(removeSpaces(v) > clientData.balance) ||
+                      'Превышен лимит скидки по кешбек-счёту',
+                  ]"
+                  class="text-field-error_size"
+                  @focus="autoSelectInputValue"
+                  persistent-placeholder
+                  :disabled="!clientData.id"
+                />
+              </VCol>
+            </template>
+            <VCol class="d-flex align-center pa-0 w-100" v-if="!maxMultiPrice">
+              <VSpacer />
               <VIcon
                 size="40"
                 icon="mdi-chevron-down"
@@ -358,17 +420,67 @@ watch(totalPriceWithSale, (newVal) => {
               <VTextField
                 v-model="sale_price"
                 :model-value="transformPrice(sale_price, true)"
-                label="Введите сумму для скидки"
+                label="Сумма для скидки"
                 :rules="[maxSale]"
                 class="text-field-error_size"
                 @focus="autoSelectInputValue"
                 persistent-placeholder
               />
             </VCol>
+           
 
-            <VCol cols="12">
-              <PhoneTextField label="Номер клиента" v-model="phone_number" />
+            <VCol cols="12" class="d-flex justify-center align-center gap-4">
+              <PhoneTextField
+                label="Номер клиента"
+                v-model="phone_number"
+                v-if="!client_identify_by_qrcode"
+                :readonly="!!clientData.id"
+                :clearable="!clientData.id"
+              >
+                <template #append>
+                  <VIcon
+                    :icon="'mdi-qrcode-scan'"
+                    class="cursor-pointer"
+                    color="primary"
+                    size="28"
+                    @click="changeClientIdentification"
+                  />
+                </template>
+              </PhoneTextField>
+
+              <VTextField
+                label="Сканируйте QR-код"
+                v-model="client_qrcode"
+                v-if="client_identify_by_qrcode"
+                ref="client_qrcode_ref"
+                @keydown.enter.prevent="findClientData"
+                variant="filled"
+                :loading="isFetchingClient"
+              >
+                <template #append>
+                  <VIcon
+                    :icon="'mdi-phone'"
+                    class="cursor-pointer"
+                    color="primary"
+                    size="28"
+                    @click="changeClientIdentification"
+                  />
+                </template>
+              </VTextField>
             </VCol>
+
+            <VSlideYTransition>
+              <VCol cols="12" v-if="clientData?.id">
+                <span class="text-body-1"
+                  ><span class="font-weight-bold">Клиент:</span>
+                  {{ clientData.full_name }}
+                  <br />
+                  <span class="font-weight-bold">Баланс:</span>
+                  {{ transformDecimalPrice(clientData.balance) }}
+                  {{ clientData.balance > 0 ? "so'm" : "" }}
+                </span>
+              </VCol>
+            </VSlideYTransition>
 
             <h2 class="ps-3 py-3">
               Общая сумма : {{ transformPrice(totalPriceWithSale) }} so'm
@@ -408,6 +520,7 @@ watch(totalPriceWithSale, (newVal) => {
   <CheckDialog
     v-if="props.paymentInvoice"
     :salePrice="removeSpaces(sale_price).toString()"
+    :cashbackSale="removeSpaces(sale_price_from_cashback)"
     :paymentInvoice="props.paymentInvoice"
   />
 </template>

@@ -1,25 +1,11 @@
 <script setup>
+import { formatPhone } from "@/helpers";
+import { useSlots } from "vue";
 import { watch } from "vue";
 
 const props = defineProps(["modelValue"]);
 const emit = defineEmits(["update:modelValue"]);
-
-const formatPhone = (value) => {
-  const cleaned = value?.toString().replace(/\D/g, "") ?? "";
-  return cleaned
-    .substring(0, 9)
-    .replace(
-      /(\d{2})(\d{1,3})?(\d{1,2})?(\d{1,2})?/,
-      (match, p1, p2, p3, p4) => {
-        let formatted = p1;
-        if (p2) formatted += ` ${p2}`;
-        if (p3) formatted += ` ${p3}`;
-        if (p4) formatted += ` ${p4}`;
-        return formatted;
-      }
-    )
-    .trim();
-};
+const slots = useSlots();
 
 const validatePhone = (value) => {
   const phonePattern = /^\d{2} \d{3} \d{2} \d{2}$/;
@@ -31,7 +17,7 @@ const handleInput = (value) => {
   emit("update:modelValue", formatted);
 };
 
-const phone_number = ref();
+const phone_number = ref(props.modelValue);
 
 watch(
   phone_number,
@@ -41,6 +27,16 @@ watch(
     phone_number.value = formatted;
   },
   { immediate: true }
+);
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal === phone_number.value) return;
+    const formatted = formatPhone(newVal);
+    emit("update:modelValue", formatted);
+    phone_number.value = formatted;
+  }
 );
 </script>
 
@@ -55,6 +51,9 @@ watch(
     clearable
   >
     <template #prepend>+998</template>
+    <template v-for="(_, slot) in slots" #[slot]="slotProps">
+      <slot :name="slot" v-bind="slotProps"></slot>
+    </template>
   </VTextField>
 </template>
 
