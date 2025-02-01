@@ -111,7 +111,7 @@ const handleDialogModelValueUpdate = (val) => {
 };
 
 const maxSale = (val) => {
-  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 20;
+  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 5;
   const numeredVal = removeSpaces(val);
   return (
     !(numeredVal > maxSalePrice) ||
