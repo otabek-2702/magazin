@@ -39,13 +39,16 @@ const onSubmit = () => {
           currency_id: currency_id.value,
           exchange_rate: exchange_rate.value,
 
-          items: product_variants.value,
+          items: product_variants.value.map((el) => ({
+            product_variant_id: el.product_variant_id,
+            price: removeSpaces(el.price),
+            quantity: el.quantity,
+          })),
         });
         emit("fetchDatas");
         toast("Успешно добавлено", {
           theme: "auto",
           type: "success",
-          
         });
         handleDialogModelValueUpdate(false);
       } catch (error) {
@@ -64,6 +67,7 @@ const handleDialogModelValueUpdate = (val) => {
       batches_id.value = null;
       currency_id.value = null;
       product_variants_id.value = null;
+      product_variants.value = [];
       price.value = null;
       quantity.value = 1;
       refForm.value?.reset();
@@ -190,7 +194,6 @@ const addToList = () => {
     toast("Заполните все поля формы", {
       theme: "auto",
       type: "error",
-      
     });
   }
 };
@@ -229,10 +232,14 @@ const calculateCount = computed(() => {
 </script>
 
 <template>
-  <VDialog fullscreen v-model="isDialogVisible">
+  <VDialog
+    fullscreen
+    :model-value="isDialogVisible"
+    @update:model-value="handleDialogModelValueUpdate"
+  >
     <!-- Dialog Activator -->
     <template #activator="{ props }">
-      <VBtn @click="isDialogVisible = true" v-bind="props"
+      <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
         >Создать накладную</VBtn
       >
     </template>
@@ -362,8 +369,8 @@ const calculateCount = computed(() => {
                   <tr>
                     <td colspan="2"></td>
                     <td class="text-body-1">
-                      Общая цена: {{ rate_symbol
-                      }} {{ transformPrice(calculatePrice) }}
+                      Общая цена: {{ rate_symbol }}
+                      {{ transformPrice(calculatePrice) }}
                     </td>
                     <td class="text-body-1">
                       Общая количество: {{ transformPrice(calculateCount) }}

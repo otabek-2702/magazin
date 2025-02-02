@@ -72,7 +72,11 @@ const onSubmit = async (reject_or_submit = false) => {
       batch_id: batches_id.value ?? 0,
       currency_id: currency_id.value,
       exchange_rate: exchange_rate.value,
-      items: product_variants.value,
+      items: product_variants.value.map(el => ({
+        product_variant_id: el.product_variant_id,
+        price: removeSpaces(el.price),
+        quantity: el.quantity
+      })),
     });
 
     if (!reject_or_submit) {
