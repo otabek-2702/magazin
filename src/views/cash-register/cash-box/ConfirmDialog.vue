@@ -32,7 +32,8 @@ const updateModelValue = (val) => {
   }
 };
 
-const onConfirmation = async () => {
+const onConfirmation = async (e) => {
+  e?.preventDefault()
   const valid = refForm.value?.validate();
   if (!valid) return;
 
@@ -83,6 +84,7 @@ const onConfirmation = async () => {
             autocomplete="off"
             :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
             @click:append-inner="isPasswordVisible = !isPasswordVisible"
+            @keydown.enter="onConfirmation"
             name="password-input-field"
           />
         </VForm>
@@ -93,7 +95,7 @@ const onConfirmation = async () => {
           type="button"
           variant="elevated"
           color="success"
-          @click="onConfirmation"
+          @click.prevent="onConfirmation"
           :loading="isFetching"
         >
           Подтвердить

@@ -20,6 +20,7 @@ const {
   metaDatas,
 } = useFetch({
   baseUrl: "cashbox_movements",
+  resourceKey: "movements",
   params: {
     cashbox_id: route?.params?.id,
     from_date: getFormattedToday(),
@@ -50,7 +51,7 @@ const invoicesListMeta = computed(() => [
     icon: "mdi-cash-multiple",
     color: "secondary",
     title: "Итоговая сумма в кассе",
-    stats: cashbox.value?.remains,
+    stats: metaDatas.value.cashbox?.remains,
   },
   {
     icon: "mdi-cash-plus",
@@ -185,7 +186,6 @@ const isVisible =
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
-                @click="handleInfoDialogOpen(invoice.id)"
                 style="cursor: pointer"
               >
                 <td>{{ invoice.id }}</td>
