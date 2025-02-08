@@ -20,7 +20,7 @@ const {
   metaDatas,
 } = useFetch({
   baseUrl: "cashbox_movements",
-  // resourceKey: "movements",
+  resourceKey: "movements",
   params: {
     cashbox_id: route?.params?.id,
     from_date: getFormattedToday(),
