@@ -49,7 +49,7 @@ const resetDate = () => {
 };
 
 watch(dateValue, (newVal, oldValue) => {
-  if (newVal === oldValue) return;
+  if (newVal === oldValue || !newVal) return;
   const [from, to, ...other] = newVal?.split(" — ");
 
   state.value.params = {
@@ -127,7 +127,9 @@ watch(dateValue, (newVal, oldValue) => {
             <td>
               {{
                 transformPrice(
-                  Number(invoice.total_amount) - Number(invoice.sale) - Number(invoice.cashback_discount_price)
+                  Number(invoice.total_amount) -
+                    Number(invoice.sale) -
+                    Number(invoice.cashback_discount_price)
                 )
               }}
             </td>

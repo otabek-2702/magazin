@@ -111,11 +111,11 @@ const handleDialogModelValueUpdate = (val) => {
 };
 
 const maxSale = (val) => {
-  const maxSalePrice = Number(props.paymentInvoice?.total_amount) / 5;
+  const maxSalePrice = Number(props.paymentInvoice?.total_amount) * 0.3;
   const numeredVal = removeSpaces(val);
   return (
     !(numeredVal > maxSalePrice) ||
-    `Невозможно применить скидку ${val} сум — превышен лимит 20%. Максимум — ${transformPrice(
+    `Невозможно применить скидку ${val} сум — превышен лимит 30%. Максимум — ${transformPrice(
       maxSalePrice
     )} сум`
   );
@@ -427,7 +427,6 @@ const changeClientIdentification = () => {
                 persistent-placeholder
               />
             </VCol>
-           
 
             <VCol cols="12" class="d-flex justify-center align-center gap-4">
               <PhoneTextField

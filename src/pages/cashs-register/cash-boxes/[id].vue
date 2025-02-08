@@ -47,24 +47,46 @@ const resolveInvoiceStatus = (status) => {
 };
 
 const invoicesListMeta = computed(() => [
-  {
-    icon: "mdi-cash-multiple",
-    color: "secondary",
-    title: "Итоговая сумма в кассе",
-    stats: metaDatas.value.cashbox?.remains,
-  },
-  {
-    icon: "mdi-cash-plus",
-    color: "success",
-    title: "Доход",
-    stats: metaDatas.value.positive_sum,
-  },
-  {
-    icon: "mdi-cash-minus",
-    color: "error",
-    title: "Расход",
-    stats: metaDatas.value.negative_sum,
-  },
+  [
+    {
+      icon: "mdi-cash-multiple",
+      color: "secondary",
+      title: "Итоговая сумма в кассе",
+      stats: metaDatas.value.cashbox?.remains,
+    },
+    {
+      color: "primary",
+      title: "Наличные",
+      stats: metaDatas.value.cashbox?.remains_details.cash,
+    },
+  ],
+  [
+    {
+      icon: "bx-credit-card-front",
+      color: "primary",
+      title: "UZCARD",
+      stats: metaDatas.value.cashbox?.remains_details.uzcard,
+    },
+    {
+      color: "primary",
+      title: "HUMO",
+      stats: metaDatas.value.cashbox?.remains_details.humo,
+    },
+  ],
+  [
+    {
+      icon: "mdi-cash-plus",
+      color: "success",
+      title: "Доход",
+      stats: metaDatas.value.positive_sum,
+    },
+    {
+      icon: "mdi-cash-minus",
+      color: "error",
+      title: "Расход",
+      stats: metaDatas.value.negative_sum,
+    },
+  ],
   {
     icon: "mdi-bank",
     color: "primary",
@@ -81,7 +103,7 @@ const resetDate = () => {
 };
 
 watch(dateValue, (newVal, oldValue) => {
-  if (newVal === oldValue) return;
+  if (newVal === oldValue || !newVal) return;
 
   const [from, to, ...other] = newVal?.split(" — ");
 
@@ -107,15 +129,55 @@ const isVisible =
         lg="3"
       >
         <VCard>
-          <VCardText class="d-flex justify-space-between">
+          <VCardText
+            class="d-flex justify-space-between"
+            v-if="meta.length"
+            v-for="item in meta"
+          >
             <div>
-              <span>{{ meta.title }}</span>
+              <span>{{ item.title }}</span>
               <div class="d-flex align-center gap-2">
+                <h6 :class="`text-h6 text-${item.color}`">
+                  <AnimatedNumber :number="item.stats" /> so'm
+                </h6>
+              </div>
+              <p
+                class="text-m mb-0 mt-2"
+                v-if="item.subDatas"
+                v-for="subData in item.subDatas"
+              >
+                {{ subData.title }}:
+                <b><AnimatedNumber :number="subData.stats" /></b> so'm
+                <br />
+              </p>
+            </div>
+
+            <VAvatar
+              rounded
+              variant="tonal"
+              :color="item.color"
+              :icon="item.icon"
+              v-if="item.icon"
+            />
+          </VCardText>
+
+          <VCardText class="d-flex justify-space-between" v-else>
+            <div>
+              <span v-if="meta.title">{{ meta.title }}</span>
+              <div v-if="meta.title" class="d-flex align-center gap-2">
                 <h6 :class="`text-h6 text-${meta.color}`">
                   <AnimatedNumber :number="meta.stats" /> so'm
                 </h6>
               </div>
-              <span class="text-sm">{{ meta.subtitle }}</span>
+              <p
+                class="text-m mb-0 mt-2"
+                v-if="meta.subDatas"
+                v-for="subData in meta.subDatas"
+              >
+                {{ subData.title }}:
+                <b><AnimatedNumber :number="subData.stats" /></b> so'm
+                <br />
+              </p>
             </div>
 
             <VAvatar
@@ -123,6 +185,7 @@ const isVisible =
               variant="tonal"
               :color="meta.color"
               :icon="meta.icon"
+              v-if="meta.icon"
             />
           </VCardText>
         </VCard>
@@ -141,7 +204,6 @@ const isVisible =
                   v-model="dateValue"
                   :config="{ mode: 'range', locale: Uzbek }"
                   placeholder="Выберите диапазон дат"
-                  :rules="[requiredValidator]"
                   clearable
                   @click:clear="resetDate"
                   density="compact"

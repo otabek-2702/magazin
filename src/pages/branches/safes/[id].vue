@@ -85,7 +85,7 @@ const resetDate = () => {
 };
 
 watch(dateValue, (newVal, oldValue) => {
-  if (newVal === oldValue) return;
+  if (newVal === oldValue || !newVal) return;
   const [from, to, ...other] = newVal?.split(" — ");
 
   state.value.params = {
