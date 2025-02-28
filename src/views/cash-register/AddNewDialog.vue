@@ -459,13 +459,7 @@ const reloadSales = () => {
                     </td>
                     <td>
                       <b>
-                        {{
-                          transformPrice(
-                            variant.is_promoted
-                              ? variant.sale
-                              : variant.sale * variant.quantity
-                          )
-                        }}
+                        {{ transformPrice(variant.sale) }}
                         {{ Number(variant.sale) ? "so'm" : "" }}
                       </b>
                     </td>
