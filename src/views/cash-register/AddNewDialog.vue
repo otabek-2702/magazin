@@ -258,8 +258,7 @@ const calculateTotalSale = computed(() => {
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) =>
-        accumulator + (el.is_promoted ? el.sale : el.sale * el.quantity) ?? 0,
+      (accumulator, el) => accumulator + el.sale ?? 0,
       0
     )
   );
@@ -271,9 +270,7 @@ const calculateTotalPriceWithSale = computed(() => {
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) =>
-        accumulator +
-          (el.price * el.quantity -
-            (el.is_promoted ? el.sale : el.quantity * el.sale)) ?? 0,
+        accumulator + (el.price * el.quantity - el.sale) ?? 0,
       0
     )
   );
@@ -467,10 +464,7 @@ const reloadSales = () => {
                       <b
                         >{{
                           transformPrice(
-                            variant.price * variant.quantity -
-                              (variant.is_promoted
-                                ? variant.sale
-                                : variant.sale * variant.quantity)
+                            variant.price * variant.quantity - variant.sale
                           )
                         }}
                         so'm</b
