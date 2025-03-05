@@ -77,7 +77,7 @@ const invoicesListMeta = computed(() => [
     {
       icon: "mdi-cash-plus",
       color: "success",
-      title: "Доход",
+      title: "Приход",
       stats: metaDatas.value.positive_sum,
     },
     {
