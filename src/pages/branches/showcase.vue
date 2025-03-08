@@ -140,7 +140,7 @@ const metaDatasList = computed(() => [
           <VCardItem>
             <VRow>
               <VCol cols="auto">
-                <VCardTitle> Фильтры поиска </VCardTitle>
+                <VCardTitle> Витрина </VCardTitle>
               </VCol>
 
               <VSpacer />
@@ -172,10 +172,10 @@ const metaDatasList = computed(() => [
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>ФИЛИАЛ</th>
                 <!-- <th>
@@ -193,7 +193,7 @@ const metaDatasList = computed(() => [
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>
                 <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th data-column="actions">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -213,8 +213,7 @@ const metaDatasList = computed(() => [
                 <td>{{ product.quantity }}</td>
                 <td>{{ product.variant?.product?.gender }}</td>
                 <td
-                  class="text-center"
-                  :style="{ width: '80px', zIndex: '10' }"
+                  data-column="actions"
                 >
                   <VIcon
                     @click="

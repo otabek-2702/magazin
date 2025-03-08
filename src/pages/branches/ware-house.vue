@@ -60,7 +60,7 @@ const downloadReport = async (endpoint, filename) => {
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -123,7 +123,7 @@ const metaDatasList = computed(() => [
           <VCardItem>
             <VRow>
               <VCol cols="auto">
-                <VCardTitle> Фильтры поиска </VCardTitle>
+                <VCardTitle> Склад филиала </VCardTitle>
               </VCol>
 
               <VSpacer />
@@ -145,9 +145,11 @@ const metaDatasList = computed(() => [
           <VCardText>
             <VRow>
               <VCol cols="auto">
-                <AddNewWayBillToShowcaseDialog
-                  @fetchDatas="() => fetchData(true)"
-                />
+                <Can I="create" a="ShowcaseInvoice">
+                  <AddNewWayBillToShowcaseDialog
+                    @fetchDatas="() => fetchData(true)"
+                  />
+                </Can>
               </VCol>
 
               <VSpacer />
@@ -170,7 +172,7 @@ const metaDatasList = computed(() => [
           <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>ФИЛИАЛ</th>
                 <!-- <th>
@@ -188,7 +190,7 @@ const metaDatasList = computed(() => [
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>
                 <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th data-column="actions">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -207,10 +209,7 @@ const metaDatasList = computed(() => [
                 <td>{{ product.variant?.product?.category }}</td>
                 <td>{{ product.quantity }}</td>
                 <td>{{ product.variant?.product?.gender }}</td>
-                <td
-                  class="text-center"
-                  :style="{ width: '80px', zIndex: '10' }"
-                >
+                <td data-column="actions">
                   <VIcon
                     @click="
                       (event) => {

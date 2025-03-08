@@ -286,14 +286,14 @@ const calculateCount = computed(() => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th>ДЕЙСТВИЯ</th>
+                    <th data-column="actions">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -335,10 +335,7 @@ const calculateCount = computed(() => {
                         :rules="[]"
                       />
                     </td>
-                    <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                    >
+                    <td data-column="actions">
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
                         @click.stop="hideEditInput(variant)"
@@ -352,13 +349,13 @@ const calculateCount = computed(() => {
                         @click.stop="showEditInput(variant.product_variant_id)"
                         size="30"
                         icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
+                        color="primary"
                         class="mx-2"
                       />
                       <VIcon
                         size="30"
                         icon="mdi-minus-circle-outline"
-                        style="color: red"
+                        color="error"
                         @click="deleteListItem(variant.product_variant_id)"
                       ></VIcon>
                     </td>

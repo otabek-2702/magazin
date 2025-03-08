@@ -1,11 +1,13 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
 import { toast } from "vue3-toastify";
-import { requiredValidator } from "@/@core/utils/validators";
 import { useFetch } from "@/hooks/useFetch";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
+
+const { can } = useAppAbility();
 
 const isFetching = ref(false);
 const editingId = ref(null);
@@ -38,7 +40,7 @@ const onAddSubmit = async () => {
     toast("Успешно добавлено", {
       type: "success",
     });
-  searchQuery.value = null;
+    searchQuery.value = null;
   } catch (error) {
     console.error(error);
   } finally {
@@ -108,7 +110,7 @@ const deleteItem = async (id) => {
         />
       </VCol>
       <VCol cols="4" class="app-user-search-filter d-flex align-center">
-        <Can I="add" a="Sizes">
+        <Can I="create" a="Size">
           <VBtn :disabled="isFetching" :loader="isFetching" @click="onAddSubmit"
             >Добавить</VBtn
           >
@@ -118,12 +120,17 @@ const deleteItem = async (id) => {
 
     <VDivider />
 
-    <VTable class="text-no-wrap">
+    <VTable>
       <thead>
         <tr>
-          <th style="width: 48px">ID</th>
+          <th data-column="id">ID</th>
           <th>ИМЯ</th>
-          <th>ДЕЙСТВИЯ</th>
+          <th
+            data-column="actions"
+            v-if="can('update', 'Size') || can('delete', 'Size')"
+          >
+            ДЕЙСТВИЯ
+          </th>
         </tr>
       </thead>
 
@@ -140,13 +147,13 @@ const deleteItem = async (id) => {
               density="compact"
             />
           </td>
-          <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-            <Can I="update" a="Sizes">
+          <td data-column="actions">
+            <Can I="update" a="Size">
               <VIcon
                 @click.stop="showEditInput(size.id)"
                 size="30"
                 icon="bx-edit-alt"
-                style="color: rgb(var(--v-global-theme-primary))"
+                color="primary"
                 class="mx-2"
               />
             </Can>
@@ -154,7 +161,7 @@ const deleteItem = async (id) => {
               <VIcon
                 size="30"
                 icon="bx-trash"
-                style="color: red"
+                color="error"
                 @click.stop="confirmDelete(size.id, size.name)"
               />
             </Can>
@@ -183,7 +190,6 @@ const deleteItem = async (id) => {
       <VPagination
         v-if="sizes.length"
         v-model="state.currentPage"
-        
         :length="totalPage"
       />
     </VCardText>

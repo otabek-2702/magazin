@@ -4,13 +4,13 @@
     @update:model-value="updateIsDialogVisible"
     max-width="400"
   >
-    <VCard>
-      <DialogCloseBtn variant="text" size="small" @click="emit('update:isDialogVisible', false)" />
-      <br /><br />
-      <VCardText class="text-center">
-        <p class="text-xl font-weight-medium mb-2">
-          Вы действительно хотите удалить <span style="color: red">{{ role.name }}</span>?
-        </p>
+  <VCard>
+    <DialogCloseBtn variant="text" size="small" @click="emit('update:isDialogVisible', false)" />
+    <br /><br />
+    <VCardText class="text-center pt-12">
+      <p class="text-xl font-weight-medium mb-2">
+        Вы действительно хотите удалить <span style="color: red;">{{ role.name }}</span>?
+      </p>
         <VRow>
           <VCol cols="12" class="d-flex flex-wrap justify-center gap-4">
             <VBtn

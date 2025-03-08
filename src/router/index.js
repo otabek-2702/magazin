@@ -57,9 +57,9 @@ const router = createRouter({
           },
         },
         {
-          path: "employees",
-          name: "Employees",
-          component: () => import("@/pages/employees.vue"),
+          path: "users",
+          name: "Users",
+          component: () => import("@/pages/users.vue"),
           meta: {
             action: "show",
             subject: "Users",

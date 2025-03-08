@@ -26,24 +26,26 @@ const errors = ref({
 });
 
 const refVForm = ref();
+const isLoading = ref(false);
 const username = ref();
 const password = ref();
 const error = ref(false);
 
 const login = () => {
+  isLoading.value = true;
   axios
     .post("/auth/login", {
       login: username.value,
       password: password.value,
     })
     .then(async (r) => {
-      const { access_token, permissions, role, full_name } = r.data;
+      const { access_token, permissions, full_name } = r.data;
       const response = await axios.post("/auth/me", null, {
         headers: { Authorization: `Bearer ${access_token}` },
       });
 
       const datas = {
-        role: role,
+        role: response.data?.role,
         full_name: full_name,
         user_id: response.data?.id,
       };
@@ -56,8 +58,21 @@ const login = () => {
         };
       });
 
-      localStorage.setItem("userAbilities", JSON.stringify(userAbilities));
-      ability.update(userAbilities);
+      if (response.data?.role?.id === 1) {
+        localStorage.setItem("userAbilities", JSON.stringify(userAbilities));
+        ability.update(userAbilities);
+      } else {
+        let abilities = [
+          {
+            action: "show",
+            subject: "all",
+          },
+        ];
+
+        localStorage.setItem("userAbilities", JSON.stringify(abilities));
+        ability.update(abilities);
+      }
+
       localStorage.setItem("userData", JSON.stringify(datas));
       localStorage.setItem("accessToken", access_token);
 
@@ -68,7 +83,8 @@ const login = () => {
       error.value = true;
 
       console.error(e);
-    });
+    })
+    .finally(() => (isLoading.value = false));
 };
 
 const onSubmit = () => {
@@ -145,7 +161,15 @@ const onSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
-                <VBtn block type="submit" class="mb-1 mt-3"> Войти </VBtn>
+                <VBtn
+                  block
+                  :loading="isLoading"
+                  :disabled="isLoading"
+                  type="submit"
+                  class="mb-1 mt-3"
+                >
+                  Войти
+                </VBtn>
               </VCol>
             </VRow>
           </VForm>

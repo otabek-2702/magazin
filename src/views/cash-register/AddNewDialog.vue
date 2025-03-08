@@ -10,7 +10,7 @@ const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
 const refForm = ref();
-const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
+const cashbox_id = ref(localStorage.getItem("cashbox_id"));
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
@@ -404,17 +404,17 @@ const reloadSales = () => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
                     <th>КОЛ-ВО</th>
                     <th>ФАКТИЧЕСКАЯ СУММА</th>
                     <th>СКИДКА</th>
                     <th>СУММА</th>
-                    <th>ДЕЙСТВИЯ</th>
+                    <th data-column="actions">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -470,10 +470,7 @@ const reloadSales = () => {
                         so'm</b
                       >
                     </td>
-                    <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                    >
+                    <td data-column="actions">
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
                         @click.stop="hideEditInput(variant)"
@@ -487,13 +484,13 @@ const reloadSales = () => {
                         @click.stop="showEditInput(variant.product_variant_id)"
                         size="30"
                         icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
+                        color="primary"
                         class="mx-2"
                       />
                       <VIcon
                         size="30"
                         icon="mdi-minus-circle-outline"
-                        style="color: red"
+                        color="error"
                         @click="deleteListItem(variant.product_variant_id)"
                       ></VIcon>
                     </td>

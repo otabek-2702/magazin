@@ -196,7 +196,7 @@ const isVisible =
             <VRow>
               <VCol cols="auto">
                 <VCardTitle class="pa-0">
-                  {{ cashbox?.name ?? "Касса №" }}
+                  {{ metaDatas?.cashbox?.name ?? "Касса №" }}
                 </VCardTitle>
               </VCol>
               <VCol cols="12" sm="3">
@@ -221,9 +221,11 @@ const isVisible =
                 </VBtn>
               </VCol>
               <VCol cols="auto">
-                <VBtn @click="isAddNewOutputDrawerVisible = true"
-                  >Добавить Расход
-                </VBtn>
+                <Can I="create" a="CashboxOutput">
+                  <VBtn @click="isAddNewOutputDrawerVisible = true"
+                    >Добавить Расход
+                  </VBtn>
+                </Can>
               </VCol>
             </VRow>
           </VCardText>
@@ -235,7 +237,7 @@ const isVisible =
             <!-- 👉 Table head -->
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ВРЕМЯ СОЗДАНИЯ</th>
                 <th>К-ВО ТОВАРОВ</th>
                 <th>ТИП ОПЛАТЫ</th>
@@ -244,11 +246,11 @@ const isVisible =
             </thead>
 
             <!-- 👉 Table Body -->
-            <tbody v-if="invoices?.length && !isFetching">
+            <tbody>
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
-                style="cursor: pointer"
+                class="cursor-pointer"
               >
                 <td>{{ invoice.id }}</td>
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
@@ -296,11 +298,13 @@ const isVisible =
         </VCard>
       </VCol>
     </VRow>
-    <AddNewOutputDrawer
-      v-model:isDrawerVisible="isAddNewOutputDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-      :cashbox_id="parseInt(route?.params?.id)"
-    />
+    <Can I="create" a="CashboxOutput">
+      <AddNewOutputDrawer
+        v-model:isDrawerVisible="isAddNewOutputDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+        :cashbox_id="parseInt(route?.params?.id)"
+      />
+    </Can>
     <ConfirmDialog v-model:id="confirmId" @fetchDatas="() => fetchData(true)" />
   </section>
 </template>

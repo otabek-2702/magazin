@@ -1,7 +1,7 @@
 // Write your overrides
 @font-face {
-  font-family: 'Nunito';
-  src: url('@/assets/fonts/Nunito-Black.ttf') format('truetype');
+  font-family: "Nunito";
+  src: url("@/assets/fonts/Nunito-Black.ttf") format("truetype");
   font-weight: 900;
   font-style: normal;
 }
@@ -16,9 +16,30 @@ td:last-child:empty {
   text-overflow: ellipsis;
 }
 
-
-
-.text-field-error_size  div.v-messages__message {
+/* Adjusts the font size and line height of error messages inside v-text-field */
+.text-field-error_size div.v-messages__message {
   font-size: 14px !important; /* Change this to your desired font size */
   line-height: 15px;
+}
+
+table tr th[data-column="id"] {
+  width: 48px;
+}
+
+table tr th[data-column="actions"] {
+  width: 130px;
+}
+
+table tr td[data-column="actions"] > * {
+  z-index: 10;
+  display: inline-block;
+}
+
+table tr td[data-column="actions"] > *:not(:last-child) {
+  margin-right: 10px;
+}
+
+tbody tr:hover:not(:only-child) {
+  background-color: rgba(var(--v-theme-secondary), 0.2) !important;
+  transition: 0.1s background-color;
 }

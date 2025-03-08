@@ -1,11 +1,25 @@
 <script setup>
+import { nextTick, onMounted, ref } from "vue";
+
 const props = defineProps(["count"]);
+
+let count = ref(1);
+
+const table_body_ref = ref(null);
+onMounted(() => {
+  nextTick(() => {
+    let table_row = table_body_ref.value?.previousElementSibling?.previousElementSibling?.firstChild;
+    let amount = table_row?.children?.length;
+
+    count.value = amount;
+  });
+});
 </script>
 
 <template>
-  <tbody>
+  <tbody ref="table_body_ref">
     <tr class="skeleton__list">
-      <td class="px-2" v-for="n in props.count || 1">
+      <td class="px-2" v-for="n in count || 1">
         <div class="skeleton__list__item"></div>
       </td>
     </tr>

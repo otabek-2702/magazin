@@ -1,16 +1,16 @@
 <script setup>
-import { computed, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import AddNewDrawer from '@/views/category/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/category/UpdateDrawer.vue';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
-import { useAppAbility } from '@/plugins/casl/useAppAbility';
+import { computed, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import AddNewDrawer from "@/views/category/AddNewDrawer.vue";
+import UpdateDrawer from "@/views/category/UpdateDrawer.vue";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
+import { toast } from "vue3-toastify";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
 const { can } = useAppAbility();
-const searchQuery = ref('');
-const finalSearch = ref('');
+const searchQuery = ref("");
+const finalSearch = ref("");
 const isFetching = ref(false);
 const rowPerPage = ref(10);
 const currentPage = ref(1);
@@ -22,7 +22,10 @@ const updateID = ref(0);
 const lastFetchedPage = ref(null);
 
 const fetchData = async (force = false) => {
-  if (!force && (isFetching.value || currentPage.value === lastFetchedPage.value)) {
+  if (
+    !force &&
+    (isFetching.value || currentPage.value === lastFetchedPage.value)
+  ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
 
@@ -30,24 +33,24 @@ const fetchData = async (force = false) => {
 
   try {
     const response = await axios.get(
-      `/categories?page=${currentPage.value}&search=${finalSearch.value}`,
+      `/categories?page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    categories.value = response.data['categories'];
+    categories.value = response.data["categories"];
     // lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
     // currentPage.value = response.data['meta']['current_page'];
     // totalDatasCount.value = response.data['meta']['total'];
     // totalPage.value = response.data['meta']['total_pages'];
     // rowPerPage.value = response.data['meta']['per_page'];
   } catch (error) {
-    console.error('Ошибка загрузки кандидатов:', error);
+    console.error("Ошибка загрузки кандидатов:", error);
   } finally {
     isFetching.value = false;
   }
 };
 
 // search
-const searchElements = async () => {
+const handleSearch = async () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -55,7 +58,7 @@ const searchElements = async () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
@@ -114,16 +117,14 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/categories/' + id);
-    toast('Успешно удалено', {
-      
-      type: 'success',
-      
+    await axios.delete("/categories/" + id);
+    toast("Успешно удалено", {
+      type: "success",
     });
     await fetchData(true);
     isDialogVisible.value = false;
   } catch (error) {
-    console.error('Ошибка :', error);
+    console.error("Ошибка :", error);
   } finally {
     isDeleting.value = false;
   }
@@ -134,42 +135,49 @@ const deleteItem = async function (id) {
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
+        <VCard>
+          <!-- 👉 Head -->
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Категории </VCardTitle>
+              </VCol>
+              <VSpacer />
 
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
-
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск категории"
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Category">
-                <VBtn @click="isAddNewDrawerVisible = true"> Добавить новую категорию </VBtn>
-              </Can>
-            </VCol>
-          </VCardText>
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск категории"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="create" a="Product">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить новую категорию</VBtn
+                  >
+                </Can>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ</th>
                 <th>ОПИСАНИЕ</th>
-                <th v-if="can('update', 'Category') || can('delete', 'Category')">ДЕЙСТВИЯ</th>
+                <th
+                data-column="actions"
+                  v-if="can('update', 'Category') || can('delete', 'Category')"
+                >
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
@@ -178,9 +186,9 @@ const deleteItem = async function (id) {
                 <td>{{ category.id }}</td>
                 <td>{{ category.name }}</td>
                 <td class="overflow-hide">
-                  {{ category.description }} 
+                  {{ category.description }}
                 </td>
-                <td class="text-center" style="width: 80px">
+                <td data-column="actions">
                   <Can I="update" a="Category">
                     <VIcon
                       @click="
@@ -191,7 +199,7 @@ const deleteItem = async function (id) {
                       "
                       size="30"
                       icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
+                      color="primary"
                     ></VIcon>
                   </Can>
 
@@ -199,7 +207,7 @@ const deleteItem = async function (id) {
                     <VIcon
                       size="30"
                       icon="bx-trash"
-                      style="color: red"
+                      color="error"
                       @click="confirmDelete(category.id, category.title)"
                     ></VIcon>
                   </Can>
@@ -211,7 +219,9 @@ const deleteItem = async function (id) {
 
             <tfoot v-if="!isFetching && !categories.length">
               <tr>
-                <td colspan="7" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="7" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -234,15 +244,28 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
 
-    <AddNewDrawer
-      v-model:isDrawerOpen="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="deleteData"
+      :isDeleting="isDeleting"
     />
-    <UpdateDrawer
-      :id="updateID"
-      v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
+
+    <Can I="create" a="Category">
+      <AddNewDrawer
+        v-model:isDrawerOpen="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+
+    <Can I="update" a="Category">
+      <UpdateDrawer
+        :id="updateID"
+        v-model:isDrawerOpen="isUpdateDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
   </section>
 </template>
 

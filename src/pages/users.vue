@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, watch, watchEffect } from "vue";
 import axios from "@axios";
-import AddNewDrawer from "@/views/branch/AddNewDrawer.vue";
-import UpdateDrawer from "@/views/branch/UpdateDrawer.vue";
+import AddNewUserDrawer from "@/views/user/AddNewUserDrawer.vue";
+import UpdateUserDrawer from "@/views/user/UpdateUserDrawer.vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
 import { toast } from "vue3-toastify";
@@ -11,15 +11,15 @@ import { useAppAbility } from "@/plugins/casl/useAppAbility";
 const { can } = useAppAbility();
 const searchQuery = ref("");
 const finalSearch = ref("");
-const isFetching = ref(false);
 const rowPerPage = ref(10);
 const currentPage = ref(1);
 const totalPage = ref(1);
-const totalDatasCount = ref(0);
-const branches = ref([]);
+const totalUsers = ref(0);
+const users = ref([]);
 const updateID = ref(0);
 
 const lastFetchedPage = ref(null);
+const isFetching = ref(false);
 
 const fetchData = async (force = false) => {
   if (
@@ -30,18 +30,18 @@ const fetchData = async (force = false) => {
   }
 
   isFetching.value = true;
-
+  users.value = [];
   try {
-    const response = await axios.get(
-      `/branches?page=${currentPage.value}&search=${finalSearch.value}`
+    const users_r = await axios.get(
+      `/users?page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    branches.value = response.data["branches"];
-    // lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
-    // currentPage.value = response.data['meta']['current_page'];
-    // totalDatasCount.value = response.data['meta']['total'];
-    // totalPage.value = response.data['meta']['total_pages'];
-    // rowPerPage.value = response.data['meta']['per_page'];
+    users.value = users_r.data["users"];
+    lastFetchedPage.value = currentPage.value; // Сохраняем последнюю загруженную страницу
+    currentPage.value = users_r.data["meta"]["current_page"];
+    totalUsers.value = users_r.data["meta"]["total"];
+    totalPage.value = users_r.data["meta"]["last_page"];
+    rowPerPage.value = users_r.data["meta"]["per_page"];
   } catch (error) {
     console.error("Ошибка загрузки кандидатов:", error);
   } finally {
@@ -68,37 +68,40 @@ onMounted(() => {
   fetchData();
 });
 
-const isAddNewDrawerVisible = ref(false);
-const isUpdateDrawerVisible = ref(false);
+// Pages start
 
-// // Pages start
+// 👉 watching current page
+watch(currentPage, () => {
+  if (!isFetching.value) {
+    fetchData();
+  }
+});
 
-// // 👉 watching current page
-// watch(currentPage, () => {
-//   if (!isFetching.value) {
-//     fetchData();
-//   }
-// });
+// 👉 Watching current page
+watchEffect(() => {
+  if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
+});
 
-// // 👉 Watching current page
-// watchEffect(() => {
-//   if (currentPage.value > totalPage.value) currentPage.value = totalPage.value;
-// });
+// 👉 Computing pagination data
+const paginationData = computed(() => {
+  const firstIndex = users.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    users.value.length + (currentPage.value - 1) * rowPerPage.value;
 
-// // 👉 Computing pagination data
-// const paginationData = computed(() => {
-//   const firstIndex = branches.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-//   const lastIndex = branches.value.length + (currentPage.value - 1) * rowPerPage.value;
+  return `${firstIndex}-${lastIndex} of ${totalUsers.value}`;
+});
 
-//   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
-// });
-
-// // Pages end
+// Pages end
 
 const openEditDrawer = (id) => {
   updateID.value = id;
-  isUpdateDrawerVisible.value = true;
+  isUpdateUserDrawerVisible.value = true;
 };
+
+const isAddNewDrawerVisible = ref(false);
+const isUpdateUserDrawerVisible = ref(false);
 
 // Delete
 const isDialogVisible = ref(false);
@@ -117,11 +120,11 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete("/branches/" + id);
+    await axios.delete("/users/" + id);
     toast("Успешно удалено", {
       type: "success",
     });
-    await fetchData(true);
+    fetchData(true);
     isDialogVisible.value = false;
   } catch (error) {
     console.error("Ошибка :", error);
@@ -138,7 +141,7 @@ const deleteItem = async function (id) {
       <VCardItem>
         <VRow>
           <VCol cols="auto">
-            <VCardTitle class="pa-0"> Филиалы </VCardTitle>
+            <VCardTitle class="pa-0"> Сотрудники </VCardTitle>
           </VCol>
           <VSpacer />
 
@@ -147,15 +150,15 @@ const deleteItem = async function (id) {
             <VTextField
               v-model="searchQuery"
               @keyup.enter="handleSearch"
-              placeholder="Поиск филиала"
+              placeholder="Поиск сотрудника"
               :rules="[]"
               density="compact"
             />
           </VCol>
           <VCol cols="auto">
-            <Can I="create" a="Branch">
+            <Can I="create" a="User">
               <VBtn @click="isAddNewDrawerVisible = true"
-                >Добавить новый филиал</VBtn
+                >Добавить нового сотрудника</VBtn
               >
             </Can>
           </VCol>
@@ -165,52 +168,54 @@ const deleteItem = async function (id) {
       <VDivider />
 
       <VTable>
+        <!-- 👉 Table Head -->
+
         <thead>
           <tr>
             <th data-column="id">ID</th>
-            <th>ИМЯ</th>
-            <th>АДРЕС</th>
+            <th>ФИО</th>
+            <th>ЛОГИН</th>
+            <th>РОЛЬ</th>
             <th
               data-column="actions"
-              v-if="can('update', 'Branch') || can('delete', 'Branch')"
+              v-if="can('update', 'User') || can('delete', 'User')"
             >
               ДЕЙСТВИЯ
             </th>
           </tr>
         </thead>
 
+        <!-- 👉 Table body -->
         <tbody>
-          <tr v-for="branch in branches" :key="branch.id">
-            <td>{{ branch.id }}</td>
-            <td>{{ branch.name }}</td>
-            <td class="overflow-hide">
-              {{ branch.address }}
-            </td>
+          <tr v-for="user in users" :key="user.id">
+            <td>{{ user.id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.login }}</td>
+            <td>{{ user.role.name_ru }}</td>
             <td data-column="actions">
-              <Can I="update" a="Branch">
+              <Can I="update" a="User">
                 <VIcon
-                  @click.stop="openEditDrawer(branch.id)"
+                  @click.stop="openEditDrawer(user.id)"
                   size="30"
                   icon="bx-edit-alt"
                   color="primary"
                 ></VIcon>
               </Can>
-
-              <Can I="delete" a="Branch">
+              <Can I="delete" a="User">
                 <VIcon
                   size="30"
                   icon="bx-trash"
                   color="error"
-                  @click="confirmDelete(branch.id, branch.title)"
+                  @click="confirmDelete(user.id, user.name)"
                 ></VIcon>
               </Can>
             </td>
           </tr>
         </tbody>
 
-        <Skeleton :count="4" v-show="isFetching && !branches.length" />
+        <Skeleton :count="4" v-show="isFetching && !users.length" />
 
-        <tfoot v-if="!isFetching && !branches.length">
+        <tfoot v-if="!isFetching && !users.length">
           <tr>
             <td colspan="7" class="text-center text-body-1">
               Нет доступных данных
@@ -221,20 +226,31 @@ const deleteItem = async function (id) {
 
       <VDivider />
 
-      <!-- <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
-            <div class="d-flex align-center" style="width: 300px">
-              <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
-            </div>
+      <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+        <div class="d-flex align-center" style="width: 300px">
+          <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
+        </div>
 
-            <VPagination
-              v-if="branches.length"
-              v-model="currentPage"
-              
-              :length="totalPage"
-            />
-          </VCardText> -->
+        <VPagination
+          v-if="users.length"
+          v-model="currentPage"
+          :length="totalPage"
+        />
+      </VCardText>
     </VCard>
-
+    <Can I="create" a="User">
+      <AddNewUserDrawer
+        v-model:isDrawerOpen="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+    <Can I="update" a="User">
+      <UpdateUserDrawer
+        :id="updateID"
+        v-model:isDrawerOpen="isUpdateUserDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
     <DeleteItemDialog
       @confirm="deleteItem"
       :isDialogVisible="isDialogVisible"
@@ -242,29 +258,7 @@ const deleteItem = async function (id) {
       :role="deleteData"
       :isDeleting="isDeleting"
     />
-
-    <Can I="create" a="Branch">
-      <AddNewDrawer
-        v-model:isDrawerOpen="isAddNewDrawerVisible"
-        @fetchDatas="() => fetchData(true)"
-      />
-    </Can>
-    <Can I="update" a="Branch">
-      <UpdateDrawer
-        :id="updateID"
-        v-model:isDrawerOpen="isUpdateDrawerVisible"
-        @fetchDatas="() => fetchData(true)"
-      />
-    </Can>
   </section>
 </template>
 
-<style lang="css">
-.app-user-search-filter {
-  inline-size: 385px;
-}
-
-.text-capitalize {
-  text-transform: capitalize;
-}
-</style>
+<style lang="scss"></style>

@@ -8,6 +8,9 @@ import AddNewDialog from "@/views/cash-register/AddNewDialog.vue";
 import InfoDialog from "@/views/cash-register/InfoDialog.vue";
 import AppDateTimePicker from "@/@core/components/AppDateTimePicker.vue";
 import { requiredValidator } from "@/@core/utils/validators";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
+
+const { can } = useAppAbility();
 
 const {
   state,
@@ -79,7 +82,9 @@ watch(dateValue, (newVal, oldValue) => {
           <VSpacer />
 
           <VCol cols="auto">
-            <AddNewDialog @fetchDatas="() => fetchData(true)" />
+            <Can I="create" a="Payment">
+              <AddNewDialog @fetchDatas="() => fetchData(true)" />
+            </Can>
           </VCol>
         </VRow>
       </VCardText>
@@ -91,7 +96,7 @@ watch(dateValue, (newVal, oldValue) => {
         <!-- 👉 Table head -->
         <thead>
           <tr>
-            <th style="width: 48px">ID</th>
+            <th data-column="id">ID</th>
             <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
             <th>К-ВО ТОВАРОВ</th>
@@ -102,12 +107,12 @@ watch(dateValue, (newVal, oldValue) => {
         </thead>
 
         <!-- 👉 Table Body -->
-        <tbody v-if="invoices?.length && !isFetching">
+        <tbody>
           <tr
             v-for="invoice in invoices"
             :key="invoice.id"
             @click="handleInfoDialogOpen(invoice.id)"
-            style="cursor: pointer"
+            class="cursor-pointer"
           >
             <td>{{ invoice.id }}</td>
             <td>{{ formatTimestamp(invoice?.created_at) }}</td>

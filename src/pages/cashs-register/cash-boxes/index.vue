@@ -7,8 +7,10 @@ import { useFetch } from "@/hooks/useFetch";
 import { useRouter } from "vue-router";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
 const router = useRouter();
+const { can } = useAppAbility();
 
 const {
   items: cash_boxes,
@@ -69,7 +71,7 @@ const isVisible =
                 />
               </VCol>
               <VCol cols="auto">
-                <Can I="add" a="CashBoxes">
+                <Can I="create" a="CashBoxes">
                   <VBtn @click="isAddNewDrawerVisible = true">Добавить</VBtn>
                 </Can>
               </VCol>
@@ -78,14 +80,21 @@ const isVisible =
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ</th>
                 <th>ОПИСАНИЕ</th>
                 <th>ОСТАТОК</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th
+                  v-if="
+                    can('update', 'Cashbox') || can('create', 'CashboxTruncate')
+                  "
+                  data-column="actions"
+                >
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
@@ -100,29 +109,30 @@ const isVisible =
                 <td>{{ cash_box.id }}</td>
                 <td>{{ cash_box.name }}</td>
                 <td class="overflow-hide">{{ cash_box.description }}</td>
-                <td><AnimatedNumber :number="cash_box.remains" /></td>
-                <td
-                  class="text-center"
-                  :style="{
-                    width: '80px',
-                    position: 'relative',
-                    zIndex: '1000',
-                  }"
-                >
-                  <VIcon
-                    v-if="isVisible"
-                    size="30"
-                    icon="mdi-cash-multiple"
-                    color="success"
-                    class="mx-2"
-                    @click.stop="confirmId = cash_box.id"
-                  ></VIcon>
-                  <Can I="update" a="CashBoxes">
+                <td>
+                  <AnimatedNumber
+                    :number="cash_box.remains"
+                    class="text-success"
+                  />
+                </td>
+                <td data-column="actions">
+                  <Can I="update" a="CashboxTruncate">
+                    <VIcon
+                      v-if="isVisible"
+                      size="30"
+                      icon="mdi-cash-multiple"
+                      color="success"
+                      class="mx-2"
+                      @click.stop="confirmId = cash_box.id"
+                    ></VIcon>
+                  </Can>
+
+                  <Can I="update" a="Cashbox">
                     <VIcon
                       @click.stop="openEditDrawer(cash_box.id)"
                       size="30"
                       icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
+                      color="primary"
                       class="mx-2"
                     ></VIcon>
                   </Can>

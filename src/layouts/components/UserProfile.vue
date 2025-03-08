@@ -17,11 +17,11 @@ const reFresh = async () => {
   axios
     .post("/auth/me")
     .then((r) => {
-      const { permissions, role, full_name, id } = r.data;
+      const { permissions, role, name, id } = r.data;
 
       const datas = {
         role: role,
-        full_name: full_name,
+        full_name: name,
         user_id: id,
       };
 
@@ -33,8 +33,20 @@ const reFresh = async () => {
         };
       });
 
-      localStorage.setItem("userAbilities", JSON.stringify(userAbilities));
-      ability.update(userAbilities);
+      if (role.id == 1) {
+        localStorage.setItem("userAbilities", JSON.stringify(userAbilities));
+        ability.update(userAbilities);
+      } else {
+        let abilities = [
+          {
+            action: "show",
+            subject: "all",
+          },
+        ];
+        localStorage.setItem("userAbilities", JSON.stringify(abilities));
+        ability.update(abilities);
+      }
+
       localStorage.setItem("userData", JSON.stringify(datas));
     })
     .catch((e) => {

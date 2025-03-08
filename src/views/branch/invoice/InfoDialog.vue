@@ -4,6 +4,7 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
 const props = defineProps({
   id: {
@@ -15,6 +16,8 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(["update:isDialogOpen", "fetchDatas"]);
+
+const { can } = useAppAbility();
 
 const isFetchingStart = ref(true);
 const isFetching = ref("");
@@ -134,7 +137,7 @@ const onConfirmSubmit = async () => {
 const onRejectSubmit = async () => {
   // let isSubmitted = await onSubmit(true);
   // if (isSubmitted === true) {
-    await onReject();
+  await onReject();
   // }
 };
 
@@ -318,6 +321,10 @@ const resolveInvoiceStatus = (status) => {
   };
   return roleMap[status];
 };
+
+const canIUpdate = computed(
+  () => status.value == "Черновик" && can("update", "BranchInvoice")
+);
 </script>
 
 <template>
@@ -342,8 +349,8 @@ const resolveInvoiceStatus = (status) => {
                 :items="branches_list"
                 item-title="name"
                 item-value="id"
-                :readonly="status != 'Черновик'"
-                :clearable="status == 'Черновик'"
+                :readonly="!canIUpdate"
+                :clearable="canIUpdate"
               />
             </VCol>
             <VCol cols="6" class="d-flex align-center">
@@ -364,13 +371,13 @@ const resolveInvoiceStatus = (status) => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>КОЛИЧЕСТВО</th>
-                    <th v-if="status == 'Черновик'">ДЕЙСТВИЯ</th>
+                    <th data-column="actions" v-if="canIUpdate">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -399,11 +406,7 @@ const resolveInvoiceStatus = (status) => {
                         :rules="[]"
                       />
                     </td>
-                    <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                      v-if="status == 'Черновик'"
-                    >
+                    <td data-column="actions" v-if="canIUpdate">
                       <VIcon
                         v-if="editingId === variant.product_variant_id"
                         @click.stop="hideEditInput(variant)"
@@ -417,18 +420,23 @@ const resolveInvoiceStatus = (status) => {
                         @click.stop="showEditInput(variant.product_variant_id)"
                         size="30"
                         icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
+                        color="primary"
                         class="mx-2"
                       />
                       <VIcon
                         size="30"
                         icon="mdi-minus-circle-outline"
-                        style="color: red"
+                        color="error"
                         @click="deleteListItem(variant.product_variant_id)"
                       ></VIcon>
                     </td>
                   </tr>
                 </tbody>
+
+                <Skeleton
+                  :count="4"
+                  v-show="isFetchingStart && !product_variants.length"
+                />
 
                 <tfoot v-show="product_variants.length">
                   <tr>
@@ -437,14 +445,9 @@ const resolveInvoiceStatus = (status) => {
                       Общее количество: {{ calculateCount }}
                     </td>
                     <td></td>
-                    <td v-if="status == 'Черновик'"></td>
+                    <td v-if="canIUpdate"></td>
                   </tr>
                 </tfoot>
-
-                <Skeleton
-                  :count="4"
-                  v-show="isFetchingStart && !product_variants.length"
-                />
 
                 <tfoot v-show="!isFetchingStart && !product_variants.length">
                   <tr>
@@ -458,7 +461,7 @@ const resolveInvoiceStatus = (status) => {
 
             <VDivider />
 
-            <VForm v-if="status == 'Черновик'" class="w-100 py-5">
+            <VForm v-if="canIUpdate" class="w-100 py-5">
               <VRow>
                 <VCol cols="3">
                   <VTextField
@@ -513,39 +516,46 @@ const resolveInvoiceStatus = (status) => {
             </VForm>
           </VRow>
           <VCardText class="d-flex justify-end gap-2 pt-2">
-            <VBtn
-              v-if="status == 'Черновик'"
-              :loading="isFetching == 'submit'"
-              :disabled="isFetching == 'submit'"
-              type="button"
-              @click="onSubmit"
-              class="me-3"
-            >
-              Сохранить изменения
-            </VBtn>
-            <VBtn
-              :loading="isFetching == 'confirm'"
-              :disabled="isFetching == 'confirm'"
-              type="button"
-              @click="onConfirmSubmit"
-              color="success"
-              v-if="status == 'Черновик'"
-              class="me-3"
-            >
-              Подтвердить
-              <VIcon end icon="bx-check-circle" />
-            </VBtn>
-            <VBtn
-              :loading="isFetching == 'reject'"
-              :disabled="isFetching == 'reject'"
-              type="button"
-              @click="onRejectSubmit"
-              color="secondary"
-              v-if="status == 'Черновик'"
-            >
-              Отменить
-              <VIcon end icon="bx-minus-circle" />
-            </VBtn>
+            <Can I="update" a="BranchInvoice">
+              <VBtn
+                v-if="status == 'Черновик'"
+                :loading="isFetching == 'submit'"
+                :disabled="isFetching == 'submit'"
+                type="button"
+                @click="onSubmit"
+                class="me-3"
+              >
+                Сохранить изменения
+              </VBtn>
+            </Can>
+            <Can I="changeStatus" a="BranchInvoice">
+              <VBtn
+                :loading="isFetching == 'confirm'"
+                :disabled="isFetching == 'confirm'"
+                type="button"
+                @click="onConfirmSubmit"
+                color="success"
+                v-if="status == 'Черновик'"
+                class="me-3"
+              >
+                Подтвердить
+                <VIcon end icon="bx-check-circle" />
+              </VBtn>
+            </Can>
+
+            <Can I="changeStatus" a="BranchInvoice">
+              <VBtn
+                :loading="isFetching == 'reject'"
+                :disabled="isFetching == 'reject'"
+                type="button"
+                @click="onRejectSubmit"
+                color="secondary"
+                v-if="status == 'Черновик'"
+              >
+                Отменить
+                <VIcon end icon="bx-minus-circle" />
+              </VBtn>
+            </Can>
           </VCardText>
         </VForm>
       </VCardText>

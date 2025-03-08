@@ -19,7 +19,7 @@ export default [
       },
       {
         title: 'Сотрудники',
-        to: { name: 'Employees' },
+        to: { name: 'Users' },
         // icon: { icon: 'mdi-account-tie' },
         subject: 'Users',
         action: 'show'
@@ -69,7 +69,7 @@ export default [
         action: 'show'
       },
       {
-        title: 'Вариации товара',
+        title: 'Вариации товаров',
         to: { name: 'ProductVariants' },
         // icon: { icon: 'mdi-cube-outline' },
         subject: 'ProductVariants',

@@ -77,6 +77,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
 
     try {
       state.value.isFetching = true;
+      state.value.items = [];
       const params = {
         page: state.value.currentPage,
         paginate: state.value.rowsPerPage,

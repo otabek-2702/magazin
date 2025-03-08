@@ -46,13 +46,21 @@ const resolveInvoiceStatus = (status) => {
 <template>
   <section>
     <VCard>
-      <VCardText class="d-flex align-center flex-wrap gap-4">
-        <VSpacer />
+      <!-- 👉 Head -->
+      <VCardItem>
+        <VRow>
+          <VCol cols="auto">
+            <VCardTitle class="pa-0"> Возвраты </VCardTitle>
+          </VCol>
+          <VSpacer />
 
-        <div class="d-flex align-center flex-wrap gap-6">
-          <AddNewDialog @fetchDatas="() => fetchData(true)" />
-        </div>
-      </VCardText>
+          <VCol cols="auto">
+            <Can I="create" a="Return">
+              <AddNewDialog @fetchDatas="() => fetchData(true)" />
+            </Can>
+          </VCol>
+        </VRow>
+      </VCardItem>
 
       <VDivider />
 
@@ -61,7 +69,7 @@ const resolveInvoiceStatus = (status) => {
         <!-- 👉 Table head -->
         <thead>
           <tr>
-            <th style="width: 48px">ID</th>
+            <th data-column="id">ID</th>
             <th>ВРЕМЯ СОЗДАНИЯ</th>
             <th>СТАТУС</th>
             <th>К-ВО ТОВАРОВ</th>
@@ -70,7 +78,7 @@ const resolveInvoiceStatus = (status) => {
         </thead>
 
         <!-- 👉 Table Body -->
-        <tbody v-if="invoices?.length && !isFetching">
+        <tbody>
           <tr
             v-for="invoice in invoices"
             :key="invoice.id"

@@ -12,6 +12,7 @@ import { useFetch } from "@/hooks/useFetch";
 import AddNewDrawer from "@/views/branch/safes/AddNewDrawer.vue";
 import AddNewTransformPaymentTypeDrawer from "@/views/branch/safes/AddNewTransformPaymentTypeDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
+import { requiredValidator } from "@/@core/utils/validators";
 
 const route = useRoute();
 const {
@@ -165,17 +166,21 @@ watch(dateValue, (newVal, oldValue) => {
               </VCol> -->
 
               <VCol cols="auto">
-                <VBtn
-                  @click="isAddNewTransformDrawerVisible = true"
-                  prepend-icon="mdi-swap-horizontal"
-                  >Обмен средств
-                </VBtn>
+                <Can I="create" a="SafePaymentTypeTransform">
+                  <VBtn
+                    @click="isAddNewTransformDrawerVisible = true"
+                    prepend-icon="mdi-swap-horizontal"
+                    >Обмен средств
+                  </VBtn>
+                </Can>
               </VCol>
 
               <VCol cols="auto">
-                <VBtn @click="isAddNewDrawerVisible = true"
-                  >Добавить Расход
-                </VBtn>
+                <Can I="create" a="SafeMovement">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить Расход
+                  </VBtn>
+                </Can>
               </VCol>
             </VRow>
           </VCardText>
@@ -187,7 +192,7 @@ watch(dateValue, (newVal, oldValue) => {
             <!-- 👉 Table head -->
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>СУММА</th>
                 <th>КОММЕНТАРИЙ</th>
                 <th>ТИП ТРАНЗАКЦИИ</th>
@@ -196,7 +201,7 @@ watch(dateValue, (newVal, oldValue) => {
             </thead>
 
             <!-- 👉 Table Body -->
-            <tbody v-if="invoices?.length && !isFetching">
+            <tbody>
               <tr v-for="invoice in invoices" :key="invoice.id">
                 <td>{{ invoice.id }}</td>
                 <td>
@@ -248,14 +253,18 @@ watch(dateValue, (newVal, oldValue) => {
         </VCard>
       </VCol>
     </VRow>
-    <AddNewDrawer
-      v-model:isDrawerVisible="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
-    <AddNewTransformPaymentTypeDrawer
-      v-model:isDrawerVisible="isAddNewTransformDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
+    <Can I="create" a="SafeMovement">
+      <AddNewDrawer
+        v-model:isDrawerVisible="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+    <Can I="create" a="SafePaymentTypeTransform">
+      <AddNewTransformPaymentTypeDrawer
+        v-model:isDrawerVisible="isAddNewTransformDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
   </section>
 </template>
 

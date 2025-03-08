@@ -112,7 +112,7 @@ const resolveInvoiceStatus = (status) => {
               <VSelect
                 label="Выберите кассу"
                 :model-value="payment_invoice?.cashbox?.name"
-                :readonly="true"
+                readonly
                 :clearable="false"
               />
             </VCol>
@@ -150,10 +150,10 @@ const resolveInvoiceStatus = (status) => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
                     <th>КОЛ-ВО</th>
@@ -198,7 +198,12 @@ const resolveInvoiceStatus = (status) => {
                 <tfoot v-show="payment_invoice?.items?.length">
                   <tr>
                     <td colspan=""></td>
-                    <td>Скидка с кэшбэк счёта: <b>{{transformPrice(payment_invoice.cashback_discount_price)}}</b></td>
+                    <td>
+                      Скидка с кэшбэк счёта:
+                      <b>{{
+                        transformPrice(payment_invoice.cashback_discount_price)
+                      }}</b>
+                    </td>
                     <td class="text-body-1 pt-3">
                       Скидка на чек: <br />{{
                         transformPrice(payment_invoice.sale)
@@ -245,27 +250,30 @@ const resolveInvoiceStatus = (status) => {
             <VDivider />
           </VRow>
           <VCardText class="d-flex justify-end align-center gap-4 pt-8">
-            <ConfirmDialog
-              :payment-invoice="payment_invoice"
-              @fetchDatas="
-                () => {
-                  emit('fetchDatas');
-                  handleDialogModelValueUpdate(false);
-                }
-              "
-            />
-            <VBtn
-              :loading="isFetching == 'reject'"
-              :disabled="isFetching == 'reject'"
-              type="button"
-              @click="onReject"
-              color="secondary"
-              v-if="invoice_status.draft"
-            >
-              Отменить
-              <VIcon end icon="bx-minus-circle" />
-            </VBtn>
-
+            <Can I="changeStatus" a="Payment">
+              <ConfirmDialog
+                :payment-invoice="payment_invoice"
+                @fetchDatas="
+                  () => {
+                    emit('fetchDatas');
+                    handleDialogModelValueUpdate(false);
+                  }
+                "
+              />
+            </Can>
+            <Can I="changeStatus" a="Payment">
+              <VBtn
+                :loading="isFetching == 'reject'"
+                :disabled="isFetching == 'reject'"
+                type="button"
+                @click="onReject"
+                color="secondary"
+                v-if="invoice_status.draft"
+              >
+                Отменить
+                <VIcon end icon="bx-minus-circle" />
+              </VBtn>
+            </Can>
             <!-- Confirmed | Rejected -->
             <template v-if="invoice_status.confirmed">
               <h2>

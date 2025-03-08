@@ -1,14 +1,17 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import AddNewDrawer from '@/views/product/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/product/UpdateDrawer.vue';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import AddNewDrawer from "@/views/product/AddNewDrawer.vue";
+import UpdateDrawer from "@/views/product/UpdateDrawer.vue";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
+import { toast } from "vue3-toastify";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const { can } = useAppAbility();
+
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -24,27 +27,29 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
 
   try {
     isFetching.value = true;
+    products.value = [];
     const { data } = await axios.get(
-      `/products?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/products?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    products.value = data['products'];
+    products.value = data["products"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error("Ошибка загрузки товаров:", error);
   } finally {
     isFetching.value = false;
   }
@@ -53,7 +58,7 @@ const fetchData = async (force = false) => {
 // Get main datas end
 
 // search
-const searchElements = () => {
+const handleSearch = () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -61,12 +66,11 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
 });
-
 
 onMounted(() => {
   fetchData();
@@ -90,8 +94,11 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = products.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    products.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -121,16 +128,14 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/products/' + id);
-    toast('Успешно удалено', {
-      
-      type: 'success',
-      
+    await axios.delete("/products/" + id);
+    toast("Успешно удалено", {
+      type: "success",
     });
     await fetchData(true);
     isDialogVisible.value = false;
   } catch (error) {
-    console.error('Ошибка :', error);
+    console.error("Ошибка :", error);
   } finally {
     isDeleting.value = false;
   }
@@ -141,54 +146,57 @@ const deleteItem = async function (id) {
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+        <VCard>
+          <!-- 👉 Head -->
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Товары </VCardTitle>
+              </VCol>
+              <VSpacer />
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск товара"
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Products">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить товар</VBtn>
-              </Can>
-            </VCol>
-          </VCardText>
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск товара"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="create" a="Product">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить новый товар</VBtn
+                  >
+                </Can>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>СЕЗОН</th>
                 <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th
+                  data-column="actions"
+                  v-if="can('update', 'Product') || can('delete', 'Product')"
+                >
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              <tr
-                @click="() => handleInfoDialogOpen(product.id)"
-                :style="{ cursor: 'pointer' }"
-                v-for="product in products"
-                :key="product.id"
-              >
+              <tr v-for="product in products" :key="product.id">
                 <td>{{ product.id }}</td>
                 <td>
                   {{ product.name }}
@@ -197,18 +205,13 @@ const deleteItem = async function (id) {
                 <td>{{ product.category?.name }}</td>
                 <td>{{ product.season?.translate }}</td>
                 <td>{{ product.gender?.translate }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
-                  <Can I="update" a="Products">
+                <td data-column="actions">
+                  <Can I="update" a="Product">
                     <VIcon
-                      @click="
-                        (event) => {
-                          event.stopPropagation();
-                          openEditDrawer(product.id);
-                        }
-                      "
+                      @click.stop="openEditDrawer(product.id)"
                       size="30"
                       icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
+                      color="primary"
                       class="mx-2"
                     ></VIcon>
                   </Can>
@@ -216,7 +219,7 @@ const deleteItem = async function (id) {
                     <VIcon
                       size="30"
                       icon="bx-trash"
-                      style="color: red"
+                      color="error"
                       @click="confirmDelete(product.id, product.name)"
                     ></VIcon>
                   </Can>
@@ -227,7 +230,9 @@ const deleteItem = async function (id) {
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
-                <td colspan="7" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="7" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -242,7 +247,6 @@ const deleteItem = async function (id) {
             <VPagination
               v-if="products.length"
               v-model="currentPage"
-              
               :length="totalPage"
             />
           </VCardText>
@@ -250,15 +254,27 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
 
-    <AddNewDrawer
-      v-model:isDrawerOpen="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="deleteData"
+      :isDeleting="isDeleting"
     />
-    <UpdateDrawer
-      :id="updateID"
-      v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
+
+    <Can I="create" a="Product">
+      <AddNewDrawer
+        v-model:isDrawerOpen="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+    <Can I="update" a="Product">
+      <UpdateDrawer
+        :id="updateID"
+        v-model:isDrawerOpen="isUpdateDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
   </section>
 </template>
 

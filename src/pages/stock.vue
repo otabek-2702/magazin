@@ -1,5 +1,5 @@
 <script setup>
-import { computed,  ref} from "vue";
+import { computed, ref } from "vue";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import BarcodeDialog from "@/views/stock/BarcodeDialog.vue";
 import AddNewWayBillToBranchDialog from "@/views/invoice-departure/AddNewDialog.vue";
@@ -54,7 +54,7 @@ const downloadReport = async (endpoint, filename) => {
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${filename}|${getPrettyDate()}.xlsx`);
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -66,14 +66,14 @@ const downloadReport = async (endpoint, filename) => {
 
 const metaDatasList = computed(() => [
   {
-    icon: "mdi-tag-multiple",
+    icon: "mdi-cash",
     color: "primary",
-    title: "Общая стоимость товаров",
+    title: "Общая сумма товаров",
     stats: metaDatas.value?.total_price,
     append: "so'm",
   },
   {
-    icon: "mdi-cart-plus",
+    icon: "mdi-package-variant",
     color: "success",
     title: "Общее количество товаров",
     stats: metaDatas.value?.total_quantity,
@@ -117,11 +117,10 @@ const metaDatasList = computed(() => [
           <VCardItem>
             <VRow>
               <VCol cols="auto">
-                <VCardTitle> Фильтры поиска </VCardTitle>
+                <VCardTitle> Главный склад </VCardTitle>
               </VCol>
 
               <VSpacer />
-
 
               <VCol cols="auto">
                 <VBtn
@@ -140,9 +139,11 @@ const metaDatasList = computed(() => [
           <VCardText>
             <VRow>
               <VCol cols="auto">
-                <AddNewWayBillToBranchDialog
-                  @fetchDatas="() => fetchData(true)"
-                />
+                <Can I="create" a="DepartureInvoice">
+                  <AddNewWayBillToBranchDialog
+                    @fetchDatas="() => fetchData(true)"
+                  />
+                </Can>
               </VCol>
 
               <VSpacer />
@@ -165,13 +166,13 @@ const metaDatasList = computed(() => [
           <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>КОЛИЧЕСТВО</th>
                 <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th data-column="actions">ДЕЙСТВИЯ</th>
               </tr>
             </thead>
 
@@ -189,10 +190,7 @@ const metaDatasList = computed(() => [
                 <td>{{ stock.variant?.product?.category }}</td>
                 <td>{{ stock.quantity }}</td>
                 <td>{{ stock.variant?.product?.gender }}</td>
-                <td
-                  class="text-center"
-                  :style="{ width: '80px', zIndex: '10' }"
-                >
+                <td data-column="actions">
                   <VIcon
                     @click="
                       (event) => {

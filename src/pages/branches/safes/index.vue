@@ -28,13 +28,13 @@ const isAddNewDrawerVisible = ref(false);
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard >
+        <VCard>
           <VCardText>
             <VRow>
               <VCol cols="auto">
-                <VCardTitle class="pa-0"> Фильтры поиска </VCardTitle>
+                <VCardTitle class="pa-0"> Расходы </VCardTitle>
               </VCol>
-              
+
               <VSpacer />
               <!-- 👉 Search  -->
               <VCol cols="12" sm="3">
@@ -47,19 +47,21 @@ const isAddNewDrawerVisible = ref(false);
                 />
               </VCol>
               <VCol cols="auto">
-                <VBtn @click="isAddNewDrawerVisible = true"
-                  >Добавить Расход
-                </VBtn>
+                <Can I="create" a="SafeMovement">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить Расход
+                  </VBtn>
+                </Can>
               </VCol>
             </VRow>
           </VCardText>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ</th>
                 <th>НАЛИЧНЫЕ</th>
                 <th>БАНК</th>
@@ -68,9 +70,9 @@ const isAddNewDrawerVisible = ref(false);
 
             <tbody>
               <tr
-                :style="{ cursor: 'pointer' }"
                 v-for="safe in safes"
                 :key="safe.id"
+                class="cursor-pointer"
                 @click="
                   router.push({
                     name: 'SafeMovements',
@@ -92,7 +94,6 @@ const isAddNewDrawerVisible = ref(false);
                   /></span>
                   so'm
                 </td>
-                
               </tr>
             </tbody>
             <Skeleton :count="5" v-show="isFetching && !safes.length" />
@@ -122,10 +123,12 @@ const isAddNewDrawerVisible = ref(false);
         </VCard>
       </VCol>
     </VRow>
-    <AddNewSafesMovementDrawer
-      v-model:isDrawerVisible="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
+    <Can I="create" a="SafeMovement">
+      <AddNewSafesMovementDrawer
+        v-model:isDrawerVisible="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
   </section>
 </template>
 

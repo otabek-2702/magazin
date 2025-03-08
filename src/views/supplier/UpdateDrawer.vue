@@ -1,10 +1,10 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { nextTick, ref, watch } from 'vue';
-import AppDrawerHeaderSection from '@core/components/AppDrawerHeaderSection.vue';
-import axios from '@axios';
-import { toast } from 'vue3-toastify';
-import { VProgressCircular } from 'vuetify/components';
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { nextTick, ref, watch } from "vue";
+import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue";
+import axios from "@axios";
+import { toast } from "vue3-toastify";
+import { VProgressCircular } from "vuetify/components";
 
 const props = defineProps({
   isDrawerOpen: {
@@ -17,7 +17,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:isDrawerOpen', 'fetchDatas']);
+const emit = defineEmits(["update:isDrawerOpen", "fetchDatas"]);
 const isFetching = ref(false);
 const isFetchingStart = ref(true);
 const isFormValid = ref(false);
@@ -28,7 +28,7 @@ const phone_number = ref();
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
-  emit('update:isDrawerOpen', false);
+  emit("update:isDrawerOpen", false);
   nextTick(() => {
     refForm.value?.reset();
     refForm.value?.resetValidation();
@@ -45,16 +45,14 @@ const onSubmit = () => {
           address: address.value,
         });
         if (response.status == 200) {
-          emit('fetchDatas');
-          toast('Успешно', {
-            
-            type: 'success',
-            
+          emit("fetchDatas");
+          toast("Успешно", {
+            type: "success",
           });
           closeNavigationDrawer();
         }
       } catch (error) {
-        console.error('Ошибка:', error);
+        console.error("Ошибка:", error);
       } finally {
         isFetching.value = false;
       }
@@ -63,7 +61,7 @@ const onSubmit = () => {
 };
 
 const handleDrawerModelValueUpdate = (val) => {
-  emit('update:isDrawerOpen', val);
+  emit("update:isDrawerOpen", val);
   if (!val) {
     nextTick(() => {
       refForm.value?.reset();
@@ -83,7 +81,7 @@ const fetchDataById = async () => {
     phone_number.value = supplier.phone_number;
     address.value = supplier.address;
   } catch (error) {
-    console.error('Ошибка:', error);
+    console.error("Ошибка:", error);
   } finally {
     isFetchingStart.value = false;
   }
@@ -91,7 +89,7 @@ const fetchDataById = async () => {
 
 watch(
   () => props.isDrawerOpen,
-  (newVal) => newVal && fetchDataById(),
+  (newVal) => newVal && fetchDataById()
 );
 </script>
 
@@ -105,7 +103,7 @@ watch(
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <!-- 👉 Заголовок -->
-    <AppDrawerHeaderSection title="Обновить компанию" @cancel="closeNavigationDrawer" />
+    <AppDrawerHeaderSection title="Обновить" @cancel="closeNavigationDrawer" />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
@@ -132,18 +130,34 @@ watch(
               </VCol>
               <!-- 👉 Кнопки отправки и отмены -->
               <VCol cols="12">
-                <VBtn :loading="isFetching" :disabled="isFetching" type="submit" class="me-3">
+                <VBtn
+                  :loading="isFetching"
+                  :disabled="isFetching"
+                  type="submit"
+                  class="me-3"
+                >
                   Отправить
                 </VBtn>
-                <VBtn type="reset" variant="tonal" color="secondary" @click="closeNavigationDrawer">
+                <VBtn
+                  type="reset"
+                  variant="tonal"
+                  color="secondary"
+                  @click="closeNavigationDrawer"
+                >
                   Отмена
                 </VBtn>
               </VCol>
             </VRow>
           </VForm>
 
-          <div v-if="isFetchingStart" class="d-flex h-screen align-center justify-center">
-            <VProgressCircular color="primary" indeterminate></VProgressCircular>
+          <div
+            v-if="isFetchingStart"
+            class="d-flex h-screen align-center justify-center"
+          >
+            <VProgressCircular
+              color="primary"
+              indeterminate
+            ></VProgressCircular>
           </div>
         </VCardText>
       </VCard>

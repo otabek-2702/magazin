@@ -6,6 +6,9 @@ import InfoDialog from "@/views/invoice-departure/InfoDialog.vue";
 import AddNewDialog from "@/views/invoice-departure/AddNewDialog.vue";
 import { formatTimestamp } from "@/helpers";
 import ConfirmCopyInvoiceDialog from "@/components/ConfirmCopyInvoiceDialog.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
+
+const { can } = useAppAbility();
 
 const searchQuery = ref("");
 const finalSearch = ref("");
@@ -51,7 +54,7 @@ const fetchData = async (force = false) => {
 };
 
 // search
-const searchElements = () => {
+const handleSearch = () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -122,102 +125,110 @@ const copyInvoiceDialogId = ref(0);
 
 <template>
   <section>
-    <VRow>
-      <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+    <VCard>
+      <!-- 👉 Head -->
+      <VCardItem>
+        <VRow>
+          <VCol cols="auto">
+            <VCardTitle class="pa-0"> Накладные о уходе </VCardTitle>
+          </VCol>
+          <VSpacer />
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск "
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Invoices">
-                <AddNewDialog @fetchDatas="() => fetchData(true)" />
-              </Can>
-            </VCol>
-          </VCardText>
-
-          <VDivider />
-
-          <VTable class="text-no-wrap">
-            <thead>
-              <tr>
-                <th style="width: 48px">ID</th>
-                <th>СТАТУС</th>
-                <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
-                <th>К-ВО ТОВАРОВ</th>
-                <th>ДАТА СОЗДАНИЯ</th>
-                <th>ДЕЙСТВИЯ</th>
-              </tr>
-            </thead>
-
-            <tbody v-if="!isFetching">
-              <tr
-                v-for="invoice in invoices"
-                :key="invoice.id"
-                @click="handleInfoDialogOpen(invoice.id)"
-                class="cursor-pointer"
-              >
-                <td>{{ invoice.id }}</td>
-
-                <td>
-                  <VChip
-                    :color="resolveInvoiceStatus(invoice.status).color"
-                    density="compact"
-                    label
-                    class="text-uppercase"
-                  >
-                    {{ invoice.status }}
-                  </VChip>
-                </td>
-                <td>{{ invoice.to_branch.name }}</td>
-                <td>{{ invoice.full_qty }}</td>
-                <td>{{ formatTimestamp(invoice.updated_at) }}</td>
-                <td>
-                  <VIcon
-                    @click.stop="copyInvoiceDialogId = invoice.id"
-                    size="26"
-                    icon="mdi-content-copy"
-                    color="primary"
-                    v-if="invoice.status === 'Подтверждено'"
-                  ></VIcon>
-                  <span v-else></span>
-                </td>
-              </tr>
-            </tbody>
-            <Skeleton :count="6" v-show="isFetching" />
-
-            <tfoot v-show="!isFetching && !invoices.length">
-              <tr>
-                <td colspan="15" class="text-center text-body-1">
-                  Нет доступных данных
-                </td>
-              </tr>
-            </tfoot>
-          </VTable>
-
-          <VDivider />
-
-          <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
-            <div class="d-flex align-center" style="width: 300px">
-              <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
-            </div>
-
-            <VPagination
-              v-if="invoices.length"
-              v-model="currentPage"
-              :length="totalPage"
+          <!-- 👉 Search  -->
+          <VCol cols="12" sm="3">
+            <VTextField
+              v-model="searchQuery"
+              @keyup.enter="handleSearch"
+              placeholder="Поиск"
+              :rules="[]"
+              density="compact"
             />
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
+          </VCol>
+          <VCol cols="auto">
+            <Can I="create" a="DepartureInvoice">
+              <AddNewDialog @fetchDatas="() => fetchData(true)" />
+            </Can>
+          </VCol>
+        </VRow>
+      </VCardItem>
+
+      <VDivider />
+
+      <VTable>
+        <thead>
+          <tr>
+            <th data-column="id">ID</th>
+            <th>СТАТУС</th>
+            <th>ФИЛИАЛ-ПОЛУЧАТЕЛЬ</th>
+            <th>К-ВО ТОВАРОВ</th>
+            <th>ДАТА СОЗДАНИЯ</th>
+            <th data-column="actions" v-if="can('copy', 'DepartureInvoice')">
+              ДЕЙСТВИЯ
+            </th>
+          </tr>
+        </thead>
+
+        <tbody >
+          <tr
+            v-for="invoice in invoices"
+            :key="invoice.id"
+            @click="handleInfoDialogOpen(invoice.id)"
+            class="cursor-pointer"
+          >
+            <td>{{ invoice.id }}</td>
+
+            <td>
+              <VChip
+                :color="resolveInvoiceStatus(invoice.status).color"
+                density="compact"
+                label
+                class="text-uppercase"
+              >
+                {{ invoice.status }}
+              </VChip>
+            </td>
+            <td>{{ invoice.to_branch.name }}</td>
+            <td>{{ invoice.full_qty }}</td>
+            <td>{{ formatTimestamp(invoice.updated_at) }}</td>
+            <td>
+              <Can I="copy" a="DepartureInvoice">
+                <VIcon
+                  @click.stop="copyInvoiceDialogId = invoice.id"
+                  size="26"
+                  icon="mdi-content-copy"
+                  color="primary"
+                  v-if="invoice.status === 'Подтверждено'"
+                ></VIcon>
+                <span v-else></span>
+              </Can>
+            </td>
+          </tr>
+        </tbody>
+        <Skeleton :count="6" v-show="isFetching" />
+
+        <tfoot v-show="!isFetching && !invoices.length">
+          <tr>
+            <td colspan="15" class="text-center text-body-1">
+              Нет доступных данных
+            </td>
+          </tr>
+        </tfoot>
+      </VTable>
+
+      <VDivider />
+
+      <VCardText class="d-flex flex-wrap justify-end gap-4 pa-2">
+        <div class="d-flex align-center" style="width: 300px">
+          <h6 class="text-sm font-weight-regular">{{ paginationData }}</h6>
+        </div>
+
+        <VPagination
+          v-if="invoices.length"
+          v-model="currentPage"
+          :length="totalPage"
+        />
+      </VCardText>
+    </VCard>
 
     <InfoDialog
       v-model:isDialogOpen="isInfoDialogVisible"

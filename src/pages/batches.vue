@@ -54,7 +54,7 @@ const fetchData = async (force = false) => {
 };
 
 // search
-const searchElements = () => {
+const handleSearch = () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -168,49 +168,57 @@ const transformDate = (date) => {
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+        <VCard>
+          <!-- 👉 Head -->
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Партии товаров </VCardTitle>
+              </VCol>
+              <VSpacer />
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                :rules="[]"
-                placeholder="Поиск"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Batchs">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить</VBtn>
-              </Can>
-            </VCol>
-          </VCardText>
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск партии "
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="create" a="Batch">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить новую партию</VBtn
+                  >
+                </Can>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ДАТА</th>
                 <th>ИМЯ</th>
                 <th>ДОРОЖНЫЕ РАСХОДЫ</th>
                 <th>ОПИСАНИЕ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th
+                  v-if="can('update', 'Batch') || can('delete', 'Batch')"
+                  data-column="actions"
+                >
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
             <tbody>
               <tr
-                :style="{ cursor: 'pointer' }"
+                class="cursor-pointer"
                 v-for="batch in batches"
                 :key="batch.id"
               >
@@ -219,21 +227,13 @@ const transformDate = (date) => {
                 <td>{{ batch.name }}</td>
                 <td>{{ batch.road_expenses }}</td>
                 <td class="overflow-hide">{{ batch.description }}</td>
-                <td
-                  class="text-center"
-                  :style="{ width: '80px', zIndex: '10' }"
-                >
-                  <Can I="update" a="Batches">
+                <td data-column="actions">
+                  <Can I="update" a="Batch">
                     <VIcon
-                      @click="
-                        (event) => {
-                          event.stopPropagation();
-                          openEditDrawer(batch.id);
-                        }
-                      "
+                      @click.stop="openEditDrawer(batch.id)"
                       size="30"
                       icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
+                      color="primary"
                       class="mx-2"
                     ></VIcon>
                   </Can>
@@ -241,7 +241,7 @@ const transformDate = (date) => {
                     <VIcon
                       size="30"
                       icon="bx-trash"
-                      style="color: red"
+                      color="error"
                       @click="confirmDelete(batch.id, batch.name)"
                     ></VIcon>
                   </Can>
@@ -276,16 +276,27 @@ const transformDate = (date) => {
       </VCol>
     </VRow>
 
-    <AddNewDrawer
-      v-model:isDrawerOpen="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
-    <UpdateDrawer
-      :id="updateID"
-      v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="deleteData"
+      :isDeleting="isDeleting"
     />
 
+    <Can I="create" a="Batch">
+      <AddNewDrawer
+        v-model:isDrawerOpen="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+    <Can I="update" a="Batch">
+      <UpdateDrawer
+        :id="updateID"
+        v-model:isDrawerOpen="isUpdateDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
   </section>
 </template>
 

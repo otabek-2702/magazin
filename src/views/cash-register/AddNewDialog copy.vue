@@ -11,7 +11,7 @@ const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
 const refForm = ref();
-const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
+const cashbox_id = ref(localStorage.getItem("cashbox_id"));
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
@@ -24,7 +24,7 @@ const onReject = async (id) => {
     axios.post(`/payment_invoices/reject/${id}`);
   } catch (error) {
     console.error(error);
-  } 
+  }
 };
 
 const onSubmit = () => {
@@ -258,7 +258,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <VDialog fullscreen v-model="isDialogVisible" @update:model-value="handleDialogModelValueUpdate">
+  <VDialog
+    fullscreen
+    v-model="isDialogVisible"
+    @update:model-value="handleDialogModelValueUpdate"
+  >
     <!-- Dialog Activator -->
     <template #activator="{ props }">
       <VBtn @click="handleDialogModelValueUpdate(true)" v-bind="props"
@@ -308,15 +312,15 @@ onMounted(() => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>ЦЕНА</th>
                     <th>СУММА</th>
                     <th>КОЛ-ВО</th>
-                    <th>ДЕЙСТВИЯ</th>
+                    <th data-column="actions">ДЕЙСТВИЯ</th>
                   </tr>
                 </thead>
 
@@ -355,10 +359,7 @@ onMounted(() => {
                         :rules="[]"
                       />
                     </td>
-                    <td
-                      class="text-center"
-                      :style="{ width: '80px', zIndex: '10' }"
-                    >
+                    <td data-column="actions">
                       <VIcon
                         v-if="editingId == variant.product_variant_id"
                         @click.stop="hideEditInput(variant)"
@@ -372,13 +373,13 @@ onMounted(() => {
                         @click.stop="showEditInput(variant.product_variant_id)"
                         size="30"
                         icon="bx-edit-alt"
-                        style="color: rgb(var(--v-global-theme-primary))"
+                        color="primary"
                         class="mx-2"
                       />
                       <VIcon
                         size="30"
                         icon="mdi-minus-circle-outline"
-                        style="color: red"
+                        color="error"
                         @click="deleteListItem(variant.product_variant_id)"
                       ></VIcon>
                     </td>

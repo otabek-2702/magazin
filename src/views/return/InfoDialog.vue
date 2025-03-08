@@ -180,7 +180,6 @@ const resolveInvoiceStatus = (status) => {
               class="d-flex align-center gap-6 justify-space-between"
             >
               <h2>
-                Активный терминал:
                 {{ cashbox?.name }}
               </h2>
               <h2>
@@ -206,10 +205,10 @@ const resolveInvoiceStatus = (status) => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>
@@ -237,7 +236,7 @@ const resolveInvoiceStatus = (status) => {
                       </b>
                     </td>
                     <td>
-                      <VTextField
+                      <!-- <VTextField
                         v-model="variant.quantity"
                         :readonly="editingId !== variant.product_variant_id"
                         :class="{
@@ -251,7 +250,8 @@ const resolveInvoiceStatus = (status) => {
                         density="compact"
                         type="number"
                         :rules="[]"
-                      />
+                      /> -->
+                      {{ variant.quantity }}
                     </td>
                   </tr>
                 </tbody>
@@ -282,29 +282,33 @@ const resolveInvoiceStatus = (status) => {
             <VDivider />
           </VRow>
           <VCardText class="d-flex justify-end gap-4 pt-5">
-            <VBtn
-              :loading="isFetching == 'confirm'"
-              :disabled="isFetching == 'confirm'"
-              @click="onConfirm"
-              color="success"
-              v-if="status == 'Черновик'"
-              class="me-3"
-              type="button"
-            >
-              Подтвердить
-              <VIcon end icon="bx-check-circle" />
-            </VBtn>
-            <VBtn
-              :loading="isFetching == 'reject'"
-              :disabled="isFetching == 'reject'"
-              type="button"
-              @click="onReject"
-              color="secondary"
-              v-if="status == 'Черновик'"
-            >
-              Отменить
-              <VIcon end icon="bx-minus-circle" />
-            </VBtn>
+            <Can I="changeStatus" a="Return">
+              <VBtn
+                :loading="isFetching == 'confirm'"
+                :disabled="isFetching == 'confirm'"
+                @click="onConfirm"
+                color="success"
+                v-if="status == 'Черновик'"
+                class="me-3"
+                type="button"
+              >
+                Подтвердить
+                <VIcon end icon="bx-check-circle" />
+              </VBtn>
+            </Can>
+            <Can I="changeStatus" a="Return">
+              <VBtn
+                :loading="isFetching == 'reject'"
+                :disabled="isFetching == 'reject'"
+                type="button"
+                @click="onReject"
+                color="secondary"
+                v-if="status == 'Черновик'"
+              >
+                Отменить
+                <VIcon end icon="bx-minus-circle" />
+              </VBtn>
+            </Can>
           </VCardText>
         </VForm>
       </VCardText>

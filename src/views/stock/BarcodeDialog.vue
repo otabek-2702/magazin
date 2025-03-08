@@ -109,7 +109,7 @@ const formatPrice = (price) => {
                 class="ms-3"
                 size="30"
                 icon="mdi-printer"
-                style="color: rgb(var(--v-global-theme-primary))"
+                color="primary"
               />
             </VBtn>
           </VCol>

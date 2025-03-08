@@ -16,7 +16,7 @@ const isFetching = ref("");
 const isFetchingVariant = ref(false);
 const isFormValid = ref(false);
 const refForm = ref();
-const cashbox_id = ref(Number(localStorage.getItem("cashbox_id")) ?? 0);
+const cashbox_id = ref(localStorage.getItem("cashbox_id"));
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
@@ -92,7 +92,7 @@ watch(cashbox_id, (newVal) => {
   const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
   if (storageCashboxId) {
     cashbox_id.value = storageCashboxId;
-  }
+  } 
 });
 
 // find Product
@@ -268,7 +268,6 @@ const calculateTotalPrice = computed(() => {
     )
   );
 });
-
 </script>
 
 <template>
@@ -310,10 +309,10 @@ const calculateTotalPrice = computed(() => {
             <VDivider />
 
             <VCol cols="12">
-              <VTable class="text-no-wrap">
+              <VTable>
                 <thead>
                   <tr>
-                    <th style="width: 48px">ID</th>
+                    <th data-column="id">ID</th>
                     <th>ТОВАР</th>
                     <th>СТОИМОСТЬ ОДНОГО ТОВАРА</th>
                     <th>ОБЩАЯ СТОИМОСТЬ</th>

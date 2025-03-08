@@ -1,15 +1,18 @@
 <script setup>
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import axios from '@axios';
-import AddNewDrawer from '@/views/product-variant/AddNewDrawer.vue';
-import UpdateDrawer from '@/views/product-variant/UpdateDrawer.vue';
-import Skeleton from '@/views/skeleton/Skeleton.vue';
-import BarcodeDialog from '@/views/product-variant/BarcodeDialog.vue';
-import DeleteItemDialog from '@/@core/components/DeleteItemDialog.vue';
-import { toast } from 'vue3-toastify';
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import axios from "@axios";
+import AddNewDrawer from "@/views/product-variant/AddNewDrawer.vue";
+import UpdateDrawer from "@/views/product-variant/UpdateDrawer.vue";
+import Skeleton from "@/views/skeleton/Skeleton.vue";
+import BarcodeDialog from "@/views/product-variant/BarcodeDialog.vue";
+import DeleteItemDialog from "@/@core/components/DeleteItemDialog.vue";
+import { toast } from "vue3-toastify";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
-const searchQuery = ref('');
-const finalSearch = ref('');
+const { can } = useAppAbility();
+
+const searchQuery = ref("");
+const finalSearch = ref("");
 const rowPerPage = ref(30);
 const currentPage = ref(1);
 const totalPage = ref(1);
@@ -25,7 +28,8 @@ const filtersChanged = ref(false);
 const fetchData = async (force = false) => {
   if (
     !force &&
-    (isFetching.value || (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
+    (isFetching.value ||
+      (currentPage.value === lastFetchedPage.value && !filtersChanged.value))
   ) {
     return; // Если запрос уже выполняется или страница не изменилась и фильтры не изменялись
   }
@@ -33,19 +37,19 @@ const fetchData = async (force = false) => {
   try {
     isFetching.value = true;
     const { data } = await axios.get(
-      `/product_variants?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`,
+      `/product_variants?paginate=30&page=${currentPage.value}&search=${finalSearch.value}`
     );
 
-    products.value = data['products_variants'];
+    products.value = data["products_variants"];
     lastFetchedPage.value = currentPage.value;
-    currentPage.value = data['meta']['pagination']['current_page'];
-    totalDatasCount.value = data['meta']['pagination']['total'];
-    totalPage.value = data['meta']['pagination']['total_pages'];
-    rowPerPage.value = data['meta']['pagination']['per_page'];
+    currentPage.value = data["meta"]["pagination"]["current_page"];
+    totalDatasCount.value = data["meta"]["pagination"]["total"];
+    totalPage.value = data["meta"]["pagination"]["total_pages"];
+    rowPerPage.value = data["meta"]["pagination"]["per_page"];
 
     filtersChanged.value = false; // Сбрасываем флаг изменений фильтров после загрузки
   } catch (error) {
-    console.error('Ошибка загрузки товаров:', error);
+    console.error("Ошибка загрузки товаров:", error);
   } finally {
     isFetching.value = false;
   }
@@ -62,7 +66,7 @@ const fetchData = async (force = false) => {
 // });
 
 // search
-const searchElements = () => {
+const handleSearch = () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -70,7 +74,7 @@ const searchElements = () => {
 
 watch(searchQuery, (newVal) => {
   if (!newVal) {
-    finalSearch.value = '';
+    finalSearch.value = "";
     currentPage.value = 1;
     fetchData(true);
   }
@@ -111,8 +115,11 @@ watchEffect(() => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0;
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value;
+  const firstIndex = products.value.length
+    ? (currentPage.value - 1) * rowPerPage.value + 1
+    : 0;
+  const lastIndex =
+    products.value.length + (currentPage.value - 1) * rowPerPage.value;
 
   return `${firstIndex}-${lastIndex} of ${totalDatasCount.value}`;
 });
@@ -159,16 +166,14 @@ const confirmDelete = function (id, name) {
 const deleteItem = async function (id) {
   try {
     isDeleting.value = true;
-    await axios.delete('/product_variants/' + id);
-    toast('Успешно удалено', {
-      
-      type: 'success',
-      
+    await axios.delete("/product_variants/" + id);
+    toast("Успешно удалено", {
+      type: "success",
     });
     await fetchData(true);
     isDialogVisible.value = false;
   } catch (error) {
-    console.error('Ошибка :', error);
+    console.error("Ошибка :", error);
   } finally {
     isDeleting.value = false;
   }
@@ -179,58 +184,52 @@ const deleteItem = async function (id) {
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <DeleteItemDialog
-            @confirm="deleteItem"
-            :isDialogVisible="isDialogVisible"
-            @update:isDialogVisible="isDialogVisible = $event"
-            :role="deleteData"
-            :isDeleting="isDeleting"
-          />
-          <VCardText class="d-flex flex-wrap">
-            <!-- <VCol cols="3" sm="3">
-              <VSelect
-                
-                v-model="selectedState"
-                label="Выберите статус"
-                :items="states_list"
-                item-title="name_ru"
-                item-value="id"
-                
-                
-              />
-            </VCol> -->
+        <VCard >
+          <!-- 👉 Head -->
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Вариации товаров </VCardTitle>
+              </VCol>
+              <VSpacer />
 
-            <VSpacer />
-
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск товара"
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Products">
-                <VBtn @click="isAddNewDrawerVisible = true">Добавить вариации</VBtn>
-
-              </Can>
-            </VCol>
-          </VCardText>
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск товара"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="create" a="Product">
+                  <VBtn @click="isAddNewDrawerVisible = true"
+                    >Добавить новый товар</VBtn
+                  >
+                </Can>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ИМЯ ПРОДУКТА</th>
                 <th>БРЭНД</th>
                 <th>КАТЕГОРИЯ</th>
                 <th>СЕЗОН</th>
                 <th>ПОЛ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th
+                  data-column="actions"
+                  
+                >
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
@@ -238,35 +237,26 @@ const deleteItem = async function (id) {
               <tr v-for="variant in products" :key="variant.id">
                 <td>{{ variant.id }}</td>
                 <td>
-                  {{ variant.product?.name }} <b>({{ variant.color?.name }} | {{ variant.size?.name }})</b>
+                  {{ variant.product?.name }}
+                  <b>({{ variant.color?.name }} | {{ variant.size?.name }})</b>
                 </td>
                 <td>{{ variant.product?.brand }}</td>
                 <td>{{ variant.product?.category?.name }}</td>
                 <td>{{ variant.product?.season?.translate }}</td>
                 <td>{{ variant.product?.gender?.translate }}</td>
-                <td class="text-center" :style="{ width: '80px', zIndex: '10' }">
+                <td data-column="actions">
                   <VIcon
-                    @click="
-                      (event) => {
-                        event.stopPropagation();
-                        openBarcodeDialog(variant.id);
-                      }
-                    "
+                    @click.stop="openBarcodeDialog(variant.id)"
                     size="30"
                     icon="mdi-barcode"
                     style="color: rgb(var(--v-theme-grey-800))"
                   ></VIcon>
                   <Can I="update" a="Products">
                     <VIcon
-                      @click="
-                        (event) => {
-                          event.stopPropagation();
-                          openEditDrawer(variant.id);
-                        }
-                      "
+                      @click.stop="openEditDrawer(variant.id)"
                       size="30"
                       icon="bx-edit-alt"
-                      style="color: rgb(var(--v-global-theme-primary))"
+                      color="primary"
                       class="mx-2"
                     ></VIcon>
                   </Can>
@@ -277,7 +267,9 @@ const deleteItem = async function (id) {
 
             <tfoot v-show="!isFetching && !products.length">
               <tr>
-                <td colspan="9" class="text-center text-body-1">Нет доступных данных</td>
+                <td colspan="9" class="text-center text-body-1">
+                  Нет доступных данных
+                </td>
               </tr>
             </tfoot>
           </VTable>
@@ -292,7 +284,6 @@ const deleteItem = async function (id) {
             <VPagination
               v-if="products.length"
               v-model="currentPage"
-              
               :length="totalPage"
             />
           </VCardText>
@@ -300,15 +291,27 @@ const deleteItem = async function (id) {
       </VCol>
     </VRow>
 
-    <AddNewDrawer
-      v-model:isDrawerOpen="isAddNewDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
+    <DeleteItemDialog
+      @confirm="deleteItem"
+      :isDialogVisible="isDialogVisible"
+      @update:isDialogVisible="isDialogVisible = $event"
+      :role="deleteData"
+      :isDeleting="isDeleting"
     />
-    <UpdateDrawer
-      :id="updateID"
-      v-model:isDrawerOpen="isUpdateDrawerVisible"
-      @fetchDatas="() => fetchData(true)"
-    />
+
+    <Can I="create" a="ProductVariant">
+      <AddNewDrawer
+        v-model:isDrawerOpen="isAddNewDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
+    <Can I="update" a="ProductVariant">
+      <UpdateDrawer
+        :id="updateID"
+        v-model:isDrawerOpen="isUpdateDrawerVisible"
+        @fetchDatas="() => fetchData(true)"
+      />
+    </Can>
 
     <BarcodeDialog
       v-model:isDrawerOpen="isBarcodeDialogVisible"

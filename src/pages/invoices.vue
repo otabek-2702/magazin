@@ -6,6 +6,9 @@ import InfoDialog from "@/views/invoice/InfoDialog.vue";
 import AddNewDialog from "@/views/invoice/AddNewDialog.vue";
 import { formatTimestamp, transformPrice } from "@/helpers";
 import ConfirmCopyInvoiceDialog from "@/components/ConfirmCopyInvoiceDialog.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
+
+const { can } = useAppAbility();
 
 const searchQuery = ref("");
 const finalSearch = ref("");
@@ -53,7 +56,7 @@ const fetchData = async (force = false) => {
 // Get main datas end
 
 // search
-const searchElements = () => {
+const handleSearch = () => {
   finalSearch.value = searchQuery.value;
   currentPage.value = 1;
   fetchData(true);
@@ -126,41 +129,51 @@ const copyInvoiceDialogId = ref(0);
   <section>
     <VRow>
       <VCol cols="12">
-        <VCard title="Фильтры поиска">
-          <VCardText class="d-flex flex-wrap">
-            <VSpacer />
+        <VCard>
+          <!-- 👉 Head -->
+          <VCardItem>
+            <VRow>
+              <VCol cols="auto">
+                <VCardTitle class="pa-0"> Накладные о приходе </VCardTitle>
+              </VCol>
+              <VSpacer />
 
-            <VCol cols="6" class="app-user-search-filter d-flex align-center">
-              <VTextField
-                v-model="searchQuery"
-                @keyup.enter="searchElements"
-                placeholder="Поиск "
-                :rules="[]"
-                density="compact"
-                class="me-6"
-              />
-              <Can I="add" a="Invoices">
-                <AddNewDialog @fetchDatas="() => fetchData(true)" />
-              </Can>
-            </VCol>
-          </VCardText>
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск"
+                  :rules="[]"
+                  density="compact"
+                />
+              </VCol>
+              <VCol cols="auto">
+                <Can I="create" a="Invoice">
+                  <AddNewDialog @fetchDatas="() => fetchData(true)" />
+                </Can>
+              </VCol>
+            </VRow>
+          </VCardItem>
 
           <VDivider />
 
-          <VTable class="text-no-wrap">
+          <VTable>
             <thead>
               <tr>
-                <th style="width: 48px">ID</th>
+                <th data-column="id">ID</th>
                 <th>ПАРТИЯ</th>
                 <th>КУРС</th>
                 <th>СТАТУС</th>
                 <th>ОБЩАЯ СУММА</th>
                 <th>ДАТА СОЗДАНИЯ</th>
-                <th>ДЕЙСТВИЯ</th>
+                <th data-column="actions" v-if="can('copy', 'Invoice')">
+                  ДЕЙСТВИЯ
+                </th>
               </tr>
             </thead>
 
-            <tbody v-if="!isFetching">
+            <tbody>
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
@@ -188,19 +201,21 @@ const copyInvoiceDialogId = ref(0);
                   }}{{ invoice.currency.symbol }}
                 </td>
                 <td>{{ formatTimestamp(invoice.updated_at) }}</td>
-                <td>
-                  <VIcon
-                    @click.stop="copyInvoiceDialogId = invoice.id"
-                    size="26"
-                    icon="mdi-content-copy"
-                    color="primary"
-                    v-if="invoice.status === 'Подтверждено'"
-                  ></VIcon>
-                  <span v-else></span>
+                <td data-column="actions">
+                  <Can I="copy" a="Invoice">
+                    <VIcon
+                      @click.stop="copyInvoiceDialogId = invoice.id"
+                      size="26"
+                      icon="mdi-content-copy"
+                      color="primary"
+                      v-if="invoice.status === 'Подтверждено'"
+                    />
+                    <span v-else></span>
+                  </Can>
                 </td>
               </tr>
             </tbody>
-            <Skeleton :count="7" v-show="isFetching" />
+            <Skeleton v-show="isFetching" />
 
             <tfoot v-show="!isFetching && !invoices.length">
               <tr>
@@ -233,7 +248,6 @@ const copyInvoiceDialogId = ref(0);
       :id="infoDialogItemId"
       @fetchDatas="() => fetchData(true)"
     />
-
     <ConfirmCopyInvoiceDialog
       v-model:id="copyInvoiceDialogId"
       endpoint-from="invoices"

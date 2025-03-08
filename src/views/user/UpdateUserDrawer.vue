@@ -148,7 +148,7 @@ watchEffect(fetchRoles);
               </VCol>
 
               <VCol cols="12">
-                <VTextField v-model="password" label="Пароль" />
+                <VTextField v-model="password" label="Пароль" :rules="[]" />
               </VCol>
               <VCol cols="12">
                 <VSelect
