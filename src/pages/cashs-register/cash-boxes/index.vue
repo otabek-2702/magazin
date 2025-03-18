@@ -116,9 +116,8 @@ const isVisible =
                   />
                 </td>
                 <td data-column="actions">
-                  <Can I="update" a="CashboxTruncate">
+                  <Can I="truncate" a="CashBox">
                     <VIcon
-                      v-if="isVisible"
                       size="30"
                       icon="mdi-cash-multiple"
                       color="success"

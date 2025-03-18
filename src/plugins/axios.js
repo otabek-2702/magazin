@@ -36,7 +36,11 @@ const handleRedirect = (status) => {
       localStorage.removeItem("userAbilities");
       localStorage.removeItem("userData");
       localStorage.removeItem("accessToken");
-      path = `/login?to=${router.currentRoute.value.path}`;
+      path = `/login?to=${
+        router.currentRoute.value.path === "/login"
+          ? ""
+          : router.currentRoute.value.path
+      }`;
       break;
     case 403:
       path = "/forbidden";

@@ -113,9 +113,9 @@ watch(dateValue, (newVal, oldValue) => {
     to_date: to || from,
   };
 });
-const isVisible =
-  !!localStorage.getItem("featureAccess") ||
-  JSON.parse(localStorage.getItem("userData"))?.user_id === 1;
+//const isVisible =
+//  !!localStorage.getItem("featureAccess") ||
+//  JSON.parse(localStorage.getItem("userData"))?.user_id === 1;
 </script>
 
 <template>
@@ -211,14 +211,15 @@ const isVisible =
               </VCol>
               <VSpacer />
               <VCol cols="auto">
-                <VBtn
-                  v-if="isVisible"
-                  color="success"
-                  prepend-icon="mdi-cash-multiple"
-                  class="font-weight-bold"
-                  @click="confirmId = route?.params?.id"
-                  >Инкассация
-                </VBtn>
+                <Can I="truncate" a="CashBox">
+                  <VBtn
+                    color="success"
+                    prepend-icon="mdi-cash-multiple"
+                    class="font-weight-bold"
+                    @click="confirmId = route?.params?.id"
+                    >Инкассация
+                  </VBtn>
+                </Can>
               </VCol>
               <VCol cols="auto">
                 <Can I="create" a="CashboxOutput">
