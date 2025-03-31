@@ -2,12 +2,20 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Uzbek } from "flatpickr/dist/l10n/uz";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
-import { formatTimestamp, getFormattedToday, transformPrice } from "@/helpers";
+import {
+  formatTimestamp,
+  getFormattedToday,
+  removeSpaces,
+  transformPrice,
+} from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
 import AddNewOutputDrawer from "@/views/cash-register/cash-box/AddNewOutputDrawer.vue";
 import AnimatedNumber from "@/@core/components/AnimatedNumber.vue";
 import ConfirmDialog from "@/views/cash-register/cash-box/ConfirmDialog.vue";
+import PaymentInfoDialog from "@/views/cash-register/InfoDialog.vue";
+import { useAppAbility } from "@/plugins/casl/useAppAbility";
 
+const { can } = useAppAbility();
 const route = useRoute();
 
 const {
@@ -115,9 +123,26 @@ watch(dateValue, (newVal, oldValue) => {
     to_date: to || from,
   };
 });
-//const isVisible =
-//  !!localStorage.getItem("featureAccess") ||
-//  JSON.parse(localStorage.getItem("userData"))?.user_id === 1;
+
+// Payment Info Dialog
+
+const paymentInfoDialogOpen = ref(false);
+const paymentInfoDialogId = ref(0);
+const canShowPaymentInvoice = computed(() => can("show", "Payments"));
+const isPaymentInvoiceComment = (comment, type) =>
+  /^\d+ ID from Payment Invoice$\b/.test(comment) &&
+  (type == "Прибыл" || type == "Приход");
+
+const handleInfoDialogOpen = (comment, type) => {
+  if (!canShowPaymentInvoice.value || !isPaymentInvoiceComment(comment, type))
+    return;
+
+  const id = Number(comment.match(/^(\d+) ID from Payment Invoice$/)?.[1]) || 0;
+  if (id) {
+    paymentInfoDialogId.value = id;
+    paymentInfoDialogOpen.value = true;
+  }
+};
 </script>
 
 <template>
@@ -196,10 +221,20 @@ watch(dateValue, (newVal, oldValue) => {
         <VCard>
           <VCardText>
             <VRow>
-              <VCol cols="auto">
+              <VCol cols="12" sm="auto">
                 <VCardTitle class="pa-0">
                   {{ metaDatas?.cashbox?.name ?? "Касса №" }}
                 </VCardTitle>
+              </VCol>
+              <VCol cols="12" sm="3">
+                <AppDateTimePicker
+                  v-model="dateValue"
+                  :config="{ mode: 'range', locale: Uzbek }"
+                  placeholder="Выберите диапазон дат"
+                  clearable
+                  @click:clear="resetDate"
+                  density="compact"
+                />
               </VCol>
 
               <VSpacer />
@@ -220,33 +255,6 @@ watch(dateValue, (newVal, oldValue) => {
                     >Добавить Расход
                   </VBtn>
                 </Can>
-              </VCol>
-            </VRow>
-            <VRow>
-              <VCol cols="12" sm="3">
-                <AppDateTimePicker
-                  v-model="dateValue"
-                  :config="{ mode: 'range', locale: Uzbek }"
-                  placeholder="Выберите диапазон дат"
-                  clearable
-                  @click:clear="resetDate"
-                  density="compact"
-                />
-              </VCol>
-
-              <VSpacer />
-
-              <!-- 👉 Search  -->
-              <VCol cols="12" sm="3">
-                <VTextField
-                  v-model="searchQuery"
-                  @keyup.enter="handleSearch"
-                  placeholder="Поиск чека"
-                  :rules="[]"
-                  density="compact"
-                  clearable
-                  clearIcon="bx-x"
-                />
               </VCol>
             </VRow>
           </VCardText>
@@ -271,7 +279,12 @@ watch(dateValue, (newVal, oldValue) => {
               <tr
                 v-for="invoice in invoices"
                 :key="invoice.id"
-                class="cursor-pointer"
+                :class="{
+                  'cursor-pointer':
+                    canShowPaymentInvoice &&
+                    isPaymentInvoiceComment(invoice.comment, invoice.type),
+                }"
+                @click="handleInfoDialogOpen(invoice.comment, invoice.type)"
               >
                 <td>{{ invoice.id }}</td>
                 <td>{{ formatTimestamp(invoice?.created_at) }}</td>
@@ -327,6 +340,12 @@ watch(dateValue, (newVal, oldValue) => {
       />
     </Can>
     <ConfirmDialog v-model:id="confirmId" @fetchDatas="() => fetchData(true)" />
+
+    <PaymentInfoDialog
+      :id="paymentInfoDialogId"
+      v-model:isDialogOpen="paymentInfoDialogOpen"
+      @fetchDatas="() => {}"
+    />
   </section>
 </template>
 
