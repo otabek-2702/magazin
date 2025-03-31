@@ -10,7 +10,7 @@ const isDialogVisible = ref(false);
 const isFetching = ref(false);
 const isFetchingVariant = ref(false);
 const refForm = ref();
-const cashbox_id = ref(localStorage.getItem("cashbox_id"));
+const cashbox_id = ref();
 const sku_ref = ref();
 const product_variant_sku = ref();
 const product_variant_data = ref();
@@ -68,10 +68,7 @@ const handleDialogModelValueUpdate = (val) => {
     nextTick(() => {
       refForm.value?.reset();
       refForm.value?.resetValidation();
-      const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
-      if (storageCashboxId && !cashbox_id.value) {
-        cashbox_id.value = storageCashboxId;
-      }
+      setSavedCashBoxId();
     });
   }
 };
@@ -79,8 +76,20 @@ const handleDialogModelValueUpdate = (val) => {
 // Cash register
 const cashboxes_list = ref([]);
 
-onMounted(() => {
-  fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
+const setSavedCashBoxId = () => {
+  const savedCashBoxId = Number(localStorage.getItem("cashbox_id"));
+  if (cashboxes_list.value.some((el) => el.id == savedCashBoxId)) {
+    console.log("succ", savedCashBoxId);
+    nextTick(() => {
+      cashbox_id.value = savedCashBoxId;
+    });
+  }
+};
+
+onMounted(async () => {
+  await fetchOptions("/cashboxes", cashboxes_list, "cashboxes");
+
+  setSavedCashBoxId();
 });
 
 const activeCashRLabel = computed(() => {
@@ -93,10 +102,6 @@ watch(cashbox_id, (newVal) => {
     localStorage.setItem("cashbox_id", Number(newVal));
     return;
   }
-  const storageCashboxId = Number(localStorage.getItem("cashbox_id"));
-  if (storageCashboxId) {
-    cashbox_id.value = storageCashboxId;
-  }
 });
 // Cash register end
 
@@ -104,7 +109,7 @@ watch(cashbox_id, (newVal) => {
 const findProductVariant = async (raw_sku) => {
   try {
     isFetchingVariant.value = true;
-    const sku = raw_sku.toString().replace(/ЫЛГ/g, "SKU");
+    const sku = raw_sku?.toString().replace(/ЫЛГ/g, "SKU");
     const response = await axios.get(`/showcases?search=${sku}`);
 
     if (response.status === 200 && response.data.showcase[0]) {
@@ -258,7 +263,8 @@ const calculateTotalSale = computed(() => {
 
   return transformPrice(
     product_variants.value.reduce(
-      (accumulator, el) => accumulator + el.sale ?? 0,
+      (accumulator, el) =>
+        accumulator + el.sale * (!el.no_own_sale ? el.quantity : 1) ?? 0,
       0
     )
   );
@@ -270,7 +276,9 @@ const calculateTotalPriceWithSale = computed(() => {
   return transformPrice(
     product_variants.value.reduce(
       (accumulator, el) =>
-        accumulator + (el.price * el.quantity - el.sale) ?? 0,
+        accumulator +
+          (el.price * el.quantity -
+            el.sale * (!el.no_own_sale ? el.quantity : 1)) ?? 0,
       0
     )
   );
@@ -284,7 +292,7 @@ onMounted(() => {
   fetchOptions("persons", sellers_list, "persons");
 });
 
-// Aksiya
+// Skidka
 const reloadSales = () => {
   // return;
   let promotedProductsCount = 0;
@@ -456,7 +464,12 @@ const reloadSales = () => {
                     </td>
                     <td>
                       <b>
-                        {{ transformPrice(variant.sale) }}
+                        {{
+                          transformPrice(
+                            variant.sale *
+                              (!variant.no_own_sale ? variant.quantity : 1)
+                          )
+                        }}
                         {{ Number(variant.sale) ? "so'm" : "" }}
                       </b>
                     </td>

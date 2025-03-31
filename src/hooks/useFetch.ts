@@ -62,7 +62,7 @@ export function useFetch<T = any>(config: UseFetchConfig) {
       firstIndex + state.value.rowsPerPage - 1,
       state.value.totalItems
     );
-    return `${firstIndex}-${lastIndex} of ${state.value.totalItems}`;
+    return `${firstIndex}-${lastIndex} из ${state.value.totalItems}`;
   });
 
   // Core fetch function

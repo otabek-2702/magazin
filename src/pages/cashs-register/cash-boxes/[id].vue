@@ -16,6 +16,8 @@ const {
   totalPages: totalPage,
   paginationData,
   fetchData,
+  handleSearch,
+  searchQuery,
   isFetching,
   metaDatas,
 } = useFetch({
@@ -199,16 +201,7 @@ watch(dateValue, (newVal, oldValue) => {
                   {{ metaDatas?.cashbox?.name ?? "Касса №" }}
                 </VCardTitle>
               </VCol>
-              <VCol cols="12" sm="3">
-                <AppDateTimePicker
-                  v-model="dateValue"
-                  :config="{ mode: 'range', locale: Uzbek }"
-                  placeholder="Выберите диапазон дат"
-                  clearable
-                  @click:clear="resetDate"
-                  density="compact"
-                />
-              </VCol>
+
               <VSpacer />
               <VCol cols="auto">
                 <Can I="truncate" a="CashBox">
@@ -227,6 +220,33 @@ watch(dateValue, (newVal, oldValue) => {
                     >Добавить Расход
                   </VBtn>
                 </Can>
+              </VCol>
+            </VRow>
+            <VRow>
+              <VCol cols="12" sm="3">
+                <AppDateTimePicker
+                  v-model="dateValue"
+                  :config="{ mode: 'range', locale: Uzbek }"
+                  placeholder="Выберите диапазон дат"
+                  clearable
+                  @click:clear="resetDate"
+                  density="compact"
+                />
+              </VCol>
+
+              <VSpacer />
+
+              <!-- 👉 Search  -->
+              <VCol cols="12" sm="3">
+                <VTextField
+                  v-model="searchQuery"
+                  @keyup.enter="handleSearch"
+                  placeholder="Поиск чека"
+                  :rules="[]"
+                  density="compact"
+                  clearable
+                  clearIcon="bx-x"
+                />
               </VCol>
             </VRow>
           </VCardText>

@@ -79,11 +79,12 @@ export const fetchOptions = async (
     if (response.status === 200) {
       if (customization.is) {
         dataState.value = response.data[resourceKey].map(customization.method);
-      } else {
-        dataState.value = resourceKey
-          ? response.data[resourceKey]
-          : response.data;
+        return;
       }
+      dataState.value = resourceKey
+        ? response.data[resourceKey]
+        : response.data;
+      return;
     }
   } catch (error) {
     console.error(error);

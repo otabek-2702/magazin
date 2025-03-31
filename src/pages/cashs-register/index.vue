@@ -18,6 +18,8 @@ const {
   totalPages: totalPage,
   paginationData,
   fetchData,
+  handleSearch,
+  searchQuery,
   isFetching,
 } = useFetch({
   baseUrl: "payment_invoices",
@@ -80,6 +82,19 @@ watch(dateValue, (newVal, oldValue) => {
             />
           </VCol>
           <VSpacer />
+
+          <!-- 👉 Search  -->
+          <VCol cols="12" sm="3">
+            <VTextField
+              v-model="searchQuery"
+              @keyup.enter="handleSearch"
+              placeholder="Поиск чека"
+              :rules="[]"
+              density="compact"
+              clearable
+              clearIcon="bx-x"
+            />
+          </VCol>
 
           <VCol cols="auto">
             <Can I="create" a="Payment">

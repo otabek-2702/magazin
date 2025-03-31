@@ -135,8 +135,6 @@ const metaDatasList = computed(() => [
                 </VBtn>
               </VCol>
             </VRow>
-          </VCardItem>
-          <VCardText>
             <VRow>
               <VCol cols="auto">
                 <Can I="create" a="DepartureInvoice">
@@ -159,7 +157,7 @@ const metaDatasList = computed(() => [
                 />
               </VCol>
             </VRow>
-          </VCardText>
+          </VCardItem>
 
           <VDivider />
 
