@@ -79,7 +79,6 @@ const cashboxes_list = ref([]);
 const setSavedCashBoxId = () => {
   const savedCashBoxId = Number(localStorage.getItem("cashbox_id"));
   if (cashboxes_list.value.some((el) => el.id == savedCashBoxId)) {
-    console.log("succ", savedCashBoxId);
     nextTick(() => {
       cashbox_id.value = savedCashBoxId;
     });
