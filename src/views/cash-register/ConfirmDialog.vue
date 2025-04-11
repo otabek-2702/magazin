@@ -288,6 +288,18 @@ const changeClientIdentification = () => {
     nextTick(() => client_qrcode_ref.value?.focus());
   }
 };
+
+watch(sale_price_from_cashback, (newVal) => {
+  const cashback_sale = removeSpaces(newVal);
+  const total_price_with_sale =
+    removeSpaces(props.paymentInvoice?.total_amount) -
+    removeSpaces(sale_price.value);
+  if (cashback_sale && cashback_sale >= total_price_with_sale) {
+    multi_prices.value = [];
+  } else if (!multi_prices.value?.length) {
+    multi_prices.value.push({ type_id: null, price: null });
+  }
+});
 </script>
 
 <template>
@@ -395,6 +407,12 @@ const changeClientIdentification = () => {
                     (v) =>
                       !(removeSpaces(v) > clientData.balance) ||
                       'Превышен лимит скидки по кешбек-счёту',
+                    (v) =>
+                      !(
+                        removeSpaces(v) >
+                        removeSpaces(props.paymentInvoice?.total_amount) -
+                          removeSpaces(sale_price)
+                      ) || '',
                   ]"
                   class="text-field-error_size"
                   @focus="autoSelectInputValue"
