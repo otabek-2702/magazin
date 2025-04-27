@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config-vue": "0.38.5",
+    "@capacitor/assets": "^3.0.5",
     "@fullcalendar/core": "6.1.6",
     "@fullcalendar/daygrid": "6.1.6",
     "@fullcalendar/interaction": "6.1.6",

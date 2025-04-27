@@ -1,5 +1,5 @@
 <script setup>
-import { removeSpaces, transformPrice } from "@/helpers";
+import { removeSpaces, transformDecimalPrice, transformPrice } from "@/helpers";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -15,6 +15,14 @@ const props = defineProps({
     type: Number,
     required: false,
   },
+  cashbackBalance: {
+    type: Number,
+    required: true,
+  },
+  clientId: {
+    type: Number,
+    required: true,
+  },
 });
 
 const checkSale = computed(
@@ -22,7 +30,8 @@ const checkSale = computed(
 );
 
 const cashbackSale = computed(
-  () => Number(props.paymentInvoice.cashback_discount_price) || props.cashbackSale
+  () =>
+    Number(props.paymentInvoice.cashback_discount_price) || props.cashbackSale
 );
 
 const hasSale = computed(() => checkSale.value > 0);
@@ -38,10 +47,11 @@ const formatDate = (date) => {
   });
 };
 
-const totalPriceWithSales = computed(() =>
-  transformPrice(
-    removeSpaces(props.paymentInvoice?.total_amount) - checkSale.value
-  )
+const totalPriceWithSales = computed(
+  () =>
+    removeSpaces(props.paymentInvoice?.total_amount) -
+    checkSale.value -
+    cashbackSale.value
 );
 
 const hasSaleProduct = (item) => Number(item.sale);
@@ -123,10 +133,18 @@ const hasSaleProduct = (item) => Number(item.sale);
           <span>-{{ transformPrice(checkSale) }} so'm</span>
         </div>
 
+        <div v-if="props.clientId" class="cash-balance-info">
+          <span>
+            <b>Кэшбэк счёт:</b>
+            {{ transformDecimalPrice(props.cashbackBalance) }}
+          </span>
+        </div>
+
         <div v-if="hasCashbackSale" class="total-line discount">
           <span>Скидка с кешбека:</span>
           <span>-{{ transformPrice(cashbackSale) }} so'm</span>
         </div>
+
         <div
           class="total-line final-total"
           :class="{
@@ -134,7 +152,27 @@ const hasSaleProduct = (item) => Number(item.sale);
           }"
         >
           <span>ИТОГО:</span>
-          <span>{{ totalPriceWithSales }} SO'M</span>
+          <span>{{ transformPrice(totalPriceWithSales) }} SO'M</span>
+        </div>
+        <div v-if="props.clientId" class="cash-balance-info">
+          <span>
+            <b>Кэшбэк :</b>
+            {{ transformDecimalPrice(totalPriceWithSales * 0.01) }}
+            so'm
+          </span>
+        </div>
+        <div v-if="props.clientId" class="cash-balance-info">
+          <span>
+            <b>Кэшбэк счёт:</b>
+            {{
+              transformDecimalPrice(
+                (props.cashbackBalance ?? 0) -
+                  (cashbackSale ?? 0) +
+                  totalPriceWithSales * 0.01
+              )
+            }}
+            so'm
+          </span>
         </div>
       </div>
 
@@ -151,10 +189,10 @@ const hasSaleProduct = (item) => Number(item.sale);
   position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
+  // width: 1px;
+  // height: 1px;
+  // overflow: hidden;
+  // opacity: 0;
 }
 
 .receipt {
@@ -252,7 +290,7 @@ const hasSaleProduct = (item) => Number(item.sale);
           font-size: 14pt;
         }
       }
-      span:first-child{
+      span:first-child {
         text-align: left;
       }
     }
@@ -271,6 +309,12 @@ const hasSaleProduct = (item) => Number(item.sale);
       &-border {
         border-top: 1px dashed #000;
       }
+    }
+    .cash-balance-info {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 500;
+      font-size: 10pt;
     }
   }
 

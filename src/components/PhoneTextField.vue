@@ -1,6 +1,6 @@
 <script setup>
 import { formatPhone } from "@/helpers";
-import { useSlots } from "vue";
+import { useSlots, watchEffect } from "vue";
 import { watch } from "vue";
 
 const props = defineProps(["modelValue"]);
@@ -12,10 +12,10 @@ const validatePhone = (value) => {
   return phonePattern.test(value) || "Неправильный формат номера телефона";
 };
 
-const handleInput = (value) => {
-  const formatted = formatPhone(value);
-  emit("update:modelValue", formatted);
-};
+// const handleInput = (value) => {
+//   const formatted = formatPhone(value);
+//   emit("update:modelValue", formatted);
+// };
 
 const phone_number = ref(props.modelValue);
 
@@ -47,14 +47,15 @@ watch(
     label="Номер телефона"
     v-model="phone_number"
     :rules="[validatePhone]"
-    mask="### ## ##"
+    mask="## ### ## ##"
     clearable
   >
-    <template #prepend>+998</template>
+    <template #prepend >+998</template>
     <template v-for="(_, slot) in slots" #[slot]="slotProps">
       <slot :name="slot" v-bind="slotProps"></slot>
     </template>
   </VTextField>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>
