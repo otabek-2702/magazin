@@ -255,25 +255,36 @@ watch(totalPriceWithSale, (newVal) => {
 });
 
 // Client
+const confirmed_client = ref(false);
 const client_identify_by_qrcode = ref(false);
 const client_qrcode = ref();
 const client_qrcode_ref = ref();
 const isFetchingClient = ref(false);
 const clientData = ref({});
 
-const findClientData = async () => {
+const findClientData = async (byPhone) => {
   try {
     isFetchingClient.value = true;
     const response = await axios.get("clients/search", {
-      params: { search: client_qrcode.value },
+      params: {
+        search: byPhone
+          ? "+998" + removeSpaces(phone_number.value)
+          : client_qrcode.value,
+      },
     });
 
-    clientData.value = response.data.client;
-    phone_number.value = formatPhone(
-      response.data.client.phone.replace(/^\+998/, "")
-    );
-    client_identify_by_qrcode.value = false;
-    client_qrcode.value = null;
+    clientData.value = await response.data?.client;
+    console.log(clientData.value, response.data);
+    if (!byPhone) {
+      phone_number.value = formatPhone(
+        response.data.client.phone.replace(/^\+998/, "")
+      );
+      client_identify_by_qrcode.value = false;
+      client_qrcode.value = null;
+      confirmed_client.value = true;
+    } else {
+      confirmed_client.value = false;
+    }
   } catch (error) {
     console.error(error);
   } finally {
@@ -288,6 +299,19 @@ const changeClientIdentification = () => {
     nextTick(() => client_qrcode_ref.value?.focus());
   }
 };
+
+// Client by phone number
+watch(phone_number, (newVal) => {
+  const phonePattern = /^\d{2} \d{3} \d{2} \d{2}$/;
+
+  if (confirmed_client.value) return;
+
+  if (phonePattern.test(newVal)) {
+    findClientData(true);
+  } else {
+    clientData.value = {};
+  }
+});
 
 watch(sale_price_from_cashback, (newVal) => {
   const cashback_sale = removeSpaces(newVal);
@@ -389,7 +413,7 @@ watch(sale_price_from_cashback, (newVal) => {
               </p>
             </VCol>
 
-            <template v-if="clientData.id">
+            <template v-if="confirmed_client">
               <VCol cols="5">
                 <VSelect
                   :items="[{ title: 'Кэшбэк счёт', value: 0 }]"
@@ -451,8 +475,11 @@ watch(sale_price_from_cashback, (newVal) => {
                 label="Номер клиента"
                 v-model="phone_number"
                 v-if="!client_identify_by_qrcode"
-                :readonly="!!clientData.id"
-                :clearable="!clientData.id"
+                :readonly="confirmed_client"
+                :clearable="!confirmed_client"
+                variant="filled"
+                single-line
+                :loading="isFetchingClient"
               >
                 <template #append>
                   <VIcon
@@ -470,7 +497,7 @@ watch(sale_price_from_cashback, (newVal) => {
                 v-model="client_qrcode"
                 v-if="client_identify_by_qrcode"
                 ref="client_qrcode_ref"
-                @keydown.enter.prevent="findClientData"
+                @keydown.enter.prevent="findClientData(false)"
                 variant="filled"
                 :loading="isFetchingClient"
               >
@@ -537,8 +564,10 @@ watch(sale_price_from_cashback, (newVal) => {
   <CheckDialog
     v-if="props.paymentInvoice"
     :salePrice="removeSpaces(sale_price).toString()"
+    :cashbackBalance="clientData?.balance"
     :cashbackSale="removeSpaces(sale_price_from_cashback)"
     :paymentInvoice="props.paymentInvoice"
+    :clientId="clientData.id"
   />
 </template>
 

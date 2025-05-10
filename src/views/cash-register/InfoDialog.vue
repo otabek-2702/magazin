@@ -203,6 +203,7 @@ const resolveInvoiceStatus = (status) => {
                       <b>{{
                         transformPrice(payment_invoice.cashback_discount_price)
                       }}</b>
+                      {{ Number(payment_invoice.cashback_discount_price) ? "so'm" : "" }}
                     </td>
                     <td class="text-body-1 pt-3">
                       Скидка на чек: <br />{{
