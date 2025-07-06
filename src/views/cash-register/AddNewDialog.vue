@@ -294,37 +294,46 @@ onMounted(() => {
 // Skidka
 const reloadSales = () => {
   // return;
-  let promotedProductsCount = 0;
+  //  let promotedProductsCount = 0;
+  //
+  //  product_variants.value?.forEach((prod, index) => {
+  //    if (prod.sale === 0 || prod.no_own_sale) {
+  //      product_variants.value[index] = {
+  //        ...prod,
+  //        no_own_sale: true,
+  //      };
+  //      promotedProductsCount += prod.quantity;
+  //    }
+  //  });
+  //
+  //  if (promotedProductsCount < 2) {
+  //    // Reset sales if total count is less than 2
+  //    product_variants.value.forEach((variant) => {
+  //      if (variant.no_own_sale) {
+  //        variant.sale = 0;
+  //      }
+  //    });
+  //    return;
+  //  }
+  //
+  //  // Calculate free products (total count divided by 2)
+  //  const prodCountForSale = Math.floor(promotedProductsCount / 2);
+  //
+  //  // Reset all sales first
+  //  product_variants.value.forEach((variant) => {
+  //    if (variant.no_own_sale) {
+  //      variant.sale = 0;
+  //    }
+  //  });
 
-  product_variants.value?.forEach((prod, index) => {
-    if (prod.sale === 0 || prod.no_own_sale) {
-      product_variants.value[index] = {
-        ...prod,
-        no_own_sale: true,
-      };
-      promotedProductsCount += prod.quantity;
-    }
-  });
-
-  if (promotedProductsCount < 2) {
-    // Reset sales if total count is less than 2
-    product_variants.value.forEach((variant) => {
-      if (variant.no_own_sale) {
-        variant.sale = 0;
-      }
-    });
-    return;
+  const now = new Date();
+  if (now > 20 && now < 2) {
+    product_variants.value = product_variants.value.map((variant) => ({
+      ...variant,
+      sale: variant.price * variant.quantity * 0.3,
+      no_own_sale: true,
+    }));
   }
-
-  // Calculate free products (total count divided by 2)
-  const prodCountForSale = Math.floor(promotedProductsCount / 2);
-  
-  // Reset all sales first
-  product_variants.value.forEach((variant) => {
-    if (variant.no_own_sale) {
-      variant.sale = 0;
-    }
-  });
 
   // Distribute free products sale based on lowest price items first
   const sortedVariants = [...product_variants.value].sort((a, b) => {
@@ -338,22 +347,22 @@ const reloadSales = () => {
     }
   });
 
-  // 1+1 Aksiya
-  let remainingFreeProds = prodCountForSale;
-
-  for (let variant of sortedVariants) {
-    if (remainingFreeProds <= 0) break;
-    if (!variant.no_own_sale) continue;
-  
-    // Calculate how many free products can be taken from this variant
-    const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
-  
-    // Calculate sale amount for these free products
-    variant.sale = availableFreeProds * (variant.price / 2);
-  
-    // Reduce remaining free products
-    remainingFreeProds -= availableFreeProds;
-  }
+  //  // 1+1 Aksiya
+  //  let remainingFreeProds = prodCountForSale;
+  //
+  //  for (let variant of sortedVariants) {
+  //    if (remainingFreeProds <= 0) break;
+  //    if (!variant.no_own_sale) continue;
+  //
+  //    // Calculate how many free products can be taken from this variant
+  //    const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
+  //
+  //    // Calculate sale amount for these free products
+  //    variant.sale = availableFreeProds * (variant.price / 2);
+  //
+  //    // Reduce remaining free products
+  //    remainingFreeProds -= availableFreeProds;
+  //  }
   product_variants.value = sortedVariants;
 };
 </script>
