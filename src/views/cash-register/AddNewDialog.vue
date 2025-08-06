@@ -326,14 +326,15 @@ const reloadSales = () => {
   //    }
   //  });
 
-  const now = new Date();
-  if (now > 20 && now < 2) {
-    product_variants.value = product_variants.value.map((variant) => ({
-      ...variant,
-      sale: variant.price * variant.quantity * 0.3,
-      no_own_sale: true,
-    }));
-  }
+  // aksiya after 8 30%
+  //const now = new Date();
+  //if (now > 20 && now < 2) {
+  //  product_variants.value = product_variants.value.map((variant) => ({
+  //    ...variant,
+  //    sale: variant.price * variant.quantity * 0.3,
+  //    no_own_sale: true,
+  //  }));
+  //}
 
   // Distribute free products sale based on lowest price items first
   const sortedVariants = [...product_variants.value].sort((a, b) => {
