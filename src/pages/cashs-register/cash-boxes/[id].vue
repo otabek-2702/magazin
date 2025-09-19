@@ -97,12 +97,20 @@ const invoicesListMeta = computed(() => [
       stats: metaDatas.value.negative_sum,
     },
   ],
-  {
-    icon: "mdi-bank",
-    color: "primary",
-    title: "Инкассация",
-    stats: metaDatas.value.clear_sum,
-  },
+  [
+    {
+      icon: "mdi-bank",
+      color: "primary",
+      title: "Инкассация",
+      stats: metaDatas.value.clear_sum,
+    },
+    {
+      icon: "mdi-cash-refund",
+      color: "warning",
+      title: "Возврат",
+      stats: metaDatas.value.return_sum,
+    },
+  ],
 ]);
 
 const isAddNewOutputDrawerVisible = ref(false);
