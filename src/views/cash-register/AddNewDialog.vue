@@ -4,6 +4,16 @@ import axios from "@axios";
 import { toast } from "vue3-toastify";
 import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import ConfirmDialog from "./ConfirmDialog.vue";
+
+const CONFIG = {
+  promotion_type: 'promotion4', // 'promotion1' - 3 товара = 1 бесплатно (100% скидка на каждый 3-й самый дешевый)
+                                 // 'promotion2' - 1+1 акция (50% скидка на каждый 2-й товар)
+                                 // 'promotion3' - вечерняя акция (30% скидка на все с 20:00 до 01:00)
+                                 // 'promotion4' - 2+2=2 акция (4 товара = 2 самых дешевых бесплатно, 8 = 4 бесплатно, и т.д.)
+                                 // 'none' - без акций
+  min_promo_items: 2,
+};
+
 const emit = defineEmits(["fetchDatas"]);
 
 const isDialogVisible = ref(false);
@@ -293,78 +303,116 @@ onMounted(() => {
 
 // Skidka
 const reloadSales = () => {
-  // return;
-  //  let promotedProductsCount = 0;
-  //
-  //  product_variants.value?.forEach((prod, index) => {
-  //    if (prod.sale === 0 || prod.no_own_sale) {
-  //      product_variants.value[index] = {
-  //        ...prod,
-  //        no_own_sale: true,
-  //      };
-  //      promotedProductsCount += prod.quantity;
-  //    }
-  //  });
-  //
-  //  if (promotedProductsCount < 2) {
-  //    // Reset sales if total count is less than 2
-  //    product_variants.value.forEach((variant) => {
-  //      if (variant.no_own_sale) {
-  //        variant.sale = 0;
-  //      }
-  //    });
-  //    return;
-  //  }
-  //
-  //  // Calculate free products (total count divided by 2)
-  //  const prodCountForSale = Math.floor(promotedProductsCount / 2);
-  //
-  //  // Reset all sales first
-  //  product_variants.value.forEach((variant) => {
-  //    if (variant.no_own_sale) {
-  //      variant.sale = 0;
-  //    }
-  //  });
+  let promotedProductsCount = 0;
 
-  // aksiya after 8 30%
-  //const now = new Date();
-  //if (now > 20 && now < 2) {
-  //  product_variants.value = product_variants.value.map((variant) => ({
-  //    ...variant,
-  //    sale: variant.price * variant.quantity * 0.3,
-  //    no_own_sale: true,
-  //  }));
-  //}
+  product_variants.value?.forEach((prod, index) => {
+    if (prod.sale === 0 || prod.no_own_sale) {
+      product_variants.value[index] = {
+        ...prod,
+        no_own_sale: true,
+      };
+      promotedProductsCount += prod.quantity;
+    }
+  });
 
-  // Distribute free products sale based on lowest price items first
+  if (promotedProductsCount < CONFIG.min_promo_items) {
+    product_variants.value.forEach((variant) => {
+      if (variant.no_own_sale) {
+        variant.sale = 0;
+      }
+    });
+    return;
+  }
+
+  const prodCountForSale = Math.floor(promotedProductsCount / 2);
+
+  product_variants.value.forEach((variant) => {
+    if (variant.no_own_sale) {
+      variant.sale = 0;
+    }
+  });
+
   const sortedVariants = [...product_variants.value].sort((a, b) => {
     if (a.sale > b.sale) {
       return -1;
     } else if (a.no_own_sale < b.no_own_sale) {
       return 1;
     } else {
-      // If both have the same promoted status, sort by price
       return a.price - b.price;
     }
   });
 
-  //  // 1+1 Aksiya
-  //  let remainingFreeProds = prodCountForSale;
-  //
-  //  for (let variant of sortedVariants) {
-  //    if (remainingFreeProds <= 0) break;
-  //    if (!variant.no_own_sale) continue;
-  //
-  //    // Calculate how many free products can be taken from this variant
-  //    const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
-  //
-  //    // Calculate sale amount for these free products
-  //    variant.sale = availableFreeProds * (variant.price / 2);
-  //
-  //    // Reduce remaining free products
-  //    remainingFreeProds -= availableFreeProds;
-  //  }
+  const promoProducts = sortedVariants.filter(v => v.no_own_sale);
+  const totalPromoCount = promoProducts.reduce((sum, v) => sum + v.quantity, 0);
+
+  if (CONFIG.promotion_type === 'promotion1') {
+    applyPromotion1(promoProducts, totalPromoCount);
+  } else if (CONFIG.promotion_type === 'promotion2') {
+    applyPromotion2(sortedVariants, prodCountForSale);
+  } else if (CONFIG.promotion_type === 'promotion3') {
+    applyPromotion3(sortedVariants);
+  } else if (CONFIG.promotion_type === 'promotion4') {
+    applyPromotion4(promoProducts, totalPromoCount);
+  } else if (CONFIG.promotion_type === 'none') {
+    // no promotion
+  }
+
   product_variants.value = sortedVariants;
+};
+
+const applyPromotion1 = (promoProducts, totalPromoCount) => {
+  if (totalPromoCount >= 3) {
+    const freeCount = Math.floor(totalPromoCount / 3);
+    const sortedByPrice = [...promoProducts].sort((a, b) => a.price - b.price);
+
+    let remainingFree = freeCount;
+    for (let variant of sortedByPrice) {
+      if (remainingFree <= 0) break;
+
+      const freeFromThis = Math.min(variant.quantity, remainingFree);
+      variant.sale = freeFromThis * variant.price;
+      remainingFree -= freeFromThis;
+    }
+  }
+};
+
+const applyPromotion2 = (sortedVariants, prodCountForSale) => {
+  let remainingFreeProds = prodCountForSale;
+
+  for (let variant of sortedVariants) {
+    if (remainingFreeProds <= 0) break;
+    if (!variant.no_own_sale) continue;
+
+    const availableFreeProds = Math.min(variant.quantity, remainingFreeProds);
+    variant.sale = availableFreeProds * (variant.price / 2);
+    remainingFreeProds -= availableFreeProds;
+  }
+};
+
+const applyPromotion3 = (sortedVariants) => {
+  const now = new Date();
+  const hour = now.getHours();
+  if ((hour >= 20 && hour <= 23) || (hour >= 0 && hour <= 1)) {
+    sortedVariants.forEach((variant) => {
+      variant.sale = variant.price * variant.quantity * 0.3;
+    });
+  }
+};
+
+const applyPromotion4 = (promoProducts, totalPromoCount) => {
+  if (totalPromoCount >= 4) {
+    const freeCount = Math.floor(totalPromoCount / 4) * 2;
+    const sortedByPrice = [...promoProducts].sort((a, b) => a.price - b.price);
+
+    let remainingFree = freeCount;
+    for (let variant of sortedByPrice) {
+      if (remainingFree <= 0) break;
+
+      const freeFromThis = Math.min(variant.quantity, remainingFree);
+      variant.sale = freeFromThis * variant.price;
+      remainingFree -= freeFromThis;
+    }
+  }
 };
 </script>
 
