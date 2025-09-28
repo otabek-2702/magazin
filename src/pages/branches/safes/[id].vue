@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { Uzbek } from "flatpickr/dist/l10n/uz";
+import axios from "@axios";
 import Skeleton from "@/views/skeleton/Skeleton.vue";
 import {
   fetchOptions,
   formatTimestamp,
   getFormattedToday,
+  getPrettyDate,
   transformPrice,
 } from "@/helpers";
 import { useFetch } from "@/hooks/useFetch";
@@ -95,6 +97,43 @@ watch(dateValue, (newVal, oldValue) => {
     to_date: to || from,
   };
 });
+
+const isFetchingReport = ref(false);
+const downloadExcel = async () => {
+  try {
+    isFetchingReport.value = true;
+    const params = new URLSearchParams();
+
+    if (state.value.params.from_date) {
+      params.append('date_from', state.value.params.from_date);
+    }
+    if (state.value.params.to_date) {
+      params.append('date_to', state.value.params.to_date);
+    }
+
+    const response = await axios.get(
+      `/safes/${route?.params?.id}/movements/export?${params.toString()}`,
+      {
+        responseType: "blob",
+        headers: {
+          Accept: "application/octet-stream",
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `safe_movements_${route?.params?.id}_${getPrettyDate()}.xlsx`);
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } finally {
+    isFetchingReport.value = false;
+  }
+};
 </script>
 
 <template>
@@ -164,6 +203,19 @@ watch(dateValue, (newVal, oldValue) => {
                   density="compact"
                 />
               </VCol> -->
+
+              <VCol cols="auto">
+                <VBtn
+                  color="success"
+                  :disabled="isFetchingReport"
+                  :loading="isFetchingReport"
+                  prepend-icon="mdi-file-excel"
+                  class="font-weight-bold"
+                  @click="downloadExcel"
+                >
+                  EXCEL
+                </VBtn>
+              </VCol>
 
               <VCol cols="auto">
                 <Can I="create" a="SafePaymentTypeTransform">
