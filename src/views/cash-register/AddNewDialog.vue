@@ -6,11 +6,11 @@ import { autoSelectInputValue, fetchOptions, transformPrice } from "@/helpers";
 import ConfirmDialog from "./ConfirmDialog.vue";
 
 const CONFIG = {
-  promotion_type: 'promotion4', // 'promotion1' - 3 товара = 1 бесплатно (100% скидка на каждый 3-й самый дешевый)
-                                 // 'promotion2' - 1+1 акция (50% скидка на каждый 2-й товар)
-                                 // 'promotion3' - вечерняя акция (30% скидка на все с 20:00 до 01:00)
-                                 // 'promotion4' - 2+2=2 акция (4 товара = 2 самых дешевых бесплатно, 8 = 4 бесплатно, и т.д.)
-                                 // 'none' - без акций
+  promotion_type: 'none', // 'promotion1' - 3 товара = 1 бесплатно (100% скидка на каждый 3-й самый дешевый)
+                          // 'promotion2' - 1+1 акция (50% скидка на каждый 2-й товар)
+                          // 'promotion3' - вечерняя акция (30% скидка на все с 20:00 до 01:00)
+                          // 'promotion4' - 2+2=2 акция (4 товара = 2 самых дешевых бесплатно, 8 = 4 бесплатно, и т.д.)
+                          // 'none' - без акций
   min_promo_items: 2,
 };
 
