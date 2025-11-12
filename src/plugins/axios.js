@@ -2,9 +2,6 @@ import axios from "axios";
 import router from "@/router";
 import { toast } from "vue3-toastify";
 
-// Set default headers
-axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
-
 // Create an Axios instance
 const axiosIns = axios.create({
   baseURL: import.meta.env.VITE_DEV_MODE
